@@ -124,7 +124,7 @@ The badge reports whether the Realtor is logged in with that **specific characte
 ## Property integration (deployed; private secret required)
 
 - **Function:** `backend/edge-functions/brickivy-properties/index.ts` deployed as `brickivy-properties` with JWT check OFF (public, read-only, sanitized data only).
-- **OPFW V3:** `https://rest.opfw.net/1973/stocks_company_properties?select=company_id,property_id,property_name,property_type,property_address,property_cost&where=company_id%3D5`.
+- **OPFW V3:** `https://opfw.gg/api/rest/1973/stocks_company_properties?select=company_id,property_id,property_name,property_type,property_address,property_cost&where=company_id%3D5`.
 - **Server-only secret:** `OPFW_REST_TOKEN` in Brick & Ivy Supabase Edge Function Secrets, never GitHub.
 - **Frontend:** live `index.html`, `properties.html`, `property.html`; no fake fallback when production backend is configured.
 - **Docs and verification:** [backend/OPFW-PROPERTIES.md](backend/OPFW-PROPERTIES.md).
