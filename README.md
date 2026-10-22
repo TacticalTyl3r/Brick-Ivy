@@ -4,7 +4,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Discord staff sign-in, Owner-only Realtor Management and the public Realtor directory are active. The live OPFW property feed is deployed and wired to public pages; it requires the private `OPFW_REST_TOKEN` secret to complete data access. Property editing and image uploads are the next phase.
+**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Descriptions and advanced publishing controls remain future work.
 
 ## Pages
 
@@ -94,6 +94,12 @@ The protected API implementation is `backend/edge-functions/brickivy-admin/index
 The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` returns only approved published profiles. The public Realtor website uses local `data/realtors.json` until `assets/brickivy-config.js` is filled with a new project's **public** URL and publishable API key. After that it uses the backend.
 
 **Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
+
+## Multi-photo property galleries
+
+Each property supports **up to 24 JPEG, PNG, or WebP photos** (6 MiB/file). Owners can select multiple files at once, set a cover, reorder photos, and delete them inside the expandable **Manage photos** panel on `manage-properties.html`. Cover images appear on public listing cards; detail pages show the full photo gallery with arrows and thumbnails. Upload and management requests go through `brickivy-property-photos`, which checks the Owner's Discord role and live company property ID. The Supabase Storage bucket is public-read, but uploader actions are private and audited through Supabase Auth. See [Property photo setup](backend/PROPERTY-PHOTOS.md).
+
+**Storage by Interior** sorts by numeric OPFW code `1, 2, ... 10, 11` instead of alphabetical ordering. The existing 11 named interiors remain in place.
 
 ## Public listing status, block, region and storage
 
