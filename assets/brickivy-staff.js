@@ -58,12 +58,100 @@ async function loadRoster(){
   roster=Array.isArray(data.realtors)?data.realtors:[];
   renderRoster();
 }
+function positionName(realtor) {
+  return realtor.role === 'Owner' ? 'Owner' : (String(realtor.title||'').trim() || 'Realtor');
+}
+function positionGroups(items){
+  const sorted=[...items].sort((a,b)=>
+    Number(a.displayOrder??999)-Number(b.displayOrder??999)
+    ||String(a.name||'').localeCompare(String(b.name||'')));
+  const groups=[];
+  const seen=new Map();
+  for(const realtor of sorted){
+    const label=positionName(realtor);
+    const key=(realtor.role==='Owner'?'owner:':'staff:')+label.toLowerCase();
+    if(!seen.has(key)){
+      const group={key,label,owner:realtor.role==='Owner',members:[]};
+      seen.set(key,group);
+      groups.push(group);
+    }
+    seen.get(key).members.push(realtor);
+  }
+  return groups.filter(g=>g.owner).concat(groups.filter(g=>!g.owner));
+}
 function renderRoster(){
   const el=element('managementRoster');
   if(!el)return;
-  const selected=[...roster].sort((a,b)=>Number(a.displayOrder??999)-Number(b.displayOrder??999));
-  element('managementCount').textContent=selected.length+' '+(selected.length===1?'profile':'profiles');
-  el.innerHTML=selected.map(r=>'<div class="manage-person"><span class="manage-person-avatar" aria-hidden="true">'+safe((r.name||'BI').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase())+'</span><span class="manage-person-details"><strong>'+safe(r.name)+'</strong><span>CID '+safe(r.characterId)+' · '+safe(r.role)+'</span></span><span class="manage-public-label '+(r.published?'is-published':'')+'">'+(r.published?'Public':'Hidden')+'</span><button type="button" class="realtor-copy" data-edit="'+safe(r.id)+'">Edit</button>'+(r.role==='Owner'?'':'<button type="button" class="realtor-copy" data-remove="'+safe(r.id)+'">Remove</button>')+'</div>').join('')||'<p class="manage-empty">No team members yet.</p>';
+  const groups=positionGroups(roster);
+  const n=roster.length;
+  element('managementCount').textContent=n+' '+(n===1?'profile':'profiles');
+  const firstNonOwner=groups.findIndex(g=>!g.owner);
+  el.innerHTML=groups.map((group,index)=>{
+    const controls=group.owner?'':(
+      '<div class="manage-section-controls" aria-label="Reorder '+safe(group.label)+' group">'+
+      '<button type="button" class="manage-order-button" data-move-section="up" data-section-index="'+index+'" '+(index<=firstNonOwner?'disabled':'')+' title="Move position group up" aria-label="Move '+safe(group.label)+' section up">↑</button>'+
+      '<button type="button" class="manage-order-button" data-move-section="down" data-section-index="'+index+'" '+(index===groups.length-1?'disabled':'')+' title="Move position group down" aria-label="Move '+safe(group.label)+' section down">↓</button></div>'
+    );
+    return '<section class="manage-position-section" aria-labelledby="managePosition'+index+'">'+
+      '<div class="manage-position-header"><div class="manage-position-name">'+
+      '<h3 id="managePosition'+index+'">'+safe(group.label)+'</h3><span>'+group.members.length+' '+(group.members.length===1?'member':'members')+'</span></div>'+
+      controls+'</div>'+
+      group.members.map((r,idx)=>'<div class="manage-person">'+
+        '<span class="manage-person-avatar" aria-hidden="true">'+safe((r.name||'BI').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase())+'</span>'+
+        '<span class="manage-person-details"><strong>'+safe(r.name)+'</strong><span>CID '+safe(r.characterId)+' · '+safe(positionName(r))+'</span></span>'+
+        '<span class="manage-public-label '+(r.published?'is-published':'')+'">'+(r.published?'Public':'Hidden')+'</span>'+
+        '<div class="manage-person-actions">'+
+          '<div class="manage-person-move" aria-label="Reorder '+safe(r.name)+'">'+
+          '<button type="button" class="manage-order-button" data-move-person="up" data-section-index="'+index+'" data-person-index="'+idx+'" '+(idx===0?'disabled':'')+' title="Move up" aria-label="Move '+safe(r.name)+' up">↑</button>'+
+          '<button type="button" class="manage-order-button" data-move-person="down" data-section-index="'+index+'" data-person-index="'+idx+'" '+(idx===group.members.length-1?'disabled':'')+' title="Move down" aria-label="Move '+safe(r.name)+' down">↓</button></div>'+
+          '<button type="button" class="realtor-copy" data-edit="'+safe(r.id)+'">Edit</button>'+
+          (r.role==='Owner'?'':'<button type="button" class="realtor-copy" data-remove="'+safe(r.id)+'">Remove</button>')+
+        '</div></div>').join('')+'</section>';
+  }).join('')||'<p class="manage-empty">No team members yet.</p>';
+}
+let reorderPending=false;
+async function saveReorder(groups){
+  if(reorderPending||currentRole!=='owner')return;
+  const orderedIds=groups.flatMap(group=>group.members.map(person=>person.id));
+  if(orderedIds.length!==roster.length)return;
+  reorderPending=true;
+  const el=element('managementRoster');
+  const status=element('rosterOrderStatus');
+  if(status)status.textContent='Saving new order…';
+  el?.setAttribute('aria-busy','true');
+  el?.querySelectorAll('button').forEach(button=>button.disabled=true);
+  try{
+    const data=await api('reorder',{ids:orderedIds});
+    roster=data.realtors;
+    if(status)status.textContent='Order saved. The public Realtor page will reflect the change.';
+  }catch(err){
+    if(status)status.textContent='Could not save the order: '+(err.message||'Try again.')+' No changes were confirmed.';
+    // Recover the live server order on errors, including partial save failures.
+    try {const data=await api('list');roster=data.realtors;}catch{}
+  }finally{
+    reorderPending=false;
+    renderRoster();
+    el?.setAttribute('aria-busy','false');
+  }
+}
+function moveRealtor(sectionIndex,personIndex,direction){
+  const groups=positionGroups(roster),g=groups[sectionIndex];
+  if(!g||!Number.isInteger(personIndex))return;
+  const to=personIndex+(direction==='up'?-1:1);
+  if(to<0||to>=g.members.length)return;
+  const [member]=g.members.splice(personIndex,1);
+  g.members.splice(to,0,member);
+  return saveReorder(groups);
+}
+function movePositionSection(sectionIndex,direction){
+  const groups=positionGroups(roster),g=groups[sectionIndex];
+  if(!g||g.owner)return;
+  const firstNonOwner=groups.findIndex(g=>!g.owner);
+  const to=sectionIndex+(direction==='up'?-1:1);
+  if(to<firstNonOwner||to>=groups.length||groups[to].owner)return;
+  const [group]=groups.splice(sectionIndex,1);
+  groups.splice(to,0,group);
+  return saveReorder(groups);
 }
 function fillForm(r){
   const f=element('manageRealtorForm');if(!f)return;
@@ -166,6 +254,17 @@ async function setup(){
       });
       element('cancelRealtorEdit')?.addEventListener('click',resetForm);
       element('managementRoster')?.addEventListener('click',async e=>{
+        if(reorderPending||currentRole!=='owner')return;
+        const movePerson=e.target.closest('[data-move-person]');
+        const moveSection=e.target.closest('[data-move-section]');
+        if(movePerson){
+          await moveRealtor(Number(movePerson.dataset.sectionIndex),Number(movePerson.dataset.personIndex),movePerson.dataset.movePerson);
+          return;
+        }
+        if(moveSection){
+          await movePositionSection(Number(moveSection.dataset.sectionIndex),moveSection.dataset.moveSection);
+          return;
+        }
         const edit=e.target.closest('[data-edit]');
         const remove=e.target.closest('[data-remove]');
         if(edit){const r=roster.find(x=>x.id===edit.dataset.edit);if(r)fillForm(r);return;}
