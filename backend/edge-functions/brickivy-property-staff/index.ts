@@ -123,7 +123,7 @@ Deno.serve(async(req:Request)=>{
         return response({error:"Enter a valid weekly amount or reset it"},400,cors);
       }
       const amount=clearing?null:Number(proposed);
-      if(!clearing&&(!Number.isFinite(amount)||amount<0||amount>9999999999.99||Math.round(amount*100)!==amount*100)){
+      if(!clearing&&(!Number.isFinite(amount)||amount<0||amount>9999999999.99||Math.abs(Math.round(amount*100)-amount*100)>0.000001)){
         return response({error:"Weekly cost must be between $0 and $9,999,999,999.99 with up to two decimals"},400,cors);
       }
       const {data:before,error:previousError}=await db.from("brickivy_property_weekly_costs")
