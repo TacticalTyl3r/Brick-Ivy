@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "published": true,
+    "displayOrder": 1,
+    "name": "Johnny Sausage",
+    "role": "Owner",
+    "title": "Owner",
+    "characterId": null,
+    "photo": "",
+    "inGamePhone": "145-7459",
+    "discordUsername": "TacticalTyl3r",
+    "discordId": "",
+    "email": "",
+    "bio": ""
+  }
+]
