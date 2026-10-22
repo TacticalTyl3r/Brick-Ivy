@@ -8,7 +8,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.84.0";
  * Renter IDs, company financials, the bearer token and the upstream SQL are never returned.
  *
  * This feed reflects Brick & Ivy company stock, NOT confirmed sale availability.
- * 'listed' is deliberately neutral until a separate listing editor is built.
+ * 'listed' is neutral; only a confirmed renter changes the public status
+ * to 'unavailable'. All renter records remain internal to this Edge Function.
  */
 const OPFW_ENDPOINT = "https://opfw.gg/api/rest/1973/stocks_company_properties";
 const COMPANY_ID = 5;
@@ -63,6 +64,44 @@ function toListing(input: Record<string,unknown>) {
     images:[] as string[]
   };
 }
+// Occupancy is looked up privately and separately from the regular public
+// stock query, so missing/restricted rental columns cannot break all listings.
+// No renter identity, income, or payment information is returned to visitors.
+async function rentedPropertyIds(token:string):Promise<Set<string>|null> {
+  const url=new URL(OPFW_ENDPOINT);
+  url.searchParams.set("select","company_id,property_id,property_renter_cid");
+  url.searchParams.set("where","company_id="+COMPANY_ID);
+  const ctrl=new AbortController();
+  const timeout=setTimeout(()=>ctrl.abort(),8000);
+  try {
+    const res=await fetch(url,{
+      method:"GET",
+      headers:{"Authorization":"Bearer "+token,"Accept":"application/json"},
+      signal:ctrl.signal
+    });
+    if(!res.ok)return null;
+    const payload:unknown=await res.json();
+    const rows=(payload as {data?:unknown})?.data;
+    if(!Array.isArray(rows)||rows.length>MAX_RECORDS)return null;
+    const rented=new Set<string>();
+    for(const row of rows){
+      if(!row||typeof row!=="object"||Array.isArray(row))return null;
+      const r=row as Record<string,unknown>;
+      if(Number(r.company_id)!==COMPANY_ID || !Object.prototype.hasOwnProperty.call(r,"property_renter_cid"))return null;
+      const id=typeof r.property_id==="number"&&Number.isSafeInteger(r.property_id)?String(r.property_id):
+        typeof r.property_id==="string"&&/^[a-zA-Z0-9_-]{1,80}$/.test(r.property_id)?r.property_id:"";
+      if(!id)return null;
+      const cid=Number(r.property_renter_cid);
+      if(r.property_renter_cid!==null && r.property_renter_cid!=="" && Number.isSafeInteger(cid) && cid>0){
+        rented.add(id);
+      }
+    }
+    return rented;
+  }catch{
+    // Unknown occupancy must never be represented as definitely vacant.
+    return null;
+  }finally{clearTimeout(timeout)}
+}
 async function loadProperties(token:string):Promise<unknown[]> {
   if(cached && Date.now()<cached.until) return cached.items;
   if(inflight) return inflight;
@@ -114,6 +153,14 @@ async function loadProperties(token:string):Promise<unknown[]> {
         if(override!==undefined && override!==null){
           const value=safePrice(override);
           if(value!==null)item.price=value;
+        }
+      }
+      // Set only the public availability badge. Tenant identity stays private.
+      // If OPFW rental data cannot be read, retain neutral "In portfolio".
+      const rented=await rentedPropertyIds(token);
+      if(rented){
+        for(const item of listings){
+          if(rented.has(item.id))item.status="unavailable";
         }
       }
     }
