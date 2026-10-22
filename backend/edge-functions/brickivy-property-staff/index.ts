@@ -74,6 +74,30 @@ async function stock(token:string){
     throw e;
   }
 }
+async function renterNames(token:string,rows:Record<string,unknown>[]):Promise<Map<number,string>>{
+  const cids=[...new Set(rows.map(r=>Number(r.property_renter_cid))
+    .filter(cid=>Number.isSafeInteger(cid)&&cid>0))].slice(0,300);
+  if(!cids.length)return new Map();
+  const url=new URL("https://opfw.gg/api/rest/1973/characters");
+  url.searchParams.set("select","character_id,first_name,last_name");
+  url.searchParams.set("where","character_id="+cids.join("|"));
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),9000);
+  try{
+    const res=await fetch(url,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},signal:ctrl.signal});
+    if(!res.ok)return new Map();
+    const body=await res.json();
+    if(!body||!Array.isArray(body.data)||body.data.length>cids.length)return new Map();
+    const allow=new Set(cids),names=new Map<number,string>();
+    for(const r of body.data){
+      const cid=Number(r?.character_id);
+      if(!allow.has(cid))continue;
+      const name=[str(r?.first_name,70),str(r?.last_name,70)].filter(Boolean).join(" ");
+      if(name)names.set(cid,name);
+    }
+    return names;
+  }catch{return new Map()}
+  finally{clearTimeout(timer)}
+}
 Deno.serve(async(req:Request)=>{
   const origin=req.headers.get("origin")||"";
   const cors:Record<string,string>={
@@ -148,6 +172,9 @@ Deno.serve(async(req:Request)=>{
       overrides=data||[];
     }
     const amounts=new Map(overrides.map(x=>[String(x.property_id),x.weekly_cost_override]));
+    // Names are optional. A field-restricted OPFW token may not allow the characters table.
+    // Never return player names outside authenticated staff responses.
+    const names=rentalAvailable?await renterNames(opfwToken,properties):new Map<number,string>();
     return response({role:owner?"owner":"realtor",rentalAvailable,properties:properties.map(r=>{
       const propertyId=pid(r.property_id),raw=nonnegative(r.property_cost),stored=amounts.get(propertyId);
       const override=stored===null||stored===undefined?null:nonnegative(stored);
@@ -160,6 +187,7 @@ Deno.serve(async(req:Request)=>{
         // Only the authenticated staff endpoint includes any of these:
         rented:rentalAvailable?renterCID!==null:null,
         renterCharacterId:rentalAvailable?renterCID:null,
+        renterName:rentalAvailable&&renterCID!==null?names.get(renterCID)||null:null,
         propertyIncome:rentalAvailable?nonnegative(r.property_income):null,
         lastPayment:rentalAvailable?str(r.property_last_pay,80)||null:null
       };
