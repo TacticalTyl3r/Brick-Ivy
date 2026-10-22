@@ -14,14 +14,14 @@ The public `properties.html` page now:
 - Shows **Reserved** when a verified staff member marks the property reserved and no active renter is detected.
 - Retains neutral **In portfolio** when occupancy cannot be verified. A neutral status is not a guarantee that a house is for sale.
 - Displays the assigned area (Los Santos, Sandy Shores, Paleto Bay), when one has been configured.
-- Shows the configured storage capacity (kg and/or slots) by OPFW `property_type`, if the Owner has entered one.
+- Shows the configured storage capacity (SU and/or slots) by OPFW `property_type`, if the Owner has entered one.
 
 ## Property Management
 
 At `manage-properties.html`, the existing authenticated staff dashboard adds:
 - **Region:** Owner assigns an area per property, with an Unassigned option. This metadata is stored in `public.brickivy_property_listing_settings`. Visitors can filter by the assigned area.
 - **Reservation:** Both Owner and Realtor Discord roles may mark and remove Reserved. The API rejects a new reservation on a confirmed-rented property; rented status takes precedence on public pages.
-- **Storage by property type:** The dashboard derives the type list from the live OPFW portfolio and shows one editable preset per type. Owners can enter an actual **storage weight (kg)** and **storage slots** for each type. Values are deliberately blank until entered — OPFW's readonly `stocks_company_properties` table provides `property_type` but **does not list storage capacities**.
+- **Storage by property type:** The dashboard derives the type list from the live OPFW portfolio and shows one editable preset per type. Owners can enter an actual **storage weight (SU)** and **storage slots** for each type. Values are deliberately blank until entered — OPFW's readonly `stocks_company_properties` table provides `property_type` but **does not list storage capacities**.
 - **Existing functionality:** Owners retain weekly rent price overrides. Authenticated staff retain private renter character, payment, income, and calculated weekly Brick & Ivy margin. These details are not included in public JSON.
 
 ## Protected storage, permissions and audit
