@@ -36,6 +36,14 @@ function reply(body: unknown, status=200, origin="", cache=false) {
 function text(value: unknown, limit: number) {
   return typeof value === "string" ? value.trim().slice(0,limit) : "";
 }
+function sourcePropertyType(value: unknown): string {
+  // OPFW property_type may be numeric (interior code 1-11), or a string.
+  // Preserve the raw code as text for the public interior-name lookup and
+  // for the per-type storage preset key.
+  if(typeof value==="number" && Number.isSafeInteger(value))return String(value);
+  if(typeof value==="string")return value.trim().slice(0,80)||"Property";
+  return "Property";
+}
 function safePrice(value: unknown): number|null {
   if (value===null || value===undefined || value==="") return null;
   const n=Number(value);
@@ -54,7 +62,7 @@ function toListing(input: Record<string,unknown>) {
     id,
     blockId: (typeof input.block_id==="number"&&Number.isSafeInteger(input.block_id))?String(input.block_id):text(input.block_id,80),
     name,
-    type:text(input.property_type,80)||"Property",
+    type:sourcePropertyType(input.property_type),
     address:text(input.property_address,200),
     price:safePrice(input.property_cost),
     status:"listed",
