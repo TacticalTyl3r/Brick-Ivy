@@ -1,7 +1,7 @@
 /*
  * Brick & Ivy public OPFW property feed.
  *
- * Readonly API V3: https://rest.opfw.net/{service}/{table}
+ * Readonly API: https://opfw.gg/api/rest/{service}/{table}
  * Auth secret: OPFW_REST_TOKEN (Supabase Edge Function Secrets ONLY).
  * Public output contains only company 5 property ID, name, type, address and cost.
  * Renter IDs, company financials, the bearer token and the upstream SQL are never returned.
@@ -9,7 +9,7 @@
  * This feed reflects Brick & Ivy company stock, NOT confirmed sale availability.
  * 'listed' is deliberately neutral until a separate listing editor is built.
  */
-const OPFW_ENDPOINT = "https://rest.opfw.net/1973/stocks_company_properties";
+const OPFW_ENDPOINT = "https://opfw.gg/api/rest/1973/stocks_company_properties";
 const COMPANY_ID = 5;
 const FIELDS = "company_id,property_id,property_name,property_type,property_address,property_cost";
 const ORIGINS = new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
