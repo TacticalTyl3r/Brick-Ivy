@@ -176,6 +176,16 @@ function propertyCard(p){
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
    (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
    (p.reserved?'Remove reservation':'Mark Reserved')+'</button></div>';
+ const currentDescription=String(p.description||'');
+ const overviewEditor=isOwner?
+   '<details class="property-overview-editor"><summary>Edit public property overview'+(currentDescription?' · Custom description saved':'')+'</summary>'+
+   '<form data-description-form="'+safe(p.id)+'">'+
+   '<label for="overview-'+safe(p.id)+'">Describe this property for visitors</label>'+
+   '<textarea id="overview-'+safe(p.id)+'" data-description-input maxlength="3000" rows="5" placeholder="Describe the interior, rooms, amenities, location, and what makes this home special.">'+safe(currentDescription)+'</textarea>'+
+   '<div class="property-overview-actions"><small>Public on the property detail page · Maximum 3,000 characters</small>'+
+   '<button type="submit" class="button dark">Save overview</button></div>'+
+   '</form></details>':
+   (currentDescription?'<div class="property-overview-readonly"><span>Public property overview</span><p>'+safe(currentDescription)+'</p></div>':'');
  const ownerEditor=isOwner?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
    '<div class="field"><label>Override weekly rent price ($)</label>'+
@@ -193,8 +203,8 @@ function propertyCard(p){
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
    (hasOverride?'<small>Owner override active</small>':'<small>Using OPFW value</small>')+'</div></div>'+
-   '<div class="property-private-rental-details"><h4>Private rental information</h4>'+rentalRows+'</div>'+galleryMarkup(p.id)+
-   ownerEditor+'</article>';
+   '<div class="property-private-rental-details"><h4>Private rental information</h4>'+rentalRows+'</div>'+
+   overviewEditor+galleryMarkup(p.id)+ownerEditor+'</article>';
 }
 function render(){
  const target=byId('propertyStaffGrid');
@@ -246,6 +256,9 @@ async function saveSetting(action,data){
      const current=storageTypes.find(x=>x.type===data.propertyType);
      if(current){current.capacityKg=result.capacityKg;current.capacitySlots=result.capacitySlots;}
      for(const p of roster)if(p.type===data.propertyType){p.storageKg=result.capacityKg;p.storageSlots=result.capacitySlots;}
+   }else if(action==='setDescription'){
+     const current=roster.find(x=>x.id===data.propertyId);
+     if(current)current.description=result.description||'';
    }else{
      const current=roster.find(x=>x.id===data.propertyId);
      if(current){current.area=result.area;current.reserved=result.reserved;}
@@ -330,6 +343,15 @@ async function setup(){
    byId('propertyStaffSearch')?.addEventListener('input',render);
    byId('propertyStaffFilter')?.addEventListener('change',render);
    byId('propertyStaffGrid')?.addEventListener('submit',async event=>{
+     const overview=event.target.closest('[data-description-form]');
+     if(overview){
+       event.preventDefault();
+       if(role!=='owner'||busy)return;
+       const text=overview.querySelector('[data-description-input]');
+       if(!text||!text.reportValidity())return;
+       await saveSetting('setDescription',{propertyId:overview.dataset.descriptionForm,description:text.value});
+       return;
+     }
      const form=event.target.closest('[data-price-form]');if(!form)return;
      event.preventDefault();
      if(role!=='owner'||busy)return;
