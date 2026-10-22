@@ -366,3 +366,12 @@ h1,h2,h3,p{margin-top:0}
 .property-unavailable-message{margin-top:36px;padding:24px;background:#f8eeed;border-left:3px solid #a65758;color:#653335}
 .property-unavailable-message strong{font-size:14px}
 .property-unavailable-message p{font-size:13px;line-height:1.8;color:#805a5a;margin:8px 0 0}
+
+
+/* Staff-only calculated weekly income: rent price minus maintenance cost. */
+.property-private-meta strong.property-private-income{font-variant-numeric:tabular-nums;font-size:16px;font-weight:800}
+.property-private-meta strong.property-private-income.is-positive{color:#187641}
+.property-private-meta strong.property-private-income.is-negative{color:#b13d3f}
+.property-private-meta strong.property-private-income.is-zero{color:#50665a}
+.property-private-meta strong.property-private-income.is-unknown{color:#7e8c80;font-size:12px}
+.property-private-meta small{display:block;margin-top:6px;font-size:10px;color:#768a79;line-height:1.5}
