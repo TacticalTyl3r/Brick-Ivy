@@ -182,7 +182,7 @@ Deno.serve(async(req:Request)=>{
       if((validWeight!==null&&(!Number.isFinite(validWeight)||validWeight<0||validWeight>9999999999.99
        ||Math.abs(Math.round(validWeight*100)-validWeight*100)>0.000001))
         ||(validSlots!==null&&(!Number.isSafeInteger(validSlots)||validSlots<0||validSlots>1000000))){
-        return response({error:"Use a valid storage weight in kg and a whole-number slot capacity, or leave them blank"},400,cors);
+        return response({error:"Use a valid storage weight in SU and a whole-number slot capacity, or leave them blank"},400,cors);
       }
       const {data:before,error:readError}=await db.from("brickivy_property_type_storage")
         .select("capacity_kg,capacity_slots").eq("property_type",type).maybeSingle();
