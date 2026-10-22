@@ -12,7 +12,7 @@ let editingId = null;
 function message(txt) { const el=element('staffMessage');if(el)el.textContent=txt; }
 function safe(v) {return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
 function show(el,visible) {if(el)el.hidden=!visible;}
-function isConfigured() {return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'')&&/^sb_publishable_|^eyJ/.test(cfg.publishableKey||'');}
+function isConfigured() {return cfg.discordAuthReady === true && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'')&&/^(sb_publishable_|eyJ)/.test(cfg.publishableKey||'');}
 async function api(action,extra={}) {
   const {data:{session}}=await supabase.auth.getSession();
   if(!session?.access_token)throw Error('Please sign in again.');
