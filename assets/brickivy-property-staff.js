@@ -41,6 +41,7 @@ function incomeDisplay(value){
 }
 
 let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy=false;
+const galleries=new Map(),openedGalleries=new Set(),loadedGalleries=new Set();
 function toggle(id,value){const el=byId(id);if(el)el.hidden=!value}
 function status(text){const el=byId('propertyStaffStatus');if(el)el.textContent=text}
 function feedback(text){const el=byId('propertyStaffFeedback');if(el)el.textContent=text}
@@ -66,6 +67,82 @@ async function api(action,other={}){
  const result=await res.json().catch(()=>({}));
  if(!res.ok)throw Error(result.error||'Unable to complete request');
  return result;
+}
+
+function validPhotoUrl(link){
+ try{
+  const u=new URL(link);
+  return u.protocol==='https:'&&u.origin===new URL(config.supabaseUrl).origin&&
+    u.pathname.startsWith('/storage/v1/object/public/brickivy-property-photos/')?u.href:'';
+ }catch{return ''}
+}
+async function photosApi(action,propertyId,payload={}){
+ const {data:{session}}=await supabase.auth.getSession();
+ if(!session?.access_token)throw Error('Your sign-in session expired. Sign in again.');
+ const upload=action==='upload';
+ const body=upload?payload:JSON.stringify({action,propertyId,...payload});
+ const res=await fetch(config.supabaseUrl+'/functions/v1/brickivy-property-photos',{
+  method:'POST',credentials:'omit',
+  headers:upload?{apikey:config.publishableKey,Authorization:'Bearer '+session.access_token}:
+    {'Content-Type':'application/json',apikey:config.publishableKey,Authorization:'Bearer '+session.access_token},
+  body
+ });
+ const data=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(data.error||'Unable to manage property photos');
+ return data;
+}
+function galleryMarkup(propertyId){
+ const isOwner=role==='owner',expanded=openedGalleries.has(propertyId);
+ if(!expanded)return '<div class="property-gallery-disclosure"><button type="button" class="button outline" data-gallery-toggle="'+safe(propertyId)+'">Manage photos ▸</button></div>';
+ const photos=galleries.get(propertyId)||[];
+ const loaded=loadedGalleries.has(propertyId);
+ let markup='<section class="property-gallery-manager"><div class="property-gallery-heading"><h4>Property photos <small>'+
+   (loaded?photos.length+'/24':'Loading…')+'</small></h4><button class="button outline" type="button" data-gallery-toggle="'+safe(propertyId)+'">Close</button></div>';
+ if(isOwner){
+  markup+='<label class="property-gallery-picker">+ Add photos (JPEG, PNG or WebP)'+
+   '<input type="file" data-gallery-upload="'+safe(propertyId)+'" accept="image/jpeg,image/png,image/webp" multiple>'+
+   '</label><small>Up to 24 photos per property; 6 MB each. Select several images at once.</small>';
+ }
+ if(loaded&&!photos.length)markup+='<p class="property-private-subtle">No property photos yet. Upload pictures to build the public gallery.</p>';
+ if(loaded&&photos.length){
+  markup+='<div class="property-gallery-thumbs">';
+  photos.forEach((p,i)=>{
+   const src=validPhotoUrl(p.url);
+   markup+='<div class="property-gallery-photo">'+(src?'<img src="'+safe(src)+'" alt="'+safe(p.filename||'Property photo')+'" loading="lazy">':'')+
+    '<div class="property-gallery-photo-label">'+(p.cover?'Cover photo':'Photo '+(i+1))+'</div>';
+   if(isOwner)markup+='<div class="property-gallery-photo-actions">'+
+    '<button type="button" data-photo-cover="'+safe(p.id)+'" data-photo-property="'+safe(propertyId)+'" '+(p.cover?'disabled':'')+'>Set cover</button>'+
+    '<button type="button" data-photo-move="'+safe(p.id)+'" data-photo-property="'+safe(propertyId)+'" data-photo-direction="-1" '+(i===0?'disabled':'')+'>↑</button>'+
+    '<button type="button" data-photo-move="'+safe(p.id)+'" data-photo-property="'+safe(propertyId)+'" data-photo-direction="1" '+(i===photos.length-1?'disabled':'')+'>↓</button>'+
+    '<button type="button" class="is-delete" data-photo-delete="'+safe(p.id)+'" data-photo-property="'+safe(propertyId)+'">Remove</button></div>';
+   markup+='</div>';
+  });
+  markup+='</div>';
+ }
+ markup+='</section>';return markup;
+}
+async function toggleGallery(id){
+ if(openedGalleries.has(id)){openedGalleries.delete(id);render();return;}
+ openedGalleries.add(id);render();
+ if(!loadedGalleries.has(id)){
+  try{
+   feedback('Loading property photos…');
+   const data=await photosApi('list',id);
+   galleries.set(id,data.photos||[]);loadedGalleries.add(id);
+   feedback('Photos loaded.');
+  }catch(e){feedback(e.message||'Photo gallery unavailable');openedGalleries.delete(id);}
+  render();
+ }
+}
+async function mutateGallery(action,propertyId,payload={}){
+ if(busy)return;
+ busy=true;const grid=byId('propertyStaffGrid');grid?.setAttribute('aria-busy','true');
+ try{
+  const data=await photosApi(action,propertyId,payload);
+  galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);
+  feedback(action==='upload'?'Image uploaded.':'Property photos updated. Public listings may take approximately 90 seconds to refresh.');
+ }catch(e){feedback(e.message||'Unable to change photos');}
+ finally{busy=false;grid?.setAttribute('aria-busy','false');render();}
 }
 function propertyCard(p){
  const isOwner=role==='owner';
@@ -116,7 +193,7 @@ function propertyCard(p){
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
    (hasOverride?'<small>Owner override active</small>':'<small>Using OPFW value</small>')+'</div></div>'+
-   '<div class="property-private-rental-details"><h4>Private rental information</h4>'+rentalRows+'</div>'+
+   '<div class="property-private-rental-details"><h4>Private rental information</h4>'+rentalRows+'</div>'+galleryMarkup(p.id)+
    ownerEditor+'</article>';
 }
 function render(){
@@ -144,7 +221,10 @@ function renderStorage(){
  const panel=byId('propertyTypeStoragePanel'),el=byId('propertyTypeStorageList');
  if(!panel||!el)return;
  panel.hidden=false;
- el.innerHTML=storageTypes.length?storageTypes.map(entry=>{
+ el.innerHTML=storageTypes.length?storageTypes.slice().sort((a,b)=>{
+  const left=String(a.type??''),right=String(b.type??'');
+  return left.localeCompare(right,undefined,{numeric:true,sensitivity:'base'});
+ }).map(entry=>{
    const su=entry.capacityKg===null||entry.capacityKg===undefined?'':String(entry.capacityKg);
    const objects=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
    return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
@@ -260,6 +340,27 @@ async function setup(){
      await saveCost(id,input.value.trim());
    });
    byId('propertyStaffGrid')?.addEventListener('click',async event=>{
+     const gallery=event.target.closest('[data-gallery-toggle]');
+     if(gallery){if(!busy)await toggleGallery(gallery.dataset.galleryToggle);return;}
+     const cover=event.target.closest('[data-photo-cover]');
+     if(cover&&role==='owner'){await mutateGallery('cover',cover.dataset.photoProperty,{photoId:cover.dataset.photoCover});return;}
+     const remove=event.target.closest('[data-photo-delete]');
+     if(remove&&role==='owner'){
+       if(confirm('Remove this property photo? It will no longer appear publicly.'))
+         await mutateGallery('delete',remove.dataset.photoProperty,{photoId:remove.dataset.photoDelete});
+       return;
+     }
+     const move=event.target.closest('[data-photo-move]');
+     if(move&&role==='owner'&&!busy){
+       const propertyId=move.dataset.photoProperty,arr=galleries.get(propertyId)||[];
+       const index=arr.findIndex(p=>p.id===move.dataset.photoMove),next=index+Number(move.dataset.photoDirection);
+       if(index>=0&&next>=0&&next<arr.length){
+         const reordered=arr.map(p=>p.id),[item]=reordered.splice(index,1);
+         reordered.splice(next,0,item);
+         await mutateGallery('reorder',propertyId,{ids:reordered});
+       }
+       return;
+     }
      const reserve=event.target.closest('[data-toggle-reserve]');
      if(reserve&&!busy){
        const current=roster.find(p=>p.id===reserve.dataset.toggleReserve);
@@ -271,6 +372,30 @@ async function setup(){
      if(reset&&role==='owner'&&!busy)await saveCost(reset.dataset.resetPrice,null);
    });
    byId('propertyStaffGrid')?.addEventListener('change',async event=>{
+     const uploader=event.target.closest('[data-gallery-upload]');
+     if(uploader&&role==='owner'&&!busy){
+       const propertyId=uploader.dataset.galleryUpload,files=[...uploader.files||[]];
+       if(!files.length)return;
+       if(files.some(file=>file.size>6*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))){
+         feedback('Each file must be a JPEG, PNG or WebP of 6 MB or less.');return;
+       }
+       const existing=(galleries.get(propertyId)||[]).length;
+       if(existing+files.length>24){feedback('A property can have up to 24 photos.');return;}
+       busy=true;byId('propertyStaffGrid')?.setAttribute('aria-busy','true');
+       let added=0;
+       try{
+         for(const file of files){
+           feedback('Uploading photo '+(added+1)+' of '+files.length+'…');
+           const form=new FormData();
+           form.append('action','upload');form.append('propertyId',propertyId);form.append('file',file);
+           const data=await photosApi('upload',propertyId,form);
+           galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);added++;
+         }
+         feedback(added+' photo'+(added===1?'':'s')+' uploaded. The public property gallery may take up to 90 seconds to refresh.');
+       }catch(e){feedback(added+' uploaded; '+(e.message||'some photos could not be uploaded'));}
+       finally{busy=false;byId('propertyStaffGrid')?.setAttribute('aria-busy','false');render();}
+       return;
+     }
      const area=event.target.closest('[data-property-area]');
      if(area&&role==='owner'&&!busy)await saveSetting('setArea',{propertyId:area.dataset.propertyArea,area:area.value});
    });
