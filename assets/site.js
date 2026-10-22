@@ -192,6 +192,30 @@ function beginRealtorStatusChecks(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRealtorStatus()});
 }
 
+function publicRealtorGroups(people){
+ const sorted=[...people].sort((a,b)=>Number(a.displayOrder??999)-Number(b.displayOrder??999)||safeText(a.name).localeCompare(safeText(b.name)));
+ const map=new Map(),groups=[];
+ for(const person of sorted){
+  const owner=safeText(person.role).toLowerCase()==='owner';
+  const label=owner?'Owner':safeText(person.title)||'Realtor';
+  const key=(owner?'owner:':'realtor:')+label.toLowerCase();
+  if(!map.has(key)){
+   const group={label,owner,people:[]};
+   map.set(key,group);
+   groups.push(group);
+  }
+  map.get(key).people.push(person);
+ }
+ return groups.filter(g=>g.owner).concat(groups.filter(g=>!g.owner));
+}
+function realtorGroupMarkup(people){
+ return publicRealtorGroups(people).map((group,i)=>
+  '<section class="realtor-position-section" aria-labelledby="position-heading-'+i+'">'+
+  '<div class="realtor-position-heading"><div><div class="eyebrow">Brick & Ivy Team</div><h3 id="position-heading-'+i+'" class="serif">'+esc(group.label)+'</h3></div>'+
+  '<span class="realtor-position-count">'+group.people.length+' '+(group.people.length===1?'team member':'team members')+'</span></div>'+
+  '<div class="realtor-grid">'+group.people.map(realtorMarkup).join('')+'</div></section>'
+ ).join('');
+}
 async function realtorDirectory(){
  const grid=$('#realtorGrid'),count=$('#realtorCount');if(!grid)return;
  try{
@@ -204,7 +228,7 @@ async function realtorDirectory(){
  if(!Array.isArray(items))throw Error('Invalid Realtor directory');
  const publicProfiles=items.filter(p=>p&&p.published===true&&safeText(p.name)).sort((a,b)=>Number(a.displayOrder??999)-Number(b.displayOrder??999)||safeText(a.name).localeCompare(safeText(b.name)));
  if(count)count.textContent=publicProfiles.length?(publicProfiles.length===1?'1 team member':publicProfiles.length+' team members'):'Our team directory';
- grid.innerHTML=publicProfiles.length?publicProfiles.map(realtorMarkup).join(''):
+ grid.innerHTML=publicProfiles.length?realtorGroupMarkup(publicProfiles):
  '<div class="team-empty"><span class="team-empty-mark" aria-hidden="true">⌂</span><h3>Our team profiles are coming soon.</h3><p>Brick &amp; Ivy is preparing its public Realtor directory. Check back for our team members and their official in-game contact details.</p></div>';
  if(publicProfiles.length)beginRealtorStatusChecks();
  grid.addEventListener('click',async event=>{
