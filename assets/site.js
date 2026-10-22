@@ -95,7 +95,7 @@ function realtorMarkup(person){
  const name=safeText(person.name);
  const title=safeText(person.title)||'Realtor';
  const role=safeText(person.role).toLowerCase()==='owner'?'Owner':'Realtor';
- const photo=safeImage(person.photo);
+ const photo=safeImage(person.photo||person.mugshotUrl);
  const phone=safeText(person.inGamePhone);
  const username=safeText(person.discordUsername);
  const discordId=safeText(person.discordId);
@@ -115,7 +115,7 @@ function realtorMarkup(person){
  '<div class="realtor-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Portrait of '+esc(name)+'" loading="lazy">':'<div class="realtor-avatar" aria-label="Photo not supplied">'+esc(realtorInitials(name))+'</div>')+
  '<div class="realtor-role-badge">'+esc(role)+'</div></div>'+
  '<div class="realtor-body"><h3 class="realtor-name">'+esc(name)+'</h3><div class="realtor-subtitle">'+esc(title)+'</div>'+
- (description?'<p class="realtor-bio">'+esc(description)+'</p>':'<p class="realtor-bio">Contact our team to learn more about available properties in San Andreas.</p>')+
+ (description?'<p class="realtor-bio">'+esc(description)+'</p>':'')+
  '<div class="realtor-details">'+(details||'<span class="realtor-contact-none">Public contact details not yet available.</span>')+'</div>'+
  (actions.length?'<div class="realtor-actions">'+actions.join('')+'</div>':'')+'</div></article>'
 }
