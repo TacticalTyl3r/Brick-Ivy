@@ -239,6 +239,9 @@ function realtorMarkup(person){
  const description=safeText(person.bio);
  const cid=Number(person.characterId);
  const hasCid=Number.isSafeInteger(cid)&&cid>0;
+ const online=hasCid&&['available','unavailable'].includes(safeText(person.onlineStatus))
+  ?safeText(person.onlineStatus):'unknown';
+ const statusLabel=online==='available'?'Available':online==='unavailable'?'Unavailable':'Status unavailable';
  const actions=[];
  if(hasDiscord)actions.push('<a class="button dark" href="https://discord.com/users/'+discordId+'" target="_blank" rel="noopener noreferrer" aria-label="View '+esc(name)+' on Discord">View Discord <span aria-hidden="true">↗</span></a>');
  if(hasEmail)actions.push('<a class="button outline" href="mailto:'+esc(email)+'" aria-label="Email '+esc(name)+'">Send email <span aria-hidden="true">↗</span></a>');
@@ -251,77 +254,49 @@ function realtorMarkup(person){
  '<div class="realtor-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Portrait of '+esc(name)+'" loading="lazy">':'<div class="realtor-avatar" aria-label="Photo not supplied">'+esc(realtorInitials(name))+'</div>')+
  '<div class="realtor-role-badge">'+esc(role)+'</div></div>'+
  '<div class="realtor-body"><h3 class="realtor-name">'+esc(name)+'</h3><div class="realtor-subtitle">'+esc(title)+'</div>'+ 
- '<div class="realtor-availability" data-character-id="'+(hasCid?cid:'')+'"><span class="availability-dot" aria-hidden="true"></span><span class="availability-text" role="status">'+(hasCid?'Checking availability…':'Status unavailable')+'</span></div>'+
+ '<div class="realtor-availability" data-status="'+online+'" data-character-id="'+(hasCid?cid:'')+'"><span class="availability-dot" aria-hidden="true"></span><span class="availability-text" role="status">'+statusLabel+'</span></div>'+
  (description?'<p class="realtor-bio">'+esc(description)+'</p>':'')+
  '<div class="realtor-details">'+(details||'<span class="realtor-contact-none">Public contact details not yet available.</span>')+'</div>'+
  (actions.length?'<div class="realtor-actions">'+actions.join('')+'</div>':'')+'</div></article>'
 }
 
-/*
- * The OPFW public /connections.json route identifies licenses and FiveM sources,
- * but not character IDs. Combine it with the public /players.json route filtered
- * to the visible Realtors' exact character IDs.
- * Never put a bearer token in this public GitHub Pages application.
+/* Live status now comes from the Brick & Ivy Supabase directory endpoint.
+ * The Edge Function checks OPFW players server-side and returns only the public
+ * Realtor character's status. No visitor-to-game-server CORS dependency.
  */
-const LEGENDARY_PUBLIC_API='https://p323.fivem.opfw.me/op-framework';
 const REALTOR_STATUS_POLL_MS=60000;
-function apiDataArray(payload){
- const data=payload&&typeof payload==='object'&&'data' in payload?payload.data:payload;
- if(Array.isArray(data))return data;
- if(data&&Array.isArray(data.players))return data.players;
- throw new Error('Unexpected player status API response');
-}
-async function fetchPublicStatus(url){
- const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),8500);
- try{
-  const response=await fetch(url,{cache:'no-store',credentials:'omit',signal:controller.signal,headers:{Accept:'application/json'}});
-  if(!response.ok)throw new Error('Status API HTTP '+response.status);
-  return apiDataArray(await response.json());
- }finally{clearTimeout(timeout)}
-}
 function setRealtorStatus(element,status){
  if(!element)return;
- element.dataset.status=status;
+ const normalized=status==='available'||status==='unavailable'?status:'unknown';
+ element.dataset.status=normalized;
  const label=$('.availability-text',element);
- if(label)label.textContent=status==='available'?'Available':status==='unavailable'?'Unavailable':'Status unavailable';
- element.title=status==='available'?'Character currently connected to Legendary Roleplay':status==='unavailable'?'Character not currently connected to Legendary Roleplay':'Live server status could not be verified';
-}
-function sameConnection(player,connection){
- const a=safeText(player.licenseIdentifier),b=safeText(connection.licenseIdentifier);
- if(a&&b)return a===b;
- return Number.isSafeInteger(Number(player.source))&&Number(player.source)>0&&Number(player.source)===Number(connection.source);
+ if(label)label.textContent=normalized==='available'?'Available':normalized==='unavailable'?'Unavailable':'Status unavailable';
+ element.title=normalized==='available'?'Realtor character currently online in Legendary Roleplay':
+  normalized==='unavailable'?'Realtor character is not currently online':
+  'Live character status could not be verified';
 }
 async function refreshRealtorStatus(){
- const elements=Array.from(document.querySelectorAll("#realtorGrid [data-character-id]"));
- const lookup=new Map();
- for(const element of elements){
-  const cid=Number(element.dataset.characterId);
-  if(Number.isSafeInteger(cid)&&cid>0)lookup.set(cid,element);
-  else setRealtorStatus(element,'unknown');
- }
- if(!lookup.size)return;
+ const c=window.BRICK_IVY_CONFIG||{};
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
+ const elements=Array.from(document.querySelectorAll('#realtorGrid [data-character-id]'));
+ if(!elements.length)return;
+ const url=c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-realtors';
  try{
-  const url=LEGENDARY_PUBLIC_API+'/players.json?characterId='+Array.from(lookup.keys()).join(',');
-  const [players,connections]=await Promise.all([
-   fetchPublicStatus(url),
-   fetchPublicStatus(LEGENDARY_PUBLIC_API+'/connections.json')
-  ]);
-  // Both successful API responses are needed before making an offline claim.
-  for(const [cid,element] of lookup){
-   const online=players.some(player=>{
-    if(Number(player?.character?.id)!==cid)return false;
-    return connections.some(conn=>conn?.joined===true&&sameConnection(player,conn));
-   });
-   setRealtorStatus(element,online?'available':'unavailable');
+  const result=await fetch(url,{cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
+  if(!result.ok)throw Error('Directory status HTTP '+result.status);
+  const people=await result.json();
+  if(!Array.isArray(people))throw Error('Invalid Realtor status data');
+  const statuses=new Map(people.filter(p=>p&&p.published===true).map(p=>[Number(p.characterId),p.onlineStatus]));
+  for(const el of elements){
+   const cid=Number(el.dataset.characterId);
+   setRealtorStatus(el,statuses.get(cid)||'unknown');
   }
  }catch(error){
-  console.warn('Brick & Ivy live Realtor status unavailable:',error);
-  for(const element of lookup.values())setRealtorStatus(element,'unknown');
+  console.warn('Unable to refresh public Realtor status:',error);
+  for(const el of elements)setRealtorStatus(el,'unknown');
  }
 }
 function beginRealtorStatusChecks(){
- refreshRealtorStatus();
  setInterval(()=>{if(!document.hidden)refreshRealtorStatus()},REALTOR_STATUS_POLL_MS);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRealtorStatus()});
 }
