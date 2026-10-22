@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#182d25">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Private Brick & Ivy company property rental and weekly cost management.">
+<title>Property Management | Brick & Ivy Real Estate</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/styles.css?v=20261022-privateproperties1">
+<script defer src="assets/site.js?v=20261022-opfw2"></script>
+<script>
+window.BRICK_IVY_CONFIG=Object.freeze({
+  supabaseUrl:"https://rcbbnzqmfvapwuqmpmhk.supabase.co",
+  publishableKey:"sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",
+  discordAuthReady:true
+});
+</script>
+<script type="module" src="assets/brickivy-property-staff.js?v=20261022-privateproperties1"></script>
+</head>
+<body data-page="staff-properties">
+<header class="site-header"><div class="container header-inner">
+<a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="admin.html">Staff Portal</a></nav>
+<div class="header-actions"><a class="link-button" href="admin.html">Staff tools <span aria-hidden="true">↗</span></a><button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Toggle navigation"><span aria-hidden="true"></span></button></div>
+</div></header>
+<main>
+<section class="page-header admin-management-hero"><div class="container"><div class="eyebrow">Brick &amp; Ivy / Private staff tools</div>
+<h1 class="section-heading">Property <em>management.</em></h1>
+<p>Review weekly property values and private rental information from your company portfolio. Changes to website values never edit the OPFW game database.</p>
+</div></section>
+<div class="container manage-workspace">
+<div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span><div>
+<strong>Confidential — authorized Brick &amp; Ivy staff only</strong>
+<p>Rental details and renter character IDs are restricted to verified Brick &amp; Ivy Discord staff. Owners can update website weekly values; Realtors have read-only access.</p>
+</div></div>
+<div class="manage-auth-gate">
+<p id="propertyStaffStatus" class="staff-auth-message" role="status" aria-live="polite">Checking your staff session…</p>
+<div id="propertyStaffLogin" hidden><button id="propertyStaffSignIn" class="button dark" type="button">Sign in with Discord ↗</button></div>
+<div id="propertyStaffSession" hidden><button id="propertyStaffSignOut" class="button outline" type="button">Sign out</button></div>
+</div>
+<div id="propertyStaffContent" hidden>
+<div class="manage-panel-header property-manager-heading"><div><span class="eyebrow">Live company portfolio</span><h2 class="serif">Properties &amp; rentals</h2><p class="manage-reorder-intro">Weekly values saved here override the displayed website property value, not OPFW's original cost.</p></div><span id="propertyManagerCount" class="manage-count">Loading…</span></div>
+<div class="property-staff-toolbar">
+<div class="field"><label for="propertyStaffSearch">Find a property</label><input id="propertyStaffSearch" type="search" placeholder="Name, address or property ID"></div>
+<div class="field"><label for="propertyStaffFilter">Rental status</label><select id="propertyStaffFilter"><option value="">All properties</option><option value="rented">Rented</option><option value="vacant">Not rented</option></select></div>
+<button type="button" id="propertyStaffRefresh" class="button outline">Refresh ↻</button>
+</div>
+<p id="propertyStaffFeedback" class="manage-message" role="status" aria-live="polite"></p>
+<p id="propertyStaffRentalWarning" class="property-private-warning" hidden>OPFW did not allow the rental fields on this token. Rental status is unknown; contact an administrator to review this token's read permissions.</p>
+<div id="propertyStaffGrid" class="property-staff-grid" aria-live="polite"></div>
+</div>
+</div>
+</main>
+<footer class="site-footer"><div class="container"><div class="footer-grid"><div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Your dedicated real estate team in Legendary Roleplay.</p></div><div><div class="footer-title">Navigate</div><div class="footer-links"><a href="admin.html">Staff Portal</a><a href="manage-realtors.html">Realtor Management</a><a href="properties.html">Public properties</a></div></div><div><div class="footer-title">Security</div><div class="footer-links"><span>Discord role verified for every request</span><span>Rental records are not public</span></div></div></div><div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate.</span><span>Authorized staff access only.</span></div></div></footer>
+</body></html>
