@@ -319,3 +319,41 @@ h1,h2,h3,p{margin-top:0}
 .detail-meta + .property-value-label{margin-top:25px}
 .property-value-label + .detail-price{margin-top:6px}
 .property-source-note{font-size:12px;line-height:1.75;color:#66786b;padding:15px 18px;background:#f1f4ed;border-left:3px solid #9fb79d;margin:18px 0 20px}
+
+
+/* Owner property value editor and private staff-only rental dashboard */
+.property-manager-heading{margin:5px 0 18px;align-items:start}
+.property-manager-heading .manage-reorder-intro{margin:9px 0 0}
+.property-staff-toolbar{display:grid;grid-template-columns:minmax(230px,2fr) minmax(160px,1fr) auto;gap:16px;align-items:end;margin:0 0 22px;background:#fafbf7;border:1px solid #dde5d9;padding:18px}
+.property-staff-toolbar .button{min-height:44px}
+.property-staff-toolbar input,.property-staff-toolbar select{width:100%;padding:12px;border:1px solid #d3ded1;background:#fff;color:var(--ink);min-height:45px}
+.property-staff-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:15px}
+.property-staff-grid[aria-busy="true"]{opacity:.64;pointer-events:none}
+.property-private-card{background:#fffefa;border:1px solid #d8e1d6;padding:27px;display:flex;flex-direction:column;gap:20px}
+.property-private-card-head{display:flex;justify-content:space-between;gap:18px;align-items:start}
+.property-private-card-head h3{font:400 27px/1.18 'Playfair Display',Georgia,serif;color:#254535;margin:8px 0}
+.property-private-card-head p{font-size:12px;color:#758678;line-height:1.5;margin:0}
+.property-private-rental-tag{font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:800;padding:9px 11px;max-width:150px;text-align:center;line-height:1.35;background:#e5eddf;color:#537a57;flex-shrink:0}
+.property-private-rental-tag.is-rented{background:#e8effa;color:#36678d}
+.property-private-rental-tag.is-unknown{background:#fff3d8;color:#95752e}
+.property-private-cost-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.property-private-cost-grid>div{padding:16px;background:#f1f5ef;border:1px solid #e1e8dc;min-width:0}
+.property-private-cost-grid span,.property-private-meta span{display:block;font-size:10px;color:#738778;letter-spacing:.05em;margin-bottom:8px;line-height:1.4}
+.property-private-cost-grid strong{display:block;font:400 23px/1.25 'Playfair Display',Georgia,serif;color:#284632;overflow-wrap:anywhere}
+.property-private-cost-grid small{display:block;color:#67806b;font-size:10px;margin-top:7px}
+.property-private-rental-details{border-top:1px solid #dfe6dc;padding-top:18px}
+.property-private-rental-details h4{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#375240;margin:0 0 12px}
+.property-private-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.property-private-meta>div{min-width:0}
+.property-private-meta strong{display:block;font-size:12px;line-height:1.5;color:#3d5542;overflow-wrap:anywhere}
+.property-private-subtle{font-size:12px;line-height:1.7;color:#748477}
+.property-private-editor{border-top:1px solid #e0e7df;padding-top:17px;margin-top:auto;display:grid;gap:12px}
+.property-private-editor input{min-height:44px;border:1px solid #cddbcc;background:#fffefa;padding:11px;font-size:13px;width:100%}
+.property-private-editor-actions{display:flex;flex-wrap:wrap;gap:10px}
+.property-private-editor-actions .button{padding:12px 14px;min-height:41px;font-size:10px}
+.property-private-editor-actions .button:disabled{opacity:.45;cursor:not-allowed}
+.property-private-editor small{display:block;font-size:11px;color:#778978;line-height:1.7}
+.property-private-warning{padding:14px 19px;border:1px solid #e2c9a0;background:#fff5e6;font-size:12px;color:#77572c;margin:15px 0}
+#propertyStaffFeedback{margin:13px 0;color:#537653;min-height:16px}
+@media(max-width:1080px){.property-staff-grid{grid-template-columns:1fr}}
+@media(max-width:680px){.property-staff-toolbar{grid-template-columns:1fr}.property-private-card{padding:18px}.property-private-card-head{flex-direction:column}.property-private-rental-tag{max-width:none}.property-private-cost-grid{grid-template-columns:1fr}.property-private-meta{grid-template-columns:1fr 1fr}}
