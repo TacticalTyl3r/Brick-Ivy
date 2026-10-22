@@ -147,3 +147,49 @@ h1,h2,h3,p{margin-top:0}
 @media(max-width:800px){.site-header{height:74px}.primary-nav{display:none;position:absolute;top:74px;left:0;right:0;background:var(--cream);padding:26px;flex-direction:column;align-items:start;gap:22px;border-bottom:1px solid var(--line);box-shadow:0 17px 23px rgba(0,0,0,.07)}.primary-nav.open{display:flex}.menu-toggle{display:grid}.header-actions{margin-left:auto}.header-actions .link-button{display:none}.hero{grid-template-columns:1fr}.hero-copy{padding:70px 35px}.hero-image{height:410px;min-height:0}.hero-image img{object-position:center 55%}.hero h1{max-width:670px}.search-inner{padding:23px 0}.search-form{grid-template-columns:repeat(2,1fr)}.section{padding:78px 0}.section-top{align-items:start;flex-direction:column;gap:17px}.property-grid{grid-template-columns:repeat(2,1fr)}.property-grid>*:last-child:nth-child(odd){grid-column:auto}.neighborhood-grid{grid-template-columns:repeat(3,1fr);gap:12px}.neighborhood{height:290px}.neighborhood-content{padding:16px}.neighborhood-content h3{font-size:22px}.about{grid-template-columns:1fr}.about-visual{min-height:440px}.about-visual .portrait{height:420px}.about-visual .logo-plaque{width:32%;height:225px}.cta-inner{align-items:start;flex-direction:column}.footer-grid{grid-template-columns:1fr 1fr}.footer-grid>div:first-child{grid-column:1/-1}.results-layout{grid-template-columns:1fr;gap:28px;padding-top:38px}.filter-panel form{grid-template-columns:repeat(2,1fr)}.filter-panel h2{margin-bottom:18px}.filter-actions{margin-top:0}}
 @media(max-width:560px){.container{width:calc(100% - 36px)}.logo-type{font-size:15px}.logo-mark{height:39px;width:36px}.hero-copy{padding:65px 20px 58px}.hero h1{font-size:clamp(47px,12vw,65px)}.hero-image{height:285px}.hero p{font-size:14px}.hero-buttons .button{width:100%}.search-form{grid-template-columns:1fr}.search-form .button{width:100%}.section{padding:69px 0}.section-heading{font-size:38px}.property-grid,.results-grid,.neighborhood-grid{grid-template-columns:1fr}.property-image,.results-grid .property-image{height:240px}.empty-listings{display:block;padding:30px 23px}.empty-icon{margin-bottom:16px}.neighborhood{height:260px}.neighborhood-content{padding:26px}.about-visual{min-height:370px}.about-visual .portrait{height:340px}.about-visual .logo-plaque{height:170px}.cta-band{padding:65px 0}.footer-grid{grid-template-columns:1fr;gap:26px}.footer-grid>div:first-child{grid-column:auto}.footer-bottom{flex-direction:column;gap:6px}.page-header{padding:62px 0}.filter-panel{padding:23px}.filter-panel form{grid-template-columns:1fr}.results-layout{padding-bottom:65px}.detail-page{padding:35px 0 70px}.detail-shell{padding:22px}.detail-gallery{height:auto;grid-template-columns:1fr}.detail-gallery>div:first-child{height:255px}.detail-thumbs{grid-template-columns:1fr 1fr;grid-template-rows:none;height:125px}.admin-note{padding:35px 22px;margin:55px auto}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+/* Public realtor directory */
+.team-hero{padding-top:93px;padding-bottom:95px;background:linear-gradient(112deg,#213d31 0%,#203e30 58%,#34513d 100%)}
+.team-hero .section-heading{max-width:780px;font-size:clamp(43px,5vw,72px);line-height:1.19}
+.team-hero .section-heading em{color:#d0b897;font-weight:400}
+.team-hero p{font-size:15px;max-width:650px;line-height:1.9}
+.team-section{padding-top:90px;padding-bottom:110px}
+.team-heading{margin-bottom:40px}
+.team-heading .section-copy{max-width:605px}
+.team-count{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:#627667;white-space:nowrap;border:1px solid #d4ded2;background:#f1f4ec;padding:11px 16px;margin-bottom:7px}
+.realtor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:27px}
+.realtor-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);background:var(--paper);overflow:hidden;box-shadow:0 12px 34px rgba(33,53,37,.035);transition:transform .22s,box-shadow .22s}
+.realtor-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.realtor-photo{height:305px;background:#e9eee5;position:relative;overflow:hidden;display:grid;place-items:center}
+.realtor-photo img{width:100%;height:100%;object-fit:cover;object-position:center 28%}
+.realtor-avatar{width:125px;height:125px;border:1px solid #c2cec1;display:grid;place-items:center;border-radius:50%;background:#f8f9f5;color:#64806b;font:400 43px 'Playfair Display',Georgia,serif;letter-spacing:-.05em}
+.realtor-photo:has(.realtor-avatar){background:radial-gradient(circle at 42% 30%,#edf2e9 0%,#dce5d9 100%)}
+.realtor-role-badge{position:absolute;bottom:0;left:0;padding:10px 18px;background:#294637;color:#f4f2e8;font-size:10px;letter-spacing:.17em;text-transform:uppercase;font-weight:800}
+.realtor-body{padding:27px 26px 30px;display:flex;flex-direction:column;flex:1}
+.realtor-name{font:400 27px/1.2 'Playfair Display',Georgia,serif;color:#243a2c;letter-spacing:-.025em;margin:0 0 6px}
+.realtor-subtitle{font-size:11px;color:#829080;text-transform:uppercase;letter-spacing:.15em;font-weight:800;margin-bottom:18px}
+.realtor-bio{font-size:13px;line-height:1.82;color:#6f7d72;margin-bottom:21px;flex:1}
+.realtor-details{border-top:1px solid var(--line);padding-top:16px;margin-top:auto;display:flex;flex-direction:column;gap:13px}
+.realtor-contact-row{display:grid;grid-template-columns:75px 1fr auto;gap:9px;align-items:start;font-size:12px;min-width:0}
+.realtor-contact-label{font-size:10px;color:#829185;text-transform:uppercase;letter-spacing:.09em;font-weight:800;padding-top:2px}
+.realtor-contact-value{color:#324f3b;font-weight:700;overflow-wrap:anywhere;min-width:0}
+.realtor-copy{font-size:10px;font-weight:800;color:#42664e;border:1px solid #bfcabe;background:transparent;min-height:28px;padding:4px 8px;line-height:1.2}
+.realtor-copy:hover{background:#ecf2ea}
+.realtor-actions{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+.realtor-actions .button{flex:1;min-height:43px;padding:0 15px;font-size:10px;letter-spacing:.045em}
+.realtor-contact-none{color:#7e897e;font-size:12px;font-style:italic}
+.team-empty{grid-column:1/-1;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:0;padding:80px 28px 84px;background:#f1f4ec;border:1px solid #d8dfd3;text-align:center;min-height:335px}
+.team-empty-mark{font:400 40px 'Playfair Display',Georgia,serif;color:#729079;border:1px solid #c7d3c5;width:82px;height:82px;border-radius:50%;display:grid;place-items:center;margin-bottom:24px}
+.team-empty h3{font:400 33px 'Playfair Display',Georgia,serif;color:#254232;margin:0 0 10px}
+.team-empty p{font-size:13px;line-height:1.9;color:#6e7d70;max-width:520px;margin:0}
+.team-contact-note{background:#e8ede4;padding:69px 0}
+.team-contact-inner{display:flex;gap:30px;align-items:center}
+.team-contact-icon{font-size:37px;border:1px solid #b9c9b8;width:80px;height:80px;display:grid;place-items:center;flex-shrink:0;color:#819779}
+.team-contact-inner>div:nth-child(2){flex:1}
+.team-contact-note .eyebrow{font-size:10px}
+.team-contact-note h2{font-size:30px;letter-spacing:-.035em;margin:9px 0 5px}
+.team-contact-note p{font-size:13px;color:#697b6c;margin:0}
+.team-contact-note .button{flex-shrink:0}
+@media(max-width:1099px){.realtor-grid{gap:16px}.realtor-photo{height:268px}.realtor-body{padding:22px 20px 25px}}
+@media(max-width:800px){.realtor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.team-contact-inner{flex-wrap:wrap}.team-contact-inner .button{margin-left:110px}.team-section{padding-top:65px;padding-bottom:85px}}
+@media(max-width:560px){.team-hero{padding:69px 0}.team-heading{gap:15px}.team-count{margin:0}.realtor-grid{grid-template-columns:1fr}.realtor-photo{height:320px}.realtor-body{padding:27px 24px}.team-empty{padding:54px 23px;min-height:300px}.team-empty h3{font-size:29px}.team-contact-note{padding:55px 0}.team-contact-inner{display:block}.team-contact-icon{margin-bottom:22px}.team-contact-inner .button{margin:24px 0 0;width:100%}}
