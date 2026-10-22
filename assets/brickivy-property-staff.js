@@ -72,7 +72,7 @@ function propertyCard(p){
    '<div><span class="property-management-label">Public status</span>'+
    '<strong>'+(rented?'Unavailable':p.reserved?'Reserved':unknown?'In portfolio':'Available')+'</strong></div>'+
    '<div><span class="property-management-label">Storage preset</span>'+
-   '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' kg':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots)+' slots':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
+   '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' SU':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots)+' slots':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
    (isOwner?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
    (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
@@ -127,7 +127,7 @@ function renderStorage(){
    const slots=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
    return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
      '<div><h3>'+safe(entry.type)+'</h3><small>Applies to every property with this OPFW type</small></div>'+
-     '<label class="field"><span>Storage weight (kg)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(kg)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
+     '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(kg)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
      '<label class="field"><span>Storage slots</span><input type="number" min="0" step="1" max="1000000" name="slots" value="'+safe(slots)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
      (role==='owner'?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
  }).join(''):'<p>No property types were returned from OPFW.</p>';
