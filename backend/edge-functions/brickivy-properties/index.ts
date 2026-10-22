@@ -104,7 +104,7 @@ async function loadProperties(token:string):Promise<unknown[]> {
 }
 Deno.serve(async(request:Request)=>{
   const origin=request.headers.get("origin")||"";
-  if(request.method==="OPTIONS")return reply({},204,origin);
+  if(request.method==="OPTIONS")return reply({},200,origin);
   if(request.method!=="GET")return reply({error:"Method not allowed"},405,origin);
   if(origin && !ORIGINS.has(origin))return reply({error:"Origin not allowed"},403,origin);
   const token=Deno.env.get("OPFW_REST_TOKEN");
