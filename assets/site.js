@@ -5,6 +5,28 @@ const $$ = (selector,root=document)=>Array.from(root.querySelectorAll(selector))
 function esc(input){return String(input??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeImage(url){if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,window.location.href);return u.protocol==='https:'||u.origin===location.origin?u.href:''}catch{return ''}}
 function safeText(x){return String(x??'').trim();}
+// OPFW interior codes; keep raw property_type values for filters and database keys.
+const OPFW_INTERIORS=Object.freeze({
+ '1':'Motel',
+ '2':"Trevor's Trailer",
+ '3':'Janitor Apartment',
+ '4':'Low-End Apartment',
+ '5':"Lester's House",
+ '6':"Franklin's House",
+ '7':'Mid-End Apartment',
+ '8':"Trevor's Beach House",
+ '9':"Michael's Mansion",
+ '10':"Franklin's Mansion",
+ '11':'High-End Apartment'
+});
+function interiorName(type){
+ const code=safeText(type);
+ return OPFW_INTERIORS[code]||code||'Property';
+}
+function interiorChoiceLabel(type){
+ const code=safeText(type);
+ return OPFW_INTERIORS[code]?'#'+code+' — '+OPFW_INTERIORS[code]:code;
+}
 function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
 function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable','available','reserved'].includes(safeText(p.status).toLowerCase());}
 async function getProperties(){
@@ -29,7 +51,7 @@ function availabilityOrder(a,b){return statusOrder(a)-statusOrder(b)||blockOrder
 function storageText(p){
  const data=[];
  if(p.storageKg!==null&&p.storageKg!==undefined&&Number.isFinite(Number(p.storageKg)))data.push(Number(p.storageKg).toLocaleString()+' SU');
- if(p.storageSlots!==null&&p.storageSlots!==undefined&&Number.isSafeInteger(Number(p.storageSlots)))data.push(Number(p.storageSlots)+' slots');
+ if(p.storageSlots!==null&&p.storageSlots!==undefined&&Number.isSafeInteger(Number(p.storageSlots)))data.push(Number(p.storageSlots).toLocaleString()+' objects (furniture pieces)');
  return data.join(' · ');
 }
 function emptyMarkup(title='New listings are on the way.',body='Our team is preparing the latest Brick & Ivy properties. Check back soon, or reach out to a Realtor in Legendary Roleplay.'){return '<div class="empty-listings"><div><div class="eyebrow">Brick & Ivy properties</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div>'}
@@ -39,7 +61,7 @@ function cardMarkup(p){
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
  const cost=Number.isFinite(price)?money.format(price):'Value on request';
  const label=normalStatus(p);
- const neighborhood=safeText(p.area||p.neighborhood||p.type||'San Andreas');
+ const neighborhood=safeText(p.area||p.neighborhood||interiorName(p.type)||'San Andreas');
  const block=safeText(p.blockId),storage=storageText(p);
  return '<a class="property-card" href="property.html?id='+id+'" aria-label="View '+esc(p.name||'property')+'">'+
  '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div>')+
@@ -48,7 +70,7 @@ function cardMarkup(p){
  '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
- '<div class="property-bottom"><span>'+esc(p.type||'Property')+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
+ '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
 }
 function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(toggle&&nav){toggle.addEventListener('click',()=>{const opened=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));});$$('a',nav).forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false')}))}$$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear())}
 async function home(){const target=$('#featuredGrid');if(!target)return;
@@ -70,7 +92,7 @@ function filterItems(items,form){
  const search=safeText(values.get('search')).toLowerCase();
  const sort=safeText(values.get('sort'));
  const filtered=items.filter(p=>{
- const hay=[p.name,p.address,p.neighborhood,p.type].map(safeText).join(' ').toLowerCase();
+ const hay=[p.name,p.address,p.neighborhood,p.type,interiorName(p.type)].map(safeText).join(' ').toLowerCase();
  const matchArea=!area||safeText(p.area).toLowerCase()===area;
  const matchType=!type||safeText(p.type).toLowerCase().includes(type);
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
@@ -99,8 +121,8 @@ async function propertiesPage(){
  // Populate real OPFW property types rather than assuming generic House/Apartment labels.
  const typeSelect=form.elements.namedItem('type');
  if(typeSelect){
-   const types=[...new Set(all.map(p=>safeText(p.type)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-   typeSelect.innerHTML='<option value="">All property types</option>'+types.map(type=>'<option value="'+esc(type)+'">'+esc(type)+'</option>').join('');
+   const types=[...new Set(all.map(p=>safeText(p.type)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+   typeSelect.innerHTML='<option value="">All property types</option>'+types.map(type=>'<option value="'+esc(type)+'">'+esc(interiorChoiceLabel(type))+'</option>').join('');
  }
  const params=new URLSearchParams(location.search);
  for(const name of ['area','type','max','search','sort']){const field=form.elements.namedItem(name);if(field&&params.has(name))field.value=params.get(name)}
@@ -138,7 +160,7 @@ async function detailPage(){
  '<div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
  '<div class="detail-gallery"><div>'+photo(cover,p.name||'Property cover photograph')+'</div><div class="detail-thumbs"><div>'+photo(others[0],(p.name||'Property')+' photograph 2')+'</div><div>'+photo(others[1],(p.name||'Property')+' photograph 3')+'</div></div></div>'+
  '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed weekly value may be adjusted by Brick & Ivy management and does not necessarily match in-game billing or a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
- '<div class="property-bottom" style="margin-top:38px"><span>'+esc(p.type||'Residential property')+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
+ '<div class="property-bottom" style="margin-top:38px"><span>'+esc(interiorName(p.type))+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
  (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':safeText(p.status).toLowerCase()==='reserved'?'<div class="property-reserved-message"><strong>Currently reserved</strong><p>Brick &amp; Ivy has reserved this property. Contact a Realtor for details.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>'
 }
 
