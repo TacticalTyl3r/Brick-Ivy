@@ -14,14 +14,14 @@ The public `properties.html` page now:
 - Shows **Reserved** when a verified staff member marks the property reserved and no active renter is detected.
 - Retains neutral **In portfolio** when occupancy cannot be verified. A neutral status is not a guarantee that a house is for sale.
 - Displays the assigned area (Los Santos, Sandy Shores, Paleto Bay), when one has been configured.
-- Shows the configured storage capacity (SU and/or slots) by OPFW `property_type`, if the Owner has entered one.
+- Shows configured storage capacity (SU and/or objects / furniture pieces) by OPFW interior code, if an Owner has entered one.
 
 ## Property Management
 
 At `manage-properties.html`, the existing authenticated staff dashboard adds:
 - **Region:** Owner assigns an area per property, with an Unassigned option. This metadata is stored in `public.brickivy_property_listing_settings`. Visitors can filter by the assigned area.
 - **Reservation:** Both Owner and Realtor Discord roles may mark and remove Reserved. The API rejects a new reservation on a confirmed-rented property; rented status takes precedence on public pages.
-- **Storage by property type:** The dashboard derives the type list from the live OPFW portfolio and shows one editable preset per type. Owners can enter an actual **storage weight (SU)** and **storage slots** for each type. Values are deliberately blank until entered — OPFW's readonly `stocks_company_properties` table provides `property_type` but **does not list storage capacities**.
+- **Storage by Interior:** The dashboard derives the type list from the live OPFW portfolio and displays each numbered code with its configured interior name. Owners can enter **storage weight (SU)** and the maximum **objects (furniture pieces)** that fit inside, per type. Values are deliberately blank until entered — OPFW's readonly `stocks_company_properties` table provides `property_type` but **does not list storage capacities**.
 - **Existing functionality:** Owners retain weekly rent price overrides. Authenticated staff retain private renter character, payment, income, and calculated weekly Brick & Ivy margin. These details are not included in public JSON.
 
 ## Protected storage, permissions and audit
@@ -54,3 +54,23 @@ The read-only public `brickivy-properties` Edge Function fetches only the minimu
 8. Verify unauthenticated calls and non-Owner edits are rejected, and renter fields are absent from public feed. Public Edge Function caches may take approximately 90 seconds to refresh.
 
 Source fields documented at https://opfw.gg/api/rest.
+
+## OPFW interior codes
+
+The original `property_type` values are preserved as the API and storage preset keys; only the visible labels change. The configured mappings are:
+
+| OPFW code | Interior |
+|---|---|
+| 1 | Motel |
+| 2 | Trevor's Trailer |
+| 3 | Janitor Apartment |
+| 4 | Low-End Apartment |
+| 5 | Lester's House |
+| 6 | Franklin's House |
+| 7 | Mid-End Apartment |
+| 8 | Trevor's Beach House |
+| 9 | Michael's Mansion |
+| 10 | Franklin's Mansion |
+| 11 | High-End Apartment |
+
+On Property Management the section is labeled **Storage by Interior**. The second field is **Objects (Furniture Pieces)**, an integer count of placeable furniture items, replacing the older **Storage Slots** label. Public cards and detail pages show this as objects rather than slots. No stored capacity values are converted or reset; internal database field `capacity_slots` and API property `capacitySlots` are preserved for compatibility.
