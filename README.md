@@ -12,7 +12,8 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `properties.html` — property search, filters and sorting.
 - `property.html?id=...` — published property detail and photo gallery.
 - `realtors.html` — public Realtor and Owner contact directory; it reads `data/realtors.json`.
-- `admin.html` — temporary, clearly labelled portal placeholder. It does **not** allow login or write access.
+- `admin.html` — staff portal landing page with a Realtor Management entry point. Discord login and protected saving are not active yet.
+- `manage-realtors.html` — draft Realtor creation form, roster preview, and JSON export to the owner-controlled GitHub editor. This page **cannot** directly change public listings or grant site privileges.
 
 ## Public data contract
 
@@ -78,6 +79,20 @@ Only explicitly approved and published profiles will display. Create entries in 
 - `bio` is optional; no description is displayed when blank.
 - Mugshot integration (not deployed): a secure backend requests `characters` from service `1973`, selecting only `character_id,mugshot_url`, filtered by the approved Character ID. It validates the response and outputs a public-safe photo URL. Neither the bearer token nor private character fields belong in the GitHub Pages feed.
 - Long term, the Owner dashboard should manage these profiles, photos and publishing status in a protected database; the static JSON format is an interim source until that backend is built.
+
+## Owner Realtor management workflow (temporary)
+
+Visit `/admin.html` and select **Realtor Management** to open `/manage-realtors.html`. It loads existing Realtor data and provides an editable *draft generator* with:
+
+- Character name and **CID** (required and checked against existing entries to prevent duplicates)
+- In-game phone, Discord handle, optional Discord user ID, public title, optional HTTPS photo and biography
+- An explicit opt-in `published` checkbox so new profiles stay unpublished by default
+- A live preview of the entire directory, including Johnny Sausage (CID 8)
+- **Copy roster JSON**, which exports all existing profiles and newly drafted profiles without changing the hosted data
+
+Then open the linked GitHub `data/realtors.json` editor, replace the file contents with the copied JSON, and commit. GitHub Pages will update the public Realtor directory upon deployment. GitHub, not this preview interface, enforces who can commit; **no one can publish via the static page alone**. Do not publish profile contact details without the individual's agreement.
+
+**Production requirement:** Once Discord OAuth and a secure backend are connected, replace the GitHub workflow with an Owner-only Realtor Management screen that performs verified write operations. Validate Owner access against Discord guild `1001110667580932168` and Owner role `1502871124378259526` on every management request, not just at sign-in. Realtors (role `1502870035176357968`) must not add, publish, or remove other Realtors unless an Owner explicitly delegates an appropriate permission. Adding someone to the public directory is separate from granting Discord membership or website login.
 
 ## In-game availability on Realtor profiles
 
