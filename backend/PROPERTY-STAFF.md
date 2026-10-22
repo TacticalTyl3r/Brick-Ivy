@@ -16,6 +16,18 @@ From OPFW `stocks_company_properties` for company_id 5, requested **only from th
 
 If the OPFW token does not permit rental columns, the endpoint falls back to basic property data and explicitly reports `rentalAvailable:false`. The UI shows "details unavailable" rather than wrongly calling rented houses vacant.
 
+## Brick & Ivy Income (staff-only)
+
+The former "OPFW property income" field on Property Management cards has been replaced by **Brick & Ivy Income**:
+
+`Weekly rent price (website effective weekly cost) − Weekly maintenance cost (OPFW original property_cost)`.
+
+- Positive difference: green with a leading **+** (e.g. `+$3,000.00`).
+- Negative difference: red with a leading **−** (e.g. `-$1,500.00`).
+- Zero: neutral `$0.00`. If either amount is missing, show `Not reported` instead of a misleading result.
+- Recalculates immediately after an Owner saves or resets an override; no additional backend changes or new stored income records.
+- This is a **weekly calculated margin**, not a claim that rent has actually been collected; tenant and payment details remain restricted to staff.
+
 ## Weekly property value overrides
 - OPFW is **read-only**. An Owner's saved value changes the **Brick & Ivy website**; it does **not** change the game's rent charge or OPFW `property_cost`.
 - New private table `brickivy_property_weekly_costs` stores `property_id`, nullable override, `updated_by`, `updated_at`.
