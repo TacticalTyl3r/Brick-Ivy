@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#182d25"><meta name="robots" content="noindex,nofollow">
+<title>Realtor Management | Brick & Ivy Real Estate</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/styles.css">
+<script defer src="assets/site.js"></script><script defer src="assets/manage-realtors.js"></script>
+</head>
+<body data-page="admin-realtors">
+<header class="site-header"><div class="container header-inner">
+<a class="logo-lockup" href="index.html" aria-label="Brick & Ivy homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+<a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a>
+<a href="admin.html" aria-current="page">Staff portal</a>
+</nav>
+<div class="header-actions"><a class="link-button" href="admin.html">Back to portal <span aria-hidden="true">←</span></a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="primary-nav" aria-expanded="false"><span aria-hidden="true"></span></button></div>
+</div></header>
+<main>
+<section class="page-header admin-management-hero"><div class="container"><div class="eyebrow">Brick &amp; Ivy / Owner tools</div><h1 class="section-heading">Realtor <em>management.</em></h1>
+<p>Manage the details shown on your public team directory. Owner-only saving and Discord permissions will become available after secure login is connected.</p></div></section>
+<div class="container manage-workspace">
+<aside class="manage-notice" role="note"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span><div>
+<strong>Temporary GitHub publishing workflow — not yet an authenticated admin page</strong>
+<p>You can prepare a Realtor profile here and copy the updated directory to GitHub. Nothing is published automatically. Only someone with repository write access can commit changes. Once Discord OAuth and the secure database are connected, this page will be restricted to the Brick &amp; Ivy Owner role and saving will happen directly.</p></div></aside>
+<section class="manage-layout" aria-label="Realtor administration">
+<div class="manage-primary">
+<div class="manage-panel">
+<div class="manage-panel-header"><div><span class="eyebrow">Team directory</span><h2 class="serif">Current team</h2></div><span class="manage-count" id="managementCount">Loading</span></div>
+<div id="managementRoster" class="manage-roster" aria-live="polite"><p>Loading current Realtor profiles…</p></div>
+</div>
+<div class="manage-panel manage-help">
+<h2 class="serif">How publishing works</h2>
+<ol>
+<li>Fill in the Realtor's details and select <strong>Add to draft roster</strong>.</li>
+<li>Review your roster, then select <strong>Copy roster JSON</strong>.</li>
+<li>Open the GitHub editor, replace the file contents, and commit the change.</li>
+<li>GitHub Pages updates the public <a href="realtors.html">Realtors page</a> after deployment.</li>
+</ol>
+<p>The Owner's Discord role will eventually control this screen. Adding a listing here does not grant access to the staff portal or change anyone's Discord roles.</p>
+</div>
+</div>
+<div class="manage-panel manage-form-card">
+<div class="manage-panel-header"><div><span class="eyebrow">New team member</span><h2 class="serif">Add a Realtor</h2></div><span class="manage-count">Realtor profile</span></div>
+<form id="manageRealtorForm" class="manage-form" autocomplete="off">
+<div class="field"><label for="realtorName">Character name *</label><input id="realtorName" name="name" placeholder="Full character name" required maxlength="80"></div>
+<div class="field"><label for="realtorCid">Character ID (CID) *</label><input id="realtorCid" name="characterId" type="number" min="1" max="2147483647" inputmode="numeric" placeholder="e.g. 8" required><small>Used to match their character's online status and eventually retrieve their mugshot.</small></div>
+<div class="field"><label for="realtorPhone">In-game phone number</label><input id="realtorPhone" name="inGamePhone" type="text" maxlength="35" placeholder="e.g. 145-7459"></div>
+<div class="field"><label for="realtorDiscord">Discord username</label><input id="realtorDiscord" name="discordUsername" maxlength="70" placeholder="e.g. Username"></div>
+<div class="field"><label for="realtorDiscordId">Discord user ID (optional)</label><input id="realtorDiscordId" name="discordId" inputmode="numeric" pattern="[0-9]{17,20}" placeholder="Only if you want a clickable profile" title="Discord user ID must be 17 to 20 digits"></div>
+<div class="field"><label for="realtorTitle">Public title</label><input id="realtorTitle" name="title" maxlength="80" value="Realtor"></div>
+<div class="field"><label for="realtorPhoto">Custom photo URL (optional)</label><input id="realtorPhoto" name="photo" type="url" placeholder="https://..."><small>Leave blank to use initials until the automatic mugshot integration is active.</small></div>
+<div class="field"><label for="realtorBio">Short bio (optional)</label><textarea id="realtorBio" name="bio" maxlength="500" rows="3" placeholder="Leave blank if no bio"></textarea></div>
+<label class="manage-switch"><input type="checkbox" name="published" id="realtorPublished"><span><strong>Publish on public directory</strong><small>Only turn on after the Realtor agrees to share their profile and contact details.</small></span></label>
+<p class="manage-message" id="manageFormMessage" role="status" aria-live="polite"></p>
+<button class="button dark manage-full" type="submit">Add to draft roster <span aria-hidden="true">＋</span></button>
+</form>
+</div>
+</section>
+<section class="manage-export" aria-label="Save prepared Realtor directory"><div><span class="eyebrow">Save your changes</span><h2 class="serif">Ready to publish your roster?</h2><p>This temporary process uses GitHub's existing repository permissions. The export contains the current roster plus new Realtors you've prepared here.</p></div>
+<div class="manage-export-actions"><button id="copyRosterJson" type="button" class="button dark" disabled>Copy roster JSON <span aria-hidden="true">⧉</span></button><a href="https://github.com/TacticalTyl3r/Brick-Ivy/edit/main/data/realtors.json" target="_blank" rel="noopener noreferrer" class="button outline">Open GitHub editor <span aria-hidden="true">↗</span></a></div>
+<p class="manage-message" id="manageExportMessage" role="status" aria-live="polite"></p></section>
+</div>
+</main>
+<footer class="site-footer"><div class="container"><div class="footer-grid">
+<div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Discover your next home in San Andreas. Built for the Legendary Roleplay community.</p></div>
+<div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Our Realtors</a></div></div>
+<div><div class="footer-title">Brick &amp; Ivy</div><div class="footer-links"><a href="admin.html">Staff portal</a><span>Legendary Roleplay</span></div></div></div>
+<div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate. All rights reserved.</span><span>An independent in-game business within Legendary Roleplay.</span></div>
+</div></footer>
+</body></html>
