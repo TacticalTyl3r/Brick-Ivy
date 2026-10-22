@@ -29,7 +29,7 @@ function cardMarkup(p){
  '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div>')+
  '<span class="status-tag">'+esc(label)+'</span></div><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
- '<div class="property-value-label">Reported property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
+ '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
  '<div class="property-bottom"><span>'+esc(p.type||'Property')+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
 }
@@ -107,7 +107,7 @@ async function detailPage(){
  const photo=(src,alt)=>src?'<img src="'+esc(src)+'" alt="'+esc(alt)+'">':'<div class="fallback-graphic" style="height:100%" aria-hidden="true">Brick & Ivy</div>';
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price),priceText=Number.isFinite(price)?money.format(price):'Value on request';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
- '<div class="detail-meta">'+esc(p.address||'San Andreas')+'</div><div class="property-value-label">Reported property value — confirm asking price with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
+ '<div class="detail-meta">'+esc(p.address||'San Andreas')+'</div><div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
  '<div class="detail-gallery"><div>'+photo(cover,p.name||'Property cover photograph')+'</div><div class="detail-thumbs"><div>'+photo(others[0],(p.name||'Property')+' photograph 2')+'</div><div>'+photo(others[1],(p.name||'Property')+' photograph 3')+'</div></div></div>'+
  '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed value comes from the game database and may not reflect a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
  '<div class="property-bottom" style="margin-top:38px"><span>'+esc(p.type||'Residential property')+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
