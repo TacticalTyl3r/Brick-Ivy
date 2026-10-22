@@ -20,9 +20,9 @@
       <aside class="filter-panel" aria-label="Property filters"><h2>Refine your search</h2>
         <form id="filters" action="properties.html" method="get">
           <div class="field"><label for="search">Search properties</label><input id="search" name="search" type="search" placeholder="Name or address"></div>
-          <div class="field"><label for="area">Location</label><select id="area" name="area"><option value="">All locations</option><option>Los Santos</option><option>Sandy Shores</option><option>Paleto Bay</option></select></div>
-          <div class="field"><label for="type">Property type</label><select id="type" name="type"><option value="">All property types</option><option value="house">House</option><option value="apartment">Apartment</option><option value="commercial">Commercial</option></select></div>
-          <div class="field"><label for="max">Maximum price</label><select id="max" name="max"><option value="">Any price</option><option value="100000">$100,000</option><option value="250000">$250,000</option><option value="500000">$500,000</option><option value="1000000">$1,000,000</option><option value="5000000">$5,000,000</option></select></div>
+          <div class="field"><label for="area">Location</label><select id="area" name="area"><option value="">All locations</option><option value="Los Santos">Los Santos</option><option value="Sandy Shores">Sandy Shores</option><option value="Paleto Bay">Paleto Bay</option></select></div>
+          <div class="field"><label for="type">Property type</label><select id="type" name="type"><option value="">All property types</option></select></div>
+          <div class="field"><label for="max">Max price</label><select id="max" name="max"><option value="">No max</option><option value="5000">$5,000</option><option value="10000">$10,000</option><option value="15000">$15,000</option></select></div>
           <div class="field"><label for="sort">Sort by</label><select id="sort" name="sort"><option value="">Block order</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></div>
           <div class="filter-actions"><button class="button dark" type="submit">Show properties <span aria-hidden="true">→</span></button><button class="button outline" id="resetFilters" type="button">Clear filters</button></div>
         </form>
