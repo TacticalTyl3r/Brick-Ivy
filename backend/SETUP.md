@@ -1,6 +1,10 @@
 # Brick & Ivy: launch the secure Realtor backend
 
-**Stage (October 22, 2026):** Dedicated project `rcbbnzqmfvapwuqmpmhk` has been created in us-east-1. `backend/schema.sql` has been applied; both Edge Functions are deployed as active. The public URL and publishable key are configured in `assets/brickivy-config.js`. `discordAuthReady: false` keeps login disabled until Discord OAuth and server-side bot configuration are complete.
+**Stage (October 22, 2026):** Dedicated Brick & Ivy project `rcbbnzqmfvapwuqmpmhk` is active in us-east-1. Discord OAuth, owner-managed Realtor profiles and live role checks are operational. The `brickivy-properties` public Edge Function is deployed and wired to the website; see [OPFW property feed setup](OPFW-PROPERTIES.md) for the one-time private `OPFW_REST_TOKEN` required to complete the live upstream connection.
+
+## Live property listings
+
+**Deployed:** `brickivy-properties` (public read-only, `verify_jwt=false`) queries `stocks_company_properties` through OPFW Readonly API V3, restricted to `company_id=5`. The frontend already calls this Edge Function. Add `OPFW_REST_TOKEN` in this Brick & Ivy Supabase project before expecting live property results. See [detailed setup](OPFW-PROPERTIES.md). Keep this secret off GitHub and out of chats.
 
 ## 1. Create a dedicated project
 
