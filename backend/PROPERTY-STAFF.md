@@ -63,4 +63,4 @@ The former "OPFW property income" field on Property Management cards has been re
 
 ## Additional listing controls
 
-Owners may assign Los Santos/Sandy Shores/Paleto Bay and set weight/slot storage presets for each live OPFW property type. Realtors and Owners may reserve/unreserve homes. The public status calculation and block sorting are documented in [LISTING-AREAS-STATUS-STORAGE.md](LISTING-AREAS-STATUS-STORAGE.md).
+Owners may assign Los Santos/Sandy Shores/Paleto Bay and set storage capacity in SU and objects (furniture pieces) for each named OPFW interior type. Realtors and Owners may reserve/unreserve homes. The public status calculation and block sorting are documented in [LISTING-AREAS-STATUS-STORAGE.md](LISTING-AREAS-STATUS-STORAGE.md).
