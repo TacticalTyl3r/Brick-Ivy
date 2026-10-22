@@ -5,8 +5,8 @@ const $$ = (selector,root=document)=>Array.from(root.querySelectorAll(selector))
 function esc(input){return String(input??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeImage(url){if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,window.location.href);return u.protocol==='https:'||u.origin===location.origin?u.href:''}catch{return ''}}
 function safeText(x){return String(x??'').trim();}
-function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
-function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable'].includes(safeText(p.status).toLowerCase());}
+function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
+function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable','available','reserved'].includes(safeText(p.status).toLowerCase());}
 async function getProperties(){
  const cfg=window.BRICK_IVY_CONFIG||{};
  const hasBackend=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'');
@@ -17,6 +17,21 @@ async function getProperties(){
  if(!Array.isArray(data))throw new Error('Unexpected property feed response');
  return data.filter(listed);
 }
+function statusOrder(p){const value=safeText(p.status).toLowerCase();return value==='available'?0:value==='listed'?1:value==='reserved'?2:value==='unavailable'?3:1}
+function blockOrder(a,b){
+ const x=safeText(a.blockId),y=safeText(b.blockId);
+ if(!x&&y)return 1;if(x&&!y)return -1;
+ return x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'})
+   ||safeText(a.address).localeCompare(safeText(b.address),undefined,{numeric:true,sensitivity:'base'})
+   ||safeText(a.id).localeCompare(safeText(b.id),undefined,{numeric:true});
+}
+function availabilityOrder(a,b){return statusOrder(a)-statusOrder(b)||blockOrder(a,b)}
+function storageText(p){
+ const data=[];
+ if(p.storageKg!==null&&p.storageKg!==undefined&&Number.isFinite(Number(p.storageKg)))data.push(Number(p.storageKg).toLocaleString()+' kg');
+ if(p.storageSlots!==null&&p.storageSlots!==undefined&&Number.isSafeInteger(Number(p.storageSlots)))data.push(Number(p.storageSlots)+' slots');
+ return data.join(' · ');
+}
 function emptyMarkup(title='New listings are on the way.',body='Our team is preparing the latest Brick & Ivy properties. Check back soon, or reach out to a Realtor in Legendary Roleplay.'){return '<div class="empty-listings"><div><div class="eyebrow">Brick & Ivy properties</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div>'}
 function cardMarkup(p){
  const id=encodeURIComponent(safeText(p.id));
@@ -24,13 +39,15 @@ function cardMarkup(p){
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
  const cost=Number.isFinite(price)?money.format(price):'Value on request';
  const label=normalStatus(p);
- const neighborhood=safeText(p.neighborhood||p.type||'San Andreas');
+ const neighborhood=safeText(p.area||p.neighborhood||p.type||'San Andreas');
+ const block=safeText(p.blockId),storage=storageText(p);
  return '<a class="property-card" href="property.html?id='+id+'" aria-label="View '+esc(p.name||'property')+'">'+
  '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div>')+
- '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
+ '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
  '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
+ (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
  '<div class="property-bottom"><span>'+esc(p.type||'Property')+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
 }
 function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(toggle&&nav){toggle.addEventListener('click',()=>{const opened=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));});$$('a',nav).forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false')}))}$$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear())}
@@ -38,7 +55,7 @@ async function home(){const target=$('#featuredGrid');if(!target)return;
  try{
    const props=await getProperties();
    const featured=props.filter(p=>p.featured===true);
-   const show=(featured.length?featured:props).slice(0,3);
+   const show=(featured.length?featured:props).sort(availabilityOrder).slice(0,3);
    target.innerHTML=show.length?show.map(cardMarkup).join(''):emptyMarkup('No properties listed yet.','Brick & Ivy has no company properties in the live feed right now.');
  }catch(error){
    console.warn('Property feed unavailable:',error);
@@ -54,16 +71,18 @@ function filterItems(items,form){
  const sort=safeText(values.get('sort'));
  const filtered=items.filter(p=>{
  const hay=[p.name,p.address,p.neighborhood,p.type].map(safeText).join(' ').toLowerCase();
- const matchArea=!area||hay.includes(area);
+ const matchArea=!area||safeText(p.area).toLowerCase()===area;
  const matchType=!type||safeText(p.type).toLowerCase().includes(type);
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
  const matchPrice=!max||(Number.isFinite(price)&&price<=max);
  return matchArea&&matchType&&matchPrice&&(!search||hay.includes(search))
  });
  filtered.sort((a,b)=>{
- if(sort==='price-low')return Number(a.price||0)-Number(b.price||0);
- if(sort==='price-high')return Number(b.price||0)-Number(a.price||0);
- return Number(b.featured===true)-Number(a.featured===true)
+   const statusDiff=statusOrder(a)-statusOrder(b);
+   if(statusDiff)return statusDiff;
+   if(sort==='price-low')return Number(a.price||0)-Number(b.price||0)||blockOrder(a,b);
+   if(sort==='price-high')return Number(b.price||0)-Number(a.price||0)||blockOrder(a,b);
+   return blockOrder(a,b);
  });
  return filtered
 }
@@ -76,6 +95,12 @@ async function propertiesPage(){
    count.textContent='Unavailable';
    grid.innerHTML=emptyMarkup('Property feed is temporarily unavailable.','Our live property connection could not be reached. Please try refreshing the page later.');
    return;
+ }
+ // Populate real OPFW property types rather than assuming generic House/Apartment labels.
+ const typeSelect=form.elements.namedItem('type');
+ if(typeSelect){
+   const types=[...new Set(all.map(p=>safeText(p.type)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+   typeSelect.innerHTML='<option value="">All property types</option>'+types.map(type=>'<option value="'+esc(type)+'">'+esc(type)+'</option>').join('');
  }
  const params=new URLSearchParams(location.search);
  for(const name of ['area','type','max','search','sort']){const field=form.elements.namedItem(name);if(field&&params.has(name))field.value=params.get(name)}
@@ -107,11 +132,14 @@ async function detailPage(){
  const photo=(src,alt)=>src?'<img src="'+esc(src)+'" alt="'+esc(alt)+'">':'<div class="fallback-graphic" style="height:100%" aria-hidden="true">Brick & Ivy</div>';
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price),priceText=Number.isFinite(price)?money.format(price):'Value on request';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
- '<div class="detail-meta">'+esc(p.address||'San Andreas')+'</div><div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
+ '<div class="detail-meta">'+esc(p.address||'San Andreas')+
+ (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
+ (storageText(p)?'<div class="property-detail-storage">Storage: '+esc(storageText(p))+'</div>':'')+
+ '<div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
  '<div class="detail-gallery"><div>'+photo(cover,p.name||'Property cover photograph')+'</div><div class="detail-thumbs"><div>'+photo(others[0],(p.name||'Property')+' photograph 2')+'</div><div>'+photo(others[1],(p.name||'Property')+' photograph 3')+'</div></div></div>'+
  '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed weekly value may be adjusted by Brick & Ivy management and does not necessarily match in-game billing or a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
  '<div class="property-bottom" style="margin-top:38px"><span>'+esc(p.type||'Residential property')+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
- (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>'
+ (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':safeText(p.status).toLowerCase()==='reserved'?'<div class="property-reserved-message"><strong>Currently reserved</strong><p>Brick &amp; Ivy has reserved this property. Contact a Realtor for details.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>'
 }
 
 function realtorInitials(name){
