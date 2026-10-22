@@ -5,8 +5,8 @@ const $$ = (selector,root=document)=>Array.from(root.querySelectorAll(selector))
 function esc(input){return String(input??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function safeImage(url){if(typeof url!=='string'||!url.trim())return '';try{const u=new URL(url,window.location.href);return u.protocol==='https:'||u.origin===location.origin?u.href:''}catch{return ''}}
 function safeText(x){return String(x??'').trim();}
-function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
-function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed'].includes(safeText(p.status).toLowerCase());}
+function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
+function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable'].includes(safeText(p.status).toLowerCase());}
 async function getProperties(){
  const cfg=window.BRICK_IVY_CONFIG||{};
  const hasBackend=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'');
@@ -27,7 +27,7 @@ function cardMarkup(p){
  const neighborhood=safeText(p.neighborhood||p.type||'San Andreas');
  return '<a class="property-card" href="property.html?id='+id+'" aria-label="View '+esc(p.name||'property')+'">'+
  '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div>')+
- '<span class="status-tag">'+esc(label)+'</span></div><div class="property-body">'+
+ '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
  '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
@@ -106,12 +106,12 @@ async function detailPage(){
  const others=imgs.filter(x=>x!==cover).slice(0,2);
  const photo=(src,alt)=>src?'<img src="'+esc(src)+'" alt="'+esc(alt)+'">':'<div class="fallback-graphic" style="height:100%" aria-hidden="true">Brick & Ivy</div>';
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price),priceText=Number.isFinite(price)?money.format(price):'Value on request';
- container.innerHTML='<article class="detail-shell"><div class="eyebrow">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
+ container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+'</div><div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
  '<div class="detail-gallery"><div>'+photo(cover,p.name||'Property cover photograph')+'</div><div class="detail-thumbs"><div>'+photo(others[0],(p.name||'Property')+' photograph 2')+'</div><div>'+photo(others[1],(p.name||'Property')+' photograph 3')+'</div></div></div>'+
  '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed weekly value may be adjusted by Brick & Ivy management and does not necessarily match in-game billing or a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
  '<div class="property-bottom" style="margin-top:38px"><span>'+esc(p.type||'Residential property')+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
- '<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div></article>'
+ (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>'
 }
 
 function realtorInitials(name){
