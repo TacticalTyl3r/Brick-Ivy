@@ -26,7 +26,7 @@ window.BRICK_IVY_CONFIG = Object.freeze({
 <main>
 <section class="page-header admin-management-hero"><div class="container">
 <div class="eyebrow">Brick &amp; Ivy / Owner tools</div><h1 class="section-heading">Realtor <em>management.</em></h1>
-<p>Add or update Realtors, manage public contact information, and control which profiles appear on the website.</p>
+<p>Manage Realtors by position, update public titles, and set the display order of your team and position sections.</p>
 </div></section>
 <div class="container manage-workspace">
 <div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span>
@@ -43,11 +43,13 @@ window.BRICK_IVY_CONFIG = Object.freeze({
 <div class="manage-primary">
 <section class="manage-panel">
 <div class="manage-panel-header"><div><span class="eyebrow">Directory</span><h2 class="serif">Team members</h2></div><span class="manage-count" id="managementCount">Loading…</span></div>
+<p class="manage-reorder-intro">Realtors are grouped by their public position. Use ↑ and ↓ to change their order or move entire position sections. Changes save directly to the database.</p>
+<p id="rosterOrderStatus" class="manage-order-status" role="status" aria-live="polite"></p>
 <div id="managementRoster" class="manage-roster" aria-live="polite"></div>
 </section>
 <section class="manage-panel manage-help">
 <h2 class="serif">Public profile visibility</h2>
-<p>Enable <strong>Publish on public directory</strong> when a Realtor's details are ready and approved. Their CID also links their availability indicator to the character actually connected to Legendary Roleplay. New profiles do not grant Discord access or staff permissions automatically.</p>
+<p>Use the <strong>Public position / group</strong> field when adding or editing a Realtor. Profiles with matching positions appear in the same section on the website. Use the arrows in Team members to choose the order within each section or rearrange the position sections.</p><p style="margin-top:10px">Enable <strong>Publish on public directory</strong> only with the Realtor's permission. Your Discord Owner/Realtor access is managed separately and cannot be changed by editing a public position.</p>
 </section>
 </div>
 <section class="manage-panel manage-form-card">
@@ -58,7 +60,7 @@ window.BRICK_IVY_CONFIG = Object.freeze({
 <div class="field"><label for="realtorPhone">In-game phone</label><input id="realtorPhone" name="inGamePhone" maxlength="35" placeholder="e.g. 145-7459"></div>
 <div class="field"><label for="realtorDiscord">Discord username</label><input id="realtorDiscord" name="discordUsername" maxlength="70"></div>
 <div class="field"><label for="realtorDiscordId">Discord user ID (optional)</label><input id="realtorDiscordId" name="discordId" pattern="[0-9]{17,20}" title="17–20 digit Discord ID" inputmode="numeric"></div>
-<div class="field"><label for="realtorTitle">Public title</label><input id="realtorTitle" name="title" value="Realtor" maxlength="80"></div>
+<div class="field"><label for="realtorTitle">Public position / group</label><input id="realtorTitle" name="title" value="Realtor" maxlength="80" list="realtorPositionSuggestions" placeholder="e.g. Realtor"><datalist id="realtorPositionSuggestions"><option value="Realtor"></option><option value="Senior Realtor"></option><option value="Managing Realtor"></option></datalist><small>Changing a Realtor's public position moves their profile into that section. It does not change their Discord permissions. The Owner profile always stays in the Owner section.</small></div>
 <div class="field"><label for="realtorPhoto">Photo URL (optional)</label><input id="realtorPhoto" name="photo" placeholder="https://..." maxlength="2048"><small>Automatic mugshots will be connected in a later phase.</small></div>
 <div class="field"><label for="realtorEmail">Email (optional)</label><input id="realtorEmail" name="email" type="email" maxlength="254"></div>
 <div class="field"><label for="realtorBio">Biography (optional)</label><textarea id="realtorBio" name="bio" rows="3" maxlength="500"></textarea></div>
