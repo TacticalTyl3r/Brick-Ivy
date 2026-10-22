@@ -59,7 +59,8 @@ async function loadRoster(){
   renderRoster();
 }
 function positionName(realtor) {
-  return realtor.role === 'Owner' ? 'Owner' : (String(realtor.title||'').trim() || 'Realtor');
+  const publicTitle=String(realtor.title||'').trim() || 'Realtor';
+  return realtor.role === 'Owner' ? 'Owner' : publicTitle.toLowerCase()==='owner'?'Realtor':publicTitle;
 }
 function positionGroups(items){
   const sorted=[...items].sort((a,b)=>
