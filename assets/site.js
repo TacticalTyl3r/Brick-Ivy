@@ -159,7 +159,7 @@ function sameConnection(player,connection){
  return Number.isSafeInteger(Number(player.source))&&Number(player.source)>0&&Number(player.source)===Number(connection.source);
 }
 async function refreshRealtorStatus(){
- const elements=$('[data-character-id]','#realtorGrid' in window?document:document);
+ const elements=Array.from(document.querySelectorAll("#realtorGrid [data-character-id]"));
  const lookup=new Map();
  for(const element of elements){
   const cid=Number(element.dataset.characterId);
