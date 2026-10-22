@@ -1,49 +1,127 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f7f6f2" />
-  <meta name="description" content="Brick & Ivy Real Estate — homes and properties in Legendary Roleplay. Our website is coming soon." />
-  <title>Brick & Ivy | Real Estate</title>
-  <style>
-    :root { color-scheme: light; --ink:#333b37; --sage:#879588; --paper:#f7f6f2; --line:#dedfd8; }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink); font-family: 'Segoe UI', Arial, sans-serif; display:flex; flex-direction:column; }
-    header { display:flex; justify-content:space-between; align-items:center; padding:28px clamp(24px,6vw,100px); border-bottom:1px solid var(--line); gap:24px; }
-    .brand { font-size:1.05rem; font-weight:600; letter-spacing:.17em; text-transform:uppercase; text-decoration:none; color:inherit; }
-    .top-note { font-size:.75rem; letter-spacing:.13em; text-transform:uppercase; color:#697770; }
-    main { flex:1; display:grid; place-items:center; padding:70px 24px 90px; }
-    .intro { max-width:900px; text-align:center; }
-    .eyebrow { text-transform:uppercase; font-size:.78rem; letter-spacing:.26em; font-weight:600; color:#65796a; }
-    h1 { font-family:Georgia, 'Times New Roman', serif; font-weight:400; letter-spacing:-.055em; line-height:1.08; font-size:clamp(3.2rem,8.5vw,7.4rem); margin:24px 0; }
-    .ivy { color:#738b77; font-style:italic; }
-    .rule { width:84px; height:1px; background:var(--sage); margin:34px auto; }
-    p { color:#5f6962; line-height:1.85; font-size:clamp(1rem,2vw,1.17rem); max-width:585px; margin:0 auto; }
-    .soon { display:inline-block; margin-top:42px; padding:15px 30px; border:1px solid #a0aca0; color:#4a5a4d; font-size:.78rem; font-weight:650; letter-spacing:.18em; text-transform:uppercase; }
-    footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:24px clamp(24px,6vw,100px); border-top:1px solid var(--line); font-size:.78rem; color:#768179; }
-    @media(max-width:600px){ header{padding:23px 22px;} .top-note{display:none;} footer{justify-content:center; text-align:center;} }
-  </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#182d25">
+  <meta name="description" content="Brick & Ivy Real Estate — discover your next property in Legendary Roleplay. Browse homes, explore neighborhoods, and connect with a Realtor.">
+  <title>Brick & Ivy Real Estate | Find Your Place in San Andreas</title>
+  <link rel="canonical" href="https://brickandivyhomes.com/">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/styles.css"><script defer src="assets/site.js"></script>
 </head>
-<body>
-  <header>
-    <a class="brand" href="./" aria-label="Brick and Ivy home">Brick &amp; Ivy</a>
-    <span class="top-note">Real Estate · Legendary Roleplay</span>
+<body data-page="home">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage">
+        <img class="logo-mark" src="assets/brick-ivy-logo.svg" alt="">
+        <span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span>
+      </a>
+      <nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="properties.html">Properties</a>
+        <a href="#neighborhoods">Neighborhoods</a>
+        <a href="#our-story">About us</a>
+      </nav>
+      <div class="header-actions">
+        <a class="link-button" href="admin.html">Staff portal <span aria-hidden="true">↗</span></a>
+        <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="primary-nav" aria-expanded="false"><span aria-hidden="true"></span></button>
+      </div>
+    </div>
   </header>
   <main>
-    <section class="intro" aria-labelledby="intro-title">
-      <div class="eyebrow">Brick &amp; Ivy Real Estate</div>
-      <h1 id="intro-title">Find a place<br>to <span class="ivy">call home.</span></h1>
-      <div class="rule" aria-hidden="true"></div>
-      <p>A fresh way to discover properties across Legendary Roleplay is taking shape. Our new real estate website will be opening soon.</p>
-      <span class="soon">Website coming soon</span>
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-copy">
+        <div class="eyebrow">Welcome to Brick &amp; Ivy Real Estate</div>
+        <h1 class="serif" id="hero-heading">Your next chapter <em>starts here.</em></h1>
+        <p>Thoughtfully selected spaces, personal guidance, and a place to belong. Discover real estate across San Andreas with the Brick &amp; Ivy team.</p>
+        <div class="hero-buttons">
+          <a class="button gold" href="properties.html">Explore properties <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="button outline" href="#our-story">Get to know us <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&amp;fit=crop&amp;w=1800&amp;q=85" alt="Elegant contemporary home surrounded by greenery" fetchpriority="high">
+        <div class="image-caption">Imagery for illustration</div>
+      </div>
+    </section>
+    <div class="quick-search" aria-label="Quick property search">
+      <div class="container search-inner">
+        <div class="search-title"><strong>Find your place.</strong><small>Start your property search</small></div>
+        <form class="search-form" action="properties.html" method="get">
+          <div class="field"><label for="homeArea">Location</label><select id="homeArea" name="area"><option value="">Anywhere in San Andreas</option><option>Los Santos</option><option>Sandy Shores</option><option>Paleto Bay</option></select></div>
+          <div class="field"><label for="homeType">Property type</label><select id="homeType" name="type"><option value="">Any property</option><option value="house">House</option><option value="apartment">Apartment</option><option value="commercial">Commercial</option></select></div>
+          <div class="field"><label for="homeMax">Max price</label><select id="homeMax" name="max"><option value="">Any price</option><option value="100000">Up to $100,000</option><option value="250000">Up to $250,000</option><option value="500000">Up to $500,000</option><option value="1000000">Up to $1,000,000</option><option value="5000000">Up to $5,000,000</option></select></div>
+          <button class="button dark" type="submit">Search <span class="arrow" aria-hidden="true">→</span></button>
+        </form>
+      </div>
+    </div>
+    <section class="section featured" id="featured">
+      <div class="container">
+        <div class="section-top">
+          <div><div class="eyebrow">The property collection</div><h2 class="section-heading">A space to make <em>your own.</em></h2><p class="section-copy">Explore homes and properties offered by Brick &amp; Ivy. Every published listing will appear here with pricing and photos.</p></div>
+          <a href="properties.html" class="text-link">View all properties <span class="arrow" aria-hidden="true">↗</span></a>
+        </div>
+        <div class="property-grid" id="featuredGrid" aria-live="polite"><div class="empty-listings"><div><div class="eyebrow">Brick &amp; Ivy properties</div><h3>Preparing our property collection.</h3><p>Our listings will appear here once they are published.</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div></div>
+      </div>
+    </section>
+    <section class="section neighborhoods" id="neighborhoods">
+      <div class="container">
+        <div class="section-top">
+          <div><div class="eyebrow">Explore San Andreas</div><h2 class="section-heading">Find your kind <em>of place.</em></h2></div>
+          <p class="section-copy">From the heart of the city to peaceful surroundings, there's a neighborhood for every way of life.</p>
+        </div>
+        <div class="neighborhood-grid">
+          <a href="properties.html?area=Los+Santos" class="neighborhood">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Contemporary city home interior" loading="lazy">
+            <div class="neighborhood-content"><div><small>City living</small><h3>Los Santos</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
+          </a>
+          <a href="properties.html?area=Sandy+Shores" class="neighborhood">
+            <img src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Quiet home in a rustic landscape" loading="lazy">
+            <div class="neighborhood-content"><div><small>Quiet escapes</small><h3>Sandy Shores</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
+          </a>
+          <a href="properties.html?area=Paleto+Bay" class="neighborhood">
+            <img src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="House among trees and greenery" loading="lazy">
+            <div class="neighborhood-content"><div><small>Coastal calm</small><h3>Paleto Bay</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
+          </a>
+        </div>
+        <p style="margin:14px 0 0;color:#758277;font-size:11px">Neighborhood photographs are illustrative; property photographs are provided for individual listings.</p>
+      </div>
+    </section>
+    <section class="section" id="our-story">
+      <div class="container about">
+        <div class="about-visual">
+          <img class="portrait" src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&amp;fit=crop&amp;w=1000&amp;q=85" alt="Comfortable, light-filled residential living space" loading="lazy">
+          <div class="logo-plaque"><img src="assets/brick-ivy-logo.svg" alt="Brick and Ivy Real Estate logo" loading="lazy"></div>
+        </div>
+        <div class="about-copy">
+          <div class="eyebrow">A more personal approach</div>
+          <h2 class="section-heading">More than a home. <em>A fresh start.</em></h2>
+          <p class="section-copy">At Brick &amp; Ivy, we believe finding a property should feel personal. Whether you're making your first move or searching for something new, our Realtors are here to help you find the right fit.</p>
+          <div class="values">
+            <div class="value"><div class="value-num">01</div><div><strong>Discover what fits</strong><span>Browse listings with the details that matter most to you.</span></div></div>
+            <div class="value"><div class="value-num">02</div><div><strong>Talk with a Realtor</strong><span>Get help exploring the options available across San Andreas.</span></div></div>
+            <div class="value"><div class="value-num">03</div><div><strong>Find your place</strong><span>Take the next step with a local team who knows the community.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="cta-band" id="contact">
+      <div class="container cta-inner">
+        <div><div class="eyebrow">Brick &amp; Ivy Real Estate</div><h2 class="section-heading">The right place changes <em>everything.</em></h2><p>Ready to take a look? Explore our published properties or get in touch with a Brick &amp; Ivy Realtor in Legendary Roleplay.</p></div>
+        <a href="properties.html" class="button light">Browse properties <span class="arrow" aria-hidden="true">↗</span></a>
+      </div>
     </section>
   </main>
-  <footer>
-    <span>© <span id="year">2026</span> Brick &amp; Ivy Real Estate</span>
-    <span>Made for the Legendary Roleplay community</span>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Discover your next home in San Andreas. Built for the Legendary Roleplay community.</p></div>
+        <div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="index.html#neighborhoods">Neighborhoods</a><a href="index.html#our-story">Our story</a></div></div>
+        <div><div class="footer-title">Brick &amp; Ivy</div><div class="footer-links"><a href="index.html#contact">Contact a Realtor</a><a href="admin.html">Staff portal</a><span>Legendary Roleplay</span></div></div>
+      </div>
+      <div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate. All rights reserved.</span><span>An independent in-game business within Legendary Roleplay.</span></div>
+    </div>
   </footer>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
