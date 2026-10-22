@@ -99,7 +99,7 @@ The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` retur
 
 - Non-unavailable properties sort by actual OPFW `block_id` (natural numeric order); rented/Unavailable properties stay at the bottom. The property type filter uses the live OPFW type list.
 - The public badge becomes **Available** for a confirmed not-rented home, **Reserved** if Brick & Ivy staff explicitly reserved it, and **Unavailable** if a renter is confirmed. Rented overrides reserved; unreadable occupancy remains neutral.
-- Owners can assign areas (Los Santos, Sandy Shores, Paleto Bay) and storage sizes (SU and slots) by property type. OPFW exposes `property_type` but not the associated storage capacities, so those sizes must be supplied by an Owner.
+- Owners can assign areas (Los Santos, Sandy Shores, Paleto Bay) and storage capacity (SU and objects/furniture pieces) by interior type. OPFW exposes `property_type` but not the associated storage capacities, so those sizes must be supplied by an Owner.
 - See [implementation and permissions](backend/LISTING-AREAS-STATUS-STORAGE.md).
 
 ## Private property management: pricing and rentals
@@ -169,3 +169,7 @@ No build command is required. This is a lightweight static site built using HTML
 ## Branding
 
 The illustrated house-and-ivy artwork was adapted into vector SVG assets from the existing Brick & Ivy logo supplied for this project. Page lifestyle photography is illustrative and does not represent available in-game properties.
+
+### Interior codes and furniture limits
+
+The Property Management **Storage by Interior** section labels OPFW `property_type` codes **1–11** with their interior names (Motel through High-End Apartment). Capacity is shown in **SU** and **Objects (Furniture Pieces)**, not storage slots. See [complete interior mapping](backend/LISTING-AREAS-STATUS-STORAGE.md#opfw-interior-codes). Existing stored values and type keys are unchanged.
