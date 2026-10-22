@@ -79,6 +79,20 @@ Only explicitly approved and published profiles will display. Create entries in 
 - Mugshot integration (not deployed): a secure backend requests `characters` from service `1973`, selecting only `character_id,mugshot_url`, filtered by the approved Character ID. It validates the response and outputs a public-safe photo URL. Neither the bearer token nor private character fields belong in the GitHub Pages feed.
 - Long term, the Owner dashboard should manage these profiles, photos and publishing status in a protected database; the static JSON format is an interim source until that backend is built.
 
+## In-game availability on Realtor profiles
+
+The public Realtor directory now attempts a **live online status check every 60 seconds** for profiles with an approved `characterId`:
+
+1. Fetch `https://p323.fivem.opfw.me/op-framework/players.json?characterId=<comma-separated-realtor-cids>`, which exposes loaded characters and the connected player source/license.
+2. Fetch `https://p323.fivem.opfw.me/op-framework/connections.json`, which exposes connected sources/licenses and their `joined` flag.
+3. Mark a Realtor **Available** only when the exact loaded Character ID matches a player and a corresponding entry in `connections.json` has `joined: true`. Otherwise, after *both* successful checks, mark **Unavailable**.
+4. If either request fails, returns unexpected data, or is blocked by browser CORS, display **Status unavailable** rather than wrongly report offline.
+5. Refresh when the page becomes visible again. No authentication tokens are included in client requests and no raw identifiers or other player information are stored or displayed.
+
+**Deployment caveat:** The public routes are documented by OPFW, but their reachability from GitHub Pages and cross-origin browser permissions have not yet been verified. This is a best-effort frontend integration, **not confirmed live on Legendary**. If CORS is blocked or endpoints require authorization, replace the browser calls with a secure server-side endpoint returning only `{characterId, available, checkedAt}` for published Realtors; never expose connected players' license identifiers in frontend output.
+
+The badge reports whether the Realtor is logged in with that **specific character**. It does not measure whether they are free for appointments or whether their account is playing as a different character.
+
 ## Backend integrations to build
 
 - **Source:** OPFW readonly REST endpoint for Legendary service ID `1973`, table `stocks_company_properties`.
