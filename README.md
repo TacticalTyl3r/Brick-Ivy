@@ -14,7 +14,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
 - `admin.html` — Discord authenticated staff portal with live verification of guild roles.
 - `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
-- `manage-properties.html` — private property value/rental dashboard for Owner and verified Realtors; Owners can edit website weekly values.
+- `manage-properties.html` — private rental dashboard: Owners manage region, weekly rent and storage-by-type; Owners and Realtors can reserve/unreserve homes.
 
 ## Public data contract
 
@@ -41,7 +41,7 @@ When a secure backend is connected, it should produce a sanitized, public-only f
 ]
 ```
 
-The public client accepts `published === true` and `status` of `listed`, `unavailable`, `for-sale`, `pending`, or `sold`. Imported OPFW company records are shown as **In portfolio** by default. A private server-side renter check marks a confirmed rented property **Unavailable** on public property cards and detail pages. Only the status is public; renter CIDs, tenant names, income, and last payments are never exposed. If OPFW rental access fails, the status remains neutral instead of claiming the property is vacant. The website weekly rent value can be overridden by an Owner without changing in-game billing.
+The public client accepts `published === true` and `status` of `available`, `reserved`, `listed`, `unavailable`, `for-sale`, `pending`, or `sold`. Imported OPFW company records are shown as **In portfolio** by default. A private server-side renter check marks a confirmed rented property **Unavailable** on public property cards and detail pages. Only the status is public; renter CIDs, tenant names, income, and last payments are never exposed. If OPFW rental access fails, the status remains neutral instead of claiming the property is vacant. The website weekly rent value can be overridden by an Owner without changing in-game billing.
 
 
 ## Public Realtor directory
@@ -94,6 +94,13 @@ The protected API implementation is `backend/edge-functions/brickivy-admin/index
 The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` returns only approved published profiles. The public Realtor website uses local `data/realtors.json` until `assets/brickivy-config.js` is filled with a new project's **public** URL and publishable API key. After that it uses the backend.
 
 **Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
+
+## Public listing status, block, region and storage
+
+- Non-unavailable properties sort by actual OPFW `block_id` (natural numeric order); rented/Unavailable properties stay at the bottom. The property type filter uses the live OPFW type list.
+- The public badge becomes **Available** for a confirmed not-rented home, **Reserved** if Brick & Ivy staff explicitly reserved it, and **Unavailable** if a renter is confirmed. Rented overrides reserved; unreadable occupancy remains neutral.
+- Owners can assign areas (Los Santos, Sandy Shores, Paleto Bay) and storage sizes (kg and slots) by property type. OPFW exposes `property_type` but not the associated storage capacities, so those sizes must be supplied by an Owner.
+- See [implementation and permissions](backend/LISTING-AREAS-STATUS-STORAGE.md).
 
 ## Private property management: pricing and rentals
 
