@@ -4,7 +4,7 @@
 - `manage-properties.html`: secured staff dashboard accessible from the Brick & Ivy Staff Portal.
 - `brickivy-property-staff`: independent authenticated Edge Function (JWT verified); it performs a live Discord guild membership check on **every** read or write.
 - Owner role `1502871124378259526`: read rental details and save or reset website weekly values.
-- Realtor role `1502870035176357968`: **read-only** access to rental information; no write actions.
+- Realtor role `1502870035176357968`: read rental information and set/remove a property reservation. Weekly value, region and storage presets remain Owner-only.
 - `brickivy-properties`: public feed reads only company property basics and stored website value overrides; it does not query renter/income/payment fields.
 
 ## What rental staff can see
@@ -50,7 +50,7 @@ The former "OPFW property income" field on Property Management cards has been re
 2. Owner: confirm the roster displays properties; change one weekly value and click Save.
 3. Public `properties.html`: verify the new website value is visible after cache expiry (can take around 90 seconds).
 4. Owner: click Use OPFW value; confirm the price reverts.
-5. A Realtor with a current Discord guild Realtor role should see rental fields but **not** editing controls, and a forged write request must return 403.
+5. A Realtor with a current Discord guild Realtor role should see rental fields and a reservation toggle, but not weekly price/area/storage editing; forged Owner-only writes must return 403.
 6. A visitor not signed into Supabase receives 401; direct access to the new tables with the publishable key is denied.
 7. Confirm public `brickivy-properties` JSON contains no renter CID, tenant name, income, or last payment.
 8. Verify rental info only where OPFW provides it. If rental fields are inaccessible, confirm the dashboard warning instead of displaying a false "not rented" status.
@@ -60,3 +60,7 @@ The former "OPFW property income" field on Property Management cards has been re
 - A company's presence in the OPFW stock table does not guarantee the house is for sale.
 - The optional renter name lookup depends on the read token's `characters` table permissions.
 - Photo management, custom descriptions, and Realtor-specific per-feature permissions are future work.
+
+## Additional listing controls
+
+Owners may assign Los Santos/Sandy Shores/Paleto Bay and set weight/slot storage presets for each live OPFW property type. Realtors and Owners may reserve/unreserve homes. The public status calculation and block sorting are documented in [LISTING-AREAS-STATUS-STORAGE.md](LISTING-AREAS-STATUS-STORAGE.md).
