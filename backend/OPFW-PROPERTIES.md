@@ -31,7 +31,7 @@ Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 
 - The site intentionally marks imported properties as `status: "listed"`, displayed **In portfolio**. Having a property in `stocks_company_properties` does **not** establish that the property is vacant or available for sale. Don't infer statuses from `property_renter_cid` without confirming game semantics.
 - `property_cost` is displayed as a **reported property value**, not a confirmed asking price.
-- Property `id`, name, type, address, and cost come from OPFW. The properties currently have no photos, custom descriptions, publishing toggle, or manual sale status; those belong to the upcoming owner management dashboard.
+- Property `id`, name, type, address and original cost come from OPFW. The displayed weekly value can now be overridden by an Owner in the secured `manage-properties.html` dashboard without modifying OPFW. Private rental details are shown in that staff dashboard, never here. See [PROPERTY-STAFF.md](PROPERTY-STAFF.md). Photos, custom descriptions, and manual publication management remain future work.
 - If OPFW fails, the website displays **temporarily unavailable**, not an invented empty inventory or misleading stale sample properties.
 - The live feed is public, but the OPFW token is private and checked only server-side. Owner/Realtor Discord sign-in and the existing `brickivy-admin` endpoint are unrelated and remain unchanged.
 - Readonly API reference: https://opfw.gg/api/rest . `/op-framework` API at `p323.fivem.opfw.me` is a **different API surface** and is not used for the company stocks table.
