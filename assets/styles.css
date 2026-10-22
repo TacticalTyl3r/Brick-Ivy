@@ -311,3 +311,11 @@ h1,h2,h3,p{margin-top:0}
   .manage-person-actions{margin-left:0}
   .manage-position-section .manage-public-label{font-size:9px}
 }
+
+
+/* OPFW displays source-reported property value, not an agreed asking price. */
+.property-value-label{color:#738574;font-size:10px;font-weight:800;letter-spacing:.12em;line-height:1.5;text-transform:uppercase;margin-top:12px}
+.property-value-label + .property-price{margin-top:2px}
+.detail-meta + .property-value-label{margin-top:25px}
+.property-value-label + .detail-price{margin-top:6px}
+.property-source-note{font-size:12px;line-height:1.75;color:#66786b;padding:15px 18px;background:#f1f4ed;border-left:3px solid #9fb79d;margin:18px 0 20px}
