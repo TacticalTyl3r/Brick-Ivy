@@ -10,6 +10,8 @@ The public property listing pipeline is implemented. The read-only bearer token 
   - `where=company_id=5`
   - `Authorization: Bearer <private token>` sent **only from Supabase**.
 - The function verifies the company on **every returned row**, limits response size, removes anything outside the public field allowlist, and emits the site's safe listing format.
+- A separate private OPFW request reads only `company_id,property_id,property_renter_cid` to determine whether a company property is currently rented. A confirmed positive renter CID changes the **public status string** to `unavailable` and the website badge to **Unavailable**. The renter's identity is discarded server-side and never enters the public feed.
+- If rental fields are inaccessible, the public feed stays functional and uses neutral `listed` / **In portfolio**, never falsely advertising a property as vacant. Status refreshes with the existing short feed cache.
 - Public website `index.html`, `properties.html`, `property.html` → `https://rcbbnzqmfvapwuqmpmhk.supabase.co/functions/v1/brickivy-properties`.
 - No OPFW credentials, renter CIDs, income, SQL, or service-role keys reach the browser or GitHub.
 - Results are cached for 60 seconds per running Edge Function instance; HTTP response is also cacheable for 30 seconds. Multiple instances can fetch independently.
@@ -29,7 +31,7 @@ Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 
 ## Behavior and security boundaries
 
-- The site intentionally marks imported properties as `status: "listed"`, displayed **In portfolio**. Having a property in `stocks_company_properties` does **not** establish that the property is vacant or available for sale. Don't infer statuses from `property_renter_cid` without confirming game semantics.
+- Imported properties use `status: "listed"` (**In portfolio**) until a renter is confirmed by OPFW; then they use `status: "unavailable"` (**Unavailable**) on cards and property pages. A neutral listing does not guarantee the property is for sale; no renter data is exposed to visitors.
 - `property_cost` is displayed as a **reported property value**, not a confirmed asking price.
 - Property `id`, name, type, address and original cost come from OPFW. The displayed weekly value can now be overridden by an Owner in the secured `manage-properties.html` dashboard without modifying OPFW. Private rental details are shown in that staff dashboard, never here. See [PROPERTY-STAFF.md](PROPERTY-STAFF.md). Photos, custom descriptions, and manual publication management remain future work.
 - If OPFW fails, the website displays **temporarily unavailable**, not an invented empty inventory or misleading stale sample properties.
