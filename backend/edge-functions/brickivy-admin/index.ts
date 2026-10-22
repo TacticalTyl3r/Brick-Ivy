@@ -135,6 +135,55 @@ Deno.serve(async request => {
       if (e) throw e;
       return json({realtors:(data||[]).map(toPublicShape)},200,cors);
     }
+    if (action === "reorder") {
+      // Changing the public display order does not grant a Discord role.
+      // Require a complete, unique snapshot so a stale tab cannot silently
+      // overwrite a Realtor that was recently added or removed.
+      const ids = body.ids;
+      if (!Array.isArray(ids) || ids.length < 1 || ids.length > 100
+          || !ids.every(validId) || new Set(ids).size !== ids.length) {
+        return json({error:"Invalid reorder request"},400,cors);
+      }
+      const {data:existing,error:readError} = await admin
+        .from("brickivy_realtors").select("id,role_label,title");
+      if (readError) throw readError;
+      const records = existing || [];
+      const byId = new Map(records.map(r => [r.id, r]));
+      if (ids.length !== records.length || ids.some(id => !byId.has(id))) {
+        return json({error:"The roster changed. Refresh and try again."},409,cors);
+      }
+      // The Owner section always stays at the top. Group members by their
+      // public position, but never derive authentication privileges from it.
+      const position = (r: {role_label:string,title:string}) =>
+        r.role_label === "Owner" ? "owner" : "realtor:"+((r.title || "Realtor").trim().toLowerCase() || "realtor");
+      const ownerCount=records.filter(r => r.role_label === "Owner").length;
+      if (ids.slice(0,ownerCount).some(id => byId.get(id)?.role_label !== "Owner")
+       || ids.slice(ownerCount).some(id => byId.get(id)?.role_label === "Owner")) {
+        return json({error:"Owners must remain first"},400,cors);
+      }
+      const seenPositions=new Set<string>();
+      let lastPosition="";
+      for(const id of ids){
+        const key=position(byId.get(id)!);
+        if(key!==lastPosition){
+          if(seenPositions.has(key))return json({error:"Keep positions grouped together"},400,cors);
+          seenPositions.add(key);
+          lastPosition=key;
+        }
+      }
+      // Save order on existing records only: role_label, CID and contact data
+      // remain untouched. Keep positions spaced for future insertions.
+      for(let i=0;i<ids.length;i++){
+        const {error:e}=await admin.from("brickivy_realtors")
+          .update({display_order:(i+1)*10,updated_at:new Date().toISOString(),updated_by:user.id})
+          .eq("id",ids[i]);
+        if(e)throw e;
+      }
+      const {data:updated,error:listError}=await admin.from("brickivy_realtors")
+        .select(FIELDS).order("display_order",{ascending:true});
+      if(listError)throw listError;
+      return json({realtors:(updated||[]).map(toPublicShape)},200,cors);
+    }
     if (action === "save") {
       const value = body.realtor;
       if (!value || typeof value !== "object" || Array.isArray(value)) return json({error:"Invalid Realtor profile"},400,cors);
