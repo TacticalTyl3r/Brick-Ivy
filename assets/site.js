@@ -246,7 +246,8 @@ function realtorMarkup(person){
  if(hasDiscord)actions.push('<a class="button dark" href="https://discord.com/users/'+discordId+'" target="_blank" rel="noopener noreferrer" aria-label="View '+esc(name)+' on Discord">View Discord <span aria-hidden="true">↗</span></a>');
  if(hasEmail)actions.push('<a class="button outline" href="mailto:'+esc(email)+'" aria-label="Email '+esc(name)+'">Send email <span aria-hidden="true">↗</span></a>');
  const details=[
-   realtorContactRow('In-game',phone,true),
+   hasCid?realtorContactRow('Character ID (CID)',String(cid),true):'',
+   realtorContactRow('In-game phone',phone,true),
    realtorContactRow('Discord',username,!hasDiscord),
    hasEmail?realtorContactRow('Email',email,false):''
  ].filter(Boolean).join('');
