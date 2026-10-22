@@ -6,7 +6,7 @@ It calls `/functions/v1/brickivy-realtors` in the dedicated Brick & Ivy Supabase
 
 1. **Supabase published roster** (`brickivy_realtors`) remains the authoritative list of which Owners and Realtors appear. Only Owner-approved rows with `published=true` are included. Display order and position groups are preserved.
 2. **OPFW read-only REST** (`https://opfw.gg/api/rest/1973/characters`) is queried **server-side** using the already-configured `OPFW_REST_TOKEN`. Only the published Realtors' character IDs are requested. The public response can show the current OPFW mugshot and in-game phone number when available. Manual photos/phones from the Brick & Ivy roster take precedence. Private fields such as license identifiers, cash, bank balance, and other characters are never included.
-3. **OPFW live players** (`https://p323.fivem.opfw.me/op-framework/players.json`) is queried **server-side** using the published Realtors' character IDs. A successful player list confirms which character is online; the public status is **Available** (character online) or **Unavailable** (not online). On a failed or unexpected response, status is **Status unavailable** instead of falsely reporting offline.
+3. **OPFW live players** (`https://p323.fivem.opfw.me/op-framework/players.json`) is queried **server-side** using the published Realtors' character IDs and a private Bearer token. A successful player list confirms which character is online; the public status is **Available** (character online) or **Unavailable** (not online). On a failed or unexpected response, status is **Status unavailable** instead of falsely reporting offline. OPFW has returned HTTP 401 for unauthenticated live-player requests, so the backend now sends the configured credential.
 
 The frontend no longer fetches OPFW's internal game-server routes from each visitor's browser. It refreshes status about every minute by querying the protected Supabase backend's public, allowlisted output, avoiding cross-origin/browser dependencies.
 
@@ -33,3 +33,7 @@ Owner controls are unchanged at `manage-realtors.html`: the Owner manages member
 - Open `realtors.html` and verify portraits, roles, CID and contact rows display.
 - If a character is loaded and the OPFW players endpoint responds correctly, status should say **Available**; otherwise it should be **Unavailable** or **Status unavailable** according to actual source reliability.
 - Keep `brickivy-admin` and the property feed untouched.
+
+## Live-player API authorization
+
+The Edge Function uses `OPFW_SERVER_TOKEN` if set; otherwise it tries the existing `OPFW_REST_TOKEN` Supabase secret. Both values stay **server-side**. OPFW may issue separate credentials or route permissions for its game-server API versus its read-only database REST API. If the online-status endpoint continues returning **401 Unauthorized**, a credential authorized specifically to read `/op-framework/players.json` for server `p323` must be saved as the `OPFW_SERVER_TOKEN` Edge Function secret. A successful directory `GET 200` is not, by itself, proof that real-time online status is authorized; check the function logs and the public `onlineStatus` field after authorization.
