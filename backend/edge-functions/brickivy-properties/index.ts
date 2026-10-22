@@ -72,7 +72,7 @@ function toListing(input: Record<string,unknown>) {
 // Occupancy is looked up privately and separately from the regular public
 // stock query, so missing/restricted rental columns cannot break all listings.
 // No renter identity, income, or payment information is returned to visitors.
-async function rentedPropertyIds(token:string):Promise<Set<string>|null> {
+async function rentedPropertyIds(token:string,expectedIds:string[]):Promise<Set<string>|null> {
   const url=new URL(OPFW_ENDPOINT);
   url.searchParams.set("select","company_id,property_id,property_renter_cid");
   url.searchParams.set("where","company_id="+COMPANY_ID);
@@ -89,18 +89,23 @@ async function rentedPropertyIds(token:string):Promise<Set<string>|null> {
     const rows=(payload as {data?:unknown})?.data;
     if(!Array.isArray(rows)||rows.length>MAX_RECORDS)return null;
     const rented=new Set<string>();
+    const seen=new Set<string>();
     for(const row of rows){
       if(!row||typeof row!=="object"||Array.isArray(row))return null;
       const r=row as Record<string,unknown>;
       if(Number(r.company_id)!==COMPANY_ID || !Object.prototype.hasOwnProperty.call(r,"property_renter_cid"))return null;
       const id=typeof r.property_id==="number"&&Number.isSafeInteger(r.property_id)?String(r.property_id):
         typeof r.property_id==="string"&&/^[a-zA-Z0-9_-]{1,80}$/.test(r.property_id)?r.property_id:"";
-      if(!id)return null;
+      if(!id||seen.has(id))return null;
+      seen.add(id);
       const cid=Number(r.property_renter_cid);
+      if(r.property_renter_cid!==null&&r.property_renter_cid!==""&&!Number.isSafeInteger(cid))return null;
       if(r.property_renter_cid!==null && r.property_renter_cid!=="" && Number.isSafeInteger(cid) && cid>0){
         rented.add(id);
       }
     }
+    // If the occupancy source is partial, don't mislabel omitted houses Available.
+    if(seen.size!==expectedIds.length||expectedIds.some(id=>!seen.has(id)))return null;
     return rented;
   }catch{
     // Unknown occupancy must never be represented as definitely vacant.
@@ -176,7 +181,7 @@ async function loadProperties(token:string):Promise<unknown[]> {
       }
       // Set only the public availability badge. Tenant identity stays private.
       // If OPFW rental data cannot be read, retain neutral "In portfolio".
-      const rented=await rentedPropertyIds(token);
+      const rented=await rentedPropertyIds(token,listings.map(item=>item.id));
       for(const item of listings){
         if(rented?.has(item.id))item.status="unavailable";
         else if(details.get(item.id)?.reserved===true)item.status="reserved";
