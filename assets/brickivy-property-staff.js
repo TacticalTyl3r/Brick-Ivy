@@ -49,7 +49,7 @@ function propertyCard(p){
    '<div><span>Last payment</span><strong>'+safe(payDate(p.lastPayment))+'</strong></div></div>';
  const ownerEditor=isOwner?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
-   '<div class="field"><label>Override weekly cost / property value ($)</label>'+
+   '<div class="field"><label>Override weekly rent price ($)</label>'+
    '<input type="number" inputmode="decimal" min="0" max="9999999999.99" step="0.01" data-cost-input="'+safe(p.id)+'" '+
    'value="'+(hasOverride?safe(p.weeklyCostOverride):'')+'" placeholder="'+(p.sourceWeeklyCost===null?'Enter a value':safe(p.sourceWeeklyCost))+'"></div>'+
    '<div class="property-private-editor-actions"><button class="button dark" type="submit">Save value</button>'+
@@ -60,8 +60,8 @@ function propertyCard(p){
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
    '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></header>'+
-   '<div class="property-private-cost-grid"><div><span>OPFW weekly cost / value</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
-   '<div><span>Website weekly cost / value</span><strong>'+usd(total)+'</strong>'+
+   '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
+   '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
    (hasOverride?'<small>Owner override active</small>':'<small>Using OPFW value</small>')+'</div></div>'+
    '<div class="property-private-rental-details"><h4>Private rental information</h4>'+rentalRows+'</div>'+
    ownerEditor+'</article>';
