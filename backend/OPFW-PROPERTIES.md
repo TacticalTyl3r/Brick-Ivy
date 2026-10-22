@@ -4,7 +4,7 @@ The public property listing pipeline is implemented. **The remaining production 
 
 ## Data flow
 
-- **OPFW Readonly REST API V3** → `https://rest.opfw.net/1973/stocks_company_properties`.
+- **OPFW Readonly REST API V3** → `https://opfw.gg/api/rest/1973/stocks_company_properties`.
 - The Supabase Edge Function `brickivy-properties` performs server-to-server GET:
   - `select=company_id,property_id,property_name,property_type,property_address,property_cost`
   - `where=company_id=5`
@@ -34,7 +34,7 @@ Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 - Property `id`, name, type, address, and cost come from OPFW. The properties currently have no photos, custom descriptions, publishing toggle, or manual sale status; those belong to the upcoming owner management dashboard.
 - If OPFW fails, the website displays **temporarily unavailable**, not an invented empty inventory or misleading stale sample properties.
 - The live feed is public, but the OPFW token is private and checked only server-side. Owner/Realtor Discord sign-in and the existing `brickivy-admin` endpoint are unrelated and remain unchanged.
-- Readonly API reference: https://rest.opfw.net/ . `/op-framework` API at `p323.fivem.opfw.me` is a **different API surface** and is not used for the company stocks table.
+- Readonly API reference: https://opfw.gg/api/rest . `/op-framework` API at `p323.fivem.opfw.me` is a **different API surface** and is not used for the company stocks table.
 
 ## After configuration: tests
 
