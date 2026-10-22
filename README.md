@@ -14,6 +14,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
 - `admin.html` — Discord authenticated staff portal with live verification of guild roles.
 - `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
+- `manage-properties.html` — private property value/rental dashboard for Owner and verified Realtors; Owners can edit website weekly values.
 
 ## Public data contract
 
@@ -93,6 +94,16 @@ The protected API implementation is `backend/edge-functions/brickivy-admin/index
 The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` returns only approved published profiles. The public Realtor website uses local `data/realtors.json` until `assets/brickivy-config.js` is filled with a new project's **public** URL and publishable API key. After that it uses the backend.
 
 **Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
+
+## Private property management: pricing and rentals
+
+The **Property Management** link in the Staff Portal opens `manage-properties.html`.
+
+- **All authorized Brick & Ivy staff** can view private OPFW rental fields for company ID 5: renter character ID, source property income, last payment, and optionally renter name if the OPFW token permits it.
+- **Owners only** can override the website's displayed weekly property cost/value, or reset it to the OPFW-reported value. OPFW is read-only; these edits do not change in-game billing.
+- Renter and financial details never enter the public `brickivy-properties` API or GitHub data files. Staff access requires Supabase Discord identity and a live role check.
+- Values and audit history live in RLS-protected, privilege-revoked tables `brickivy_property_weekly_costs` and `brickivy_property_weekly_cost_audit`; see `backend/migrations/20261022_brickivy_property_weekly_costs.sql`.
+- Backend: `backend/edge-functions/brickivy-property-staff/index.ts`; see [full implementation and test instructions](backend/PROPERTY-STAFF.md).
 
 ## Position sections and roster ordering
 
