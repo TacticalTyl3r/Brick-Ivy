@@ -112,7 +112,10 @@ Deno.serve(async req=>{
   let details=new Map<number,CharacterRow>(),online:Map<number,OnlineCharacter>|null=null;
   if(cids.length){
    const restToken=Deno.env.get("OPFW_REST_TOKEN");
-   const gameServerToken=Deno.env.get("OPFW_SERVER_TOKEN");
+   // Accept both a raw token and a mistakenly pasted "Bearer <token>"
+   // (Supabase secret values should normally contain the token alone).
+   const gameServerToken=(Deno.env.get("OPFW_SERVER_TOKEN")||"")
+     .trim().replace(/^Bearer\s+/i,"").trim();
    // The user's game-server Bearer token is distinct from OPFW_REST_TOKEN.
    // Never silently substitute the REST token; this caused HTTP 401 responses.
    const [characters,players]=await Promise.allSettled([
