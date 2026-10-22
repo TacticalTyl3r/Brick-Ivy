@@ -357,3 +357,12 @@ h1,h2,h3,p{margin-top:0}
 #propertyStaffFeedback{margin:13px 0;color:#537653;min-height:16px}
 @media(max-width:1080px){.property-staff-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.property-staff-toolbar{grid-template-columns:1fr}.property-private-card{padding:18px}.property-private-card-head{flex-direction:column}.property-private-rental-tag{max-width:none}.property-private-cost-grid{grid-template-columns:1fr}.property-private-meta{grid-template-columns:1fr 1fr}}
+
+
+/* A confirmed renter marks only public availability, never exposes occupant data. */
+.status-tag.is-unavailable{background:#682f32;color:#fff}
+.property-card:has(.status-tag.is-unavailable) .property-image img{filter:saturate(.8)}
+.detail-status-unavailable{color:#983e44!important}
+.property-unavailable-message{margin-top:36px;padding:24px;background:#f8eeed;border-left:3px solid #a65758;color:#653335}
+.property-unavailable-message strong{font-size:14px}
+.property-unavailable-message p{font-size:13px;line-height:1.8;color:#805a5a;margin:8px 0 0}
