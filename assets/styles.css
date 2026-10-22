@@ -206,3 +206,65 @@ h1,h2,h3,p{margin-top:0}
 .realtor-availability[data-status="unknown"] .availability-dot{background:#d8a120;box-shadow:0 0 0 3px #ffebad}
 
 .team-status-help{max-width:650px;margin:10px 0 0;color:#7c887c;font-size:11px;line-height:1.8}
+
+
+/* Realtor Management / Owner tools */
+.admin-management-hero{padding:69px 0 75px}
+.admin-management-hero .section-heading{margin-bottom:12px}
+.manage-workspace{padding-top:40px;padding-bottom:90px}
+.manage-notice{display:flex;gap:17px;align-items:flex-start;padding:24px 26px;background:#fdf5e1;border:1px solid #e9d8ac;color:#675229;margin-bottom:32px}
+.manage-notice strong{font-size:14px;font-weight:800}
+.manage-notice p{font-size:12px;line-height:1.75;margin:7px 0 0;color:#766642}
+.manage-info-symbol{font-size:24px;line-height:1;color:#9e7a2b}
+.manage-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1fr);gap:25px;align-items:start}
+.manage-primary{display:grid;gap:25px}
+.manage-panel{border:1px solid var(--line);background:var(--paper);padding:30px}
+.manage-panel-header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}
+.manage-panel-header h2,.manage-export h2,.manage-help h2{font-size:30px;line-height:1.28;margin:10px 0 0;letter-spacing:-.035em}
+.manage-count{color:#617666;font-size:10px;letter-spacing:.08em;font-weight:800;text-transform:uppercase;white-space:nowrap;padding:8px 10px;border:1px solid #d9e2d8;background:#eef2eb}
+.manage-person{display:flex;gap:13px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}
+.manage-person:first-child{padding-top:0}
+.manage-person:last-child{border-bottom:0;padding-bottom:0}
+.manage-person-avatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font:400 19px 'Playfair Display',Georgia,serif;color:#376044;background:#e4ede2}
+.manage-person-details{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.45}
+.manage-person-details strong{font-size:13px;color:#294333;overflow-wrap:anywhere}
+.manage-person-details span{font-size:11px;color:#879086;margin-top:3px}
+.manage-public-label{font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:800;color:#847665;background:#f3f0e8;padding:7px 9px;white-space:nowrap}
+.manage-public-label.is-published{color:#326b3c;background:#e9f3e8}
+.manage-form{display:grid;gap:18px}
+.manage-form .field input,.manage-form .field textarea{border:1px solid #dddcd3;border-radius:0;background:white;color:var(--ink);padding:11px 13px;width:100%;font-size:13px;min-height:43px}
+.manage-form .field textarea{resize:vertical;line-height:1.5}
+.manage-form .field small{font-size:11px;line-height:1.5;color:#7b897e}
+.manage-form .field input:focus,.manage-form .field textarea:focus{outline:2px solid #afc5b1;outline-offset:1px}
+.manage-switch{display:flex;gap:12px;align-items:flex-start;background:#f2f5ee;border:1px solid #dfe7db;padding:17px}
+.manage-switch input{width:18px;height:18px;accent-color:#315d41;flex-shrink:0;margin:3px 0 0}
+.manage-switch span{display:grid;gap:4px;line-height:1.45}
+.manage-switch strong{font-size:13px}
+.manage-switch small{font-size:11px;color:#66776a;line-height:1.6}
+.manage-full{width:100%}
+.manage-message{margin:0;color:#426b4d;font-size:12px;line-height:1.6}
+.manage-message:empty{display:none}
+.manage-message[data-error="true"]{color:#a12e2b}
+.manage-help h2{margin-top:0}
+.manage-help ol{padding-left:22px;margin:18px 0;font-size:12px;color:#606e63;line-height:1.85}
+.manage-help li{margin-bottom:8px}
+.manage-help p{font-size:12px;line-height:1.8;color:#788278;margin:0}
+.manage-help a{border-bottom:1px solid #96ab92;color:#345e3d}
+.manage-empty{font-size:13px;color:#687e6c;padding:15px 0}
+.manage-export{margin-top:28px;padding:35px 40px;background:#eef2e9;border:1px solid #dae3d6;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px 30px;align-items:center}
+.manage-export h2{font-size:29px;margin-bottom:10px}
+.manage-export p{font-size:12px;color:#657568;line-height:1.8;max-width:640px;margin:0}
+.manage-export .manage-message{grid-column:1/-1}
+.manage-export-actions{display:flex;flex-wrap:wrap;gap:11px}
+.manage-export-actions .button{font-size:10px;padding:0 15px;min-height:46px}
+.manage-export-actions .button:disabled{opacity:.45;transform:none}
+.admin-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:25px;text-align:left}
+.admin-tool-card{display:flex;flex-direction:column;gap:9px;padding:24px;background:#fffefa;border:1px solid #d9e1d6;text-decoration:none}
+.admin-tool-card strong{font-size:15px;color:#2b4836}
+.admin-tool-card span{font-size:12px;color:#778677;line-height:1.65}
+.admin-tool-card .admin-tool-arrow{font-size:21px;color:#738c77;margin-bottom:2px}
+.admin-tool-card:hover{border-color:#8dac94;box-shadow:0 8px 23px rgba(32,48,39,.06)}
+.admin-tool-card.is-pending{opacity:.75}
+@media(max-width:1030px){.manage-layout{grid-template-columns:1fr 1fr}.manage-export{grid-template-columns:1fr}.manage-export-actions{justify-content:flex-start}}
+@media(max-width:800px){.manage-layout{grid-template-columns:1fr}.manage-notice{padding:22px}.manage-workspace{padding-bottom:70px}}
+@media(max-width:560px){.manage-workspace{padding-top:22px}.manage-panel{padding:22px}.manage-panel-header h2{font-size:26px}.manage-export{padding:26px 20px}.manage-export-actions{display:grid}.manage-person{gap:9px}.manage-public-label{white-space:normal;max-width:90px;text-align:center}.admin-tool-grid{grid-template-columns:1fr}.manage-notice{gap:10px}}
