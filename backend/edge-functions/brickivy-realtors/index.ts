@@ -67,12 +67,12 @@ function playersFrom(payload:unknown):Record<string,unknown>[]{
  if(!arr||arr.length>1024)throw Error("Unexpected players API response");
  return arr.filter(x=>x&&typeof x==="object");
 }
-async function onlineCids(cids:number[]):Promise<Set<number>>{
+async function onlineCids(cids:number[],token:string):Promise<Set<number>>{
  const endpoint=new URL(OPFW_PLAYERS);
  endpoint.searchParams.set("characterId",cids.join(","));
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7500);
  try{
-  const result=await fetch(endpoint.toString(),{headers:{Accept:"application/json"},signal:ctrl.signal});
+  const result=await fetch(endpoint.toString(),{headers:{Accept:"application/json",Authorization:"Bearer "+token},signal:ctrl.signal});
   if(!result.ok)throw Error("OPFW players HTTP "+result.status);
   const rows=playersFrom(await result.json());
   const allowed=new Set(cids),online=new Set<number>();
@@ -102,9 +102,12 @@ Deno.serve(async req=>{
   let details=new Map<number,CharacterRow>(),online:Set<number>|null=null;
   if(cids.length){
    const token=Deno.env.get("OPFW_REST_TOKEN");
+   // Prefer a dedicated game-server API token when configured. Some OPFW
+   // installations distinguish it from a readonly REST token.
+   const playerToken=Deno.env.get("OPFW_SERVER_TOKEN")||token;
    const [characters,players]=await Promise.allSettled([
     token?characterData(token,cids):Promise.resolve(new Map<number,CharacterRow>()),
-    onlineCids(cids)
+    playerToken?onlineCids(cids,playerToken):Promise.reject(Error("OPFW player-status credential not configured"))
    ]);
    if(characters.status==="fulfilled")details=characters.value;
    else console.warn("Brick & Ivy character enrichment temporarily unavailable:",characters.reason instanceof Error?characters.reason.message:"unknown");
