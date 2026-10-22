@@ -99,7 +99,7 @@ The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` retur
 
 - Non-unavailable properties sort by actual OPFW `block_id` (natural numeric order); rented/Unavailable properties stay at the bottom. The property type filter uses the live OPFW type list.
 - The public badge becomes **Available** for a confirmed not-rented home, **Reserved** if Brick & Ivy staff explicitly reserved it, and **Unavailable** if a renter is confirmed. Rented overrides reserved; unreadable occupancy remains neutral.
-- Owners can assign areas (Los Santos, Sandy Shores, Paleto Bay) and storage sizes (kg and slots) by property type. OPFW exposes `property_type` but not the associated storage capacities, so those sizes must be supplied by an Owner.
+- Owners can assign areas (Los Santos, Sandy Shores, Paleto Bay) and storage sizes (SU and slots) by property type. OPFW exposes `property_type` but not the associated storage capacities, so those sizes must be supplied by an Owner.
 - See [implementation and permissions](backend/LISTING-AREAS-STATUS-STORAGE.md).
 
 ## Private property management: pricing and rentals
