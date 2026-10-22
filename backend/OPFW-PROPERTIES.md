@@ -1,6 +1,6 @@
 # OPFW → Brick & Ivy live property listings
 
-The public property listing pipeline is implemented. **The remaining production prerequisite is the OPFW read-only bearer token**, stored only in the dedicated Brick & Ivy Supabase project.
+The public property listing pipeline is implemented. The read-only bearer token has been saved in the dedicated Brick & Ivy Supabase project. The OPFW endpoint was corrected to `https://opfw.gg/api/rest` on October 22, 2026; a successful production feed response is still awaiting verification.
 
 ## Data flow
 
@@ -14,14 +14,14 @@ The public property listing pipeline is implemented. **The remaining production 
 - No OPFW credentials, renter CIDs, income, SQL, or service-role keys reach the browser or GitHub.
 - Results are cached for 60 seconds per running Edge Function instance; HTTP response is also cacheable for 30 seconds. Multiple instances can fetch independently.
 
-## One-time required secret
+## One-time secret setup (already completed)
 
 Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 
 1. Open [Supabase Edge Function Secrets](https://supabase.com/dashboard/project/rcbbnzqmfvapwuqmpmhk/settings/functions) in the **Brick & Ivy** project.
 2. Add a secret with the exact name `OPFW_REST_TOKEN`.
 3. For its value, paste the **read-only OPFW API bearer token**, without the `Bearer ` prefix. Use an authorized token for service `1973`; use a rotated token if it was previously exposed in chat.
-4. Save. Supabase makes function secrets available without redeployment.
+4. Save. Supabase makes function secrets available without redeployment. This secret was supplied before the endpoint correction and need not be entered again.
 5. Open `https://rcbbnzqmfvapwuqmpmhk.supabase.co/functions/v1/brickivy-properties` and verify a JSON array is returned. `[]` is a valid empty company feed, and a `SOURCE_NOT_CONFIGURED` 503 indicates the token has not reached Supabase. A 502 `UPSTREAM_UNAVAILABLE` indicates invalid credentials, upstream errors, or an unexpected data response; inspect Supabase Edge Function logs for generic error details.
 6. Open the public Properties page. Records should show automatically without re-publishing static JSON.
 
