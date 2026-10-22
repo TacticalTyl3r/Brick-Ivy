@@ -43,7 +43,8 @@ function propertyCard(p){
  const rentalRows=unknown?
    '<p class="property-private-subtle">The OPFW rental fields could not be read. No occupancy status can be confirmed.</p>':
    '<div class="property-private-meta">'+
-   '<div><span>Renter Character ID</span><strong>'+safe(p.renterCharacterId||'None')+'</strong></div>'+
+   '<div><span>Renter character</span><strong>'+safe(p.renterName|| (p.renterCharacterId?'CID '+p.renterCharacterId:'None'))+'</strong>'+
+     (p.renterName&&p.renterCharacterId?'<small>CID '+safe(p.renterCharacterId)+'</small>':'')+'</div>'+
    '<div><span>OPFW property income</span><strong>'+usd(p.propertyIncome)+'</strong></div>'+
    '<div><span>Last payment</span><strong>'+safe(payDate(p.lastPayment))+'</strong></div></div>';
  const ownerEditor=isOwner?
