@@ -203,3 +203,5 @@ h1,h2,h3,p{margin-top:0}
 .realtor-availability[data-status="unavailable"]{background:#f5f1ea;border-color:#e5ded2;color:#826f57}
 .realtor-availability[data-status="unavailable"] .availability-dot{background:#b4a38e}
 .realtor-availability[data-status="unknown"]{background:#f5f5f0;border-color:#dde1d9;color:#777f76}
+
+.team-status-help{max-width:650px;margin:10px 0 0;color:#7c887c;font-size:11px;line-height:1.8}
