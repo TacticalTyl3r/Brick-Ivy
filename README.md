@@ -11,6 +11,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `index.html` — branded homepage, property search, featured listings, neighborhoods, company introduction.
 - `properties.html` — property search, filters and sorting.
 - `property.html?id=...` — published property detail and photo gallery.
+- `realtors.html` — public Realtor and Owner contact directory; it reads `data/realtors.json`.
 - `admin.html` — temporary, clearly labelled portal placeholder. It does **not** allow login or write access.
 
 ## Public data contract
@@ -39,6 +40,40 @@ When a secure backend is connected, it should produce a sanitized, public-only f
 ```
 
 A property will appear on the website **only if** `published === true` and `status` is one of `for-sale`, `pending`, or `sold`.
+
+
+## Public Realtor directory
+
+The new **Meet Our Realtors** page is linked from the site navigation and footer. It reads `data/realtors.json`, which currently contains `[]` to avoid inventing staff identities or revealing private contact information.
+
+Only explicitly approved and published profiles will display. Create entries in this format (example values below are **not** live profiles):
+
+```json
+[
+  {
+    "published": false,
+    "displayOrder": 10,
+    "name": "Character name",
+    "role": "Realtor",
+    "title": "Real Estate Agent",
+    "photo": "assets/realtors/portrait.webp",
+    "inGamePhone": "",
+    "discordUsername": "",
+    "discordId": "",
+    "email": "",
+    "bio": "A short approved introduction."
+  }
+]
+```
+
+- Set `published: true` after the individual has approved their **public** name, contact information and optional photo.
+- `role` may be `Owner` or `Realtor`; it is the **public display role**, not an authorization grant. The backend must verify actual Discord roles independently.
+- `inGamePhone` is a displayed in-game number with a convenient **Copy** button; the site does not dial phone numbers.
+- `discordUsername` appears as text. If `discordId` is provided as a valid 17–20 digit Discord user ID, a **View Discord** link appears. Do not publish IDs or handles without permission.
+- `email` is optional and creates a mailto contact button when present.
+- `photo` can be a public image URL or a file in the repository. If omitted, an initials avatar is displayed.
+- `displayOrder` lets owners control the team directory ordering. No Discord bot or third-party service is required for the public directory.
+- Long term, the Owner dashboard should manage these profiles, photos and publishing status in a protected database; the static JSON format is an interim source until that backend is built.
 
 ## Backend integrations to build
 
