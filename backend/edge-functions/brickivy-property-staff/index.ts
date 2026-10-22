@@ -10,7 +10,7 @@ const OWNER_ROLE_ID="1502871124378259526";
 const REALTOR_ROLE_ID="1502870035176357968";
 const COMPANY_ID=5;
 const OPFW_ENDPOINT="https://opfw.gg/api/rest/1973/stocks_company_properties";
-const BASIC="company_id,property_id,property_name,property_type,property_address,property_cost";
+const BASIC="company_id,block_id,property_id,property_name,property_type,property_address,property_cost";
 const RENTAL=",property_income,property_renter_cid,property_last_pay";
 const ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
 const idPattern=/^[a-zA-Z0-9_-]{1,80}$/;
@@ -130,11 +130,77 @@ Deno.serve(async(req:Request)=>{
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
     const action=(input as Record<string,unknown>).action;
-    if(action!=="list"&&action!=="saveWeeklyCost")return response({error:"Unsupported action"},400,cors);
-    if(action==="saveWeeklyCost"&&!owner)return response({error:"Only Owners can change property values"},403,cors);
+    if(!["list","saveWeeklyCost","setArea","setReservation","setStorage"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
+    if(["saveWeeklyCost","setArea","setStorage"].includes(String(action))&&!owner)return response({error:"Owner role required for this action"},403,cors);
     // Each staff request fetches an up-to-date OPFW company snapshot.
     const {rows,rentalAvailable}=await stock(opfwToken);
     const properties=rows.filter(r=>pid(r.property_id)!=="");
+    const inputData=input as Record<string,unknown>;
+    if(action==="setArea"||action==="setReservation"){
+      const propertyId=pid(inputData.propertyId);
+      const target=properties.find(row=>pid(row.property_id)===propertyId);
+      if(!target)return response({error:"This property is not currently in Brick & Ivy's company stock"},404,cors);
+      const {data:before,error:readError}=await db.from("brickivy_property_listing_settings")
+        .select("area,reserved").eq("property_id",propertyId).maybeSingle();
+      if(readError)throw new Error("Unable to load listing settings");
+      let area=before?.area||"", reserved=before?.reserved===true;
+      const previous={area,reserved};
+      if(action==="setArea"){
+        if(typeof inputData.area!=="string"||!["","Los Santos","Sandy Shores","Paleto Bay"].includes(inputData.area)){
+          return response({error:"Choose Los Santos, Sandy Shores, Paleto Bay, or Unassigned"},400,cors);
+        }
+        area=inputData.area;
+      }else{
+        if(typeof inputData.reserved!=="boolean")return response({error:"Choose a valid reservation status"},400,cors);
+        const occupied=Number(target.property_renter_cid);
+        if(rentalAvailable&&inputData.reserved===true&&target.property_renter_cid!==null
+          &&target.property_renter_cid!==""&&Number.isSafeInteger(occupied)&&occupied>0){
+          return response({error:"A rented property cannot be marked Reserved"},409,cors);
+        }
+        reserved=inputData.reserved;
+      }
+      const {error:writeError}=await db.from("brickivy_property_listing_settings").upsert({
+        property_id:propertyId,area,reserved,updated_at:new Date().toISOString(),updated_by:user.id
+      },{onConflict:"property_id"});
+      if(writeError)throw new Error("Unable to save property setting");
+      const {error:auditError}=await db.from("brickivy_property_listing_audit").insert({
+        actor:user.id,property_id:propertyId,action:action==="setArea"?"set_area":"set_reserved",
+        previous,updated:{area,reserved}
+      });
+      if(auditError)console.error("Brick & Ivy listing setting audit failed");
+      return response({success:true,propertyId,area,reserved,auditRecorded:!auditError,publicFeedRefreshSeconds:90},200,cors);
+    }
+    if(action==="setStorage"){
+      const type=typeof inputData.propertyType==="string"?inputData.propertyType.trim():"";
+      if(!type||type.length>80||!properties.some(p=>str(p.property_type,80)===type)){
+        return response({error:"Choose a current OPFW property type"},400,cors);
+      }
+      const weight=inputData.capacityKg,slots=inputData.capacitySlots;
+      const cleared=(v:unknown)=>v===null||v==="";
+      const validWeight=cleared(weight)?null:Number(weight);
+      const validSlots=cleared(slots)?null:Number(slots);
+      if((validWeight!==null&&(!Number.isFinite(validWeight)||validWeight<0||validWeight>9999999999.99
+       ||Math.abs(Math.round(validWeight*100)-validWeight*100)>0.000001))
+        ||(validSlots!==null&&(!Number.isSafeInteger(validSlots)||validSlots<0||validSlots>1000000))){
+        return response({error:"Use a valid storage weight in kg and a whole-number slot capacity, or leave them blank"},400,cors);
+      }
+      const {data:before,error:readError}=await db.from("brickivy_property_type_storage")
+        .select("capacity_kg,capacity_slots").eq("property_type",type).maybeSingle();
+      if(readError)throw new Error("Unable to read storage setting");
+      const {error:writeError}=await db.from("brickivy_property_type_storage").upsert({
+        property_type:type,capacity_kg:validWeight,capacity_slots:validSlots,
+        updated_at:new Date().toISOString(),updated_by:user.id
+      },{onConflict:"property_type"});
+      if(writeError)throw new Error("Unable to save storage capacities");
+      const {error:auditError}=await db.from("brickivy_property_listing_audit").insert({
+        actor:user.id,property_type:type,action:"set_storage",
+        previous:{capacityKg:before?.capacity_kg??null,capacitySlots:before?.capacity_slots??null},
+        updated:{capacityKg:validWeight,capacitySlots:validSlots}
+      });
+      if(auditError)console.error("Brick & Ivy storage audit failed");
+      return response({success:true,propertyType:type,capacityKg:validWeight,capacitySlots:validSlots,
+        publicFeedRefreshSeconds:90,auditRecorded:!auditError},200,cors);
+    }
     if(action==="saveWeeklyCost"){
       const body=input as Record<string,unknown>;
       const propertyId=pid(body.propertyId);
@@ -171,18 +237,38 @@ Deno.serve(async(req:Request)=>{
       if(error)throw new Error("Unable to load property value overrides");
       overrides=data||[];
     }
+    const [listingMeta,storageMeta]=await Promise.all([
+      ids.length?db.from("brickivy_property_listing_settings")
+        .select("property_id,area,reserved").in("property_id",ids):
+        Promise.resolve({data:[],error:null}),
+      db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
+        .in("property_type",[...new Set(properties.map(x=>str(x.property_type,80)))])
+    ]);
+    if(listingMeta.error||storageMeta.error)throw new Error("Unable to load listing settings");
+    const settings=new Map((listingMeta.data||[]).map(row=>[String(row.property_id),row]));
+    const storedTypes=new Map((storageMeta.data||[]).map(row=>[String(row.property_type),row]));
+    const propertyTypes=[...new Set(properties.map(row=>str(row.property_type,80)).filter(Boolean))].sort();
     const amounts=new Map(overrides.map(x=>[String(x.property_id),x.weekly_cost_override]));
     // Names are optional. A field-restricted OPFW token may not allow the characters table.
     // Never return player names outside authenticated staff responses.
     const names=rentalAvailable?await renterNames(opfwToken,properties):new Map<number,string>();
-    return response({role:owner?"owner":"realtor",rentalAvailable,properties:properties.map(r=>{
+    return response({role:owner?"owner":"realtor",rentalAvailable,
+      propertyTypes:propertyTypes.map(type=>({
+        type,capacityKg:storedTypes.get(type)?.capacity_kg??null,
+        capacitySlots:storedTypes.get(type)?.capacity_slots??null
+      })),
+      properties:properties.map(r=>{
       const propertyId=pid(r.property_id),raw=nonnegative(r.property_cost),stored=amounts.get(propertyId);
       const override=stored===null||stored===undefined?null:nonnegative(stored);
       const renter=rentalAvailable?Number(r.property_renter_cid):NaN;
       const renterCID=Number.isSafeInteger(renter)&&renter>0?renter:null;
       return {
-        id:propertyId,name:str(r.property_name),address:str(r.property_address,200),
-        type:str(r.property_type,80),sourceWeeklyCost:raw,weeklyCostOverride:override,
+        id:propertyId,blockId:str(r.block_id,80),name:str(r.property_name),address:str(r.property_address,200),
+        type:str(r.property_type,80),area:settings.get(propertyId)?.area||"",
+        reserved:settings.get(propertyId)?.reserved===true,
+        storageKg:storedTypes.get(str(r.property_type,80))?.capacity_kg??null,
+        storageSlots:storedTypes.get(str(r.property_type,80))?.capacity_slots??null,
+        sourceWeeklyCost:raw,weeklyCostOverride:override,
         weeklyCost:override??raw,
         // Only the authenticated staff endpoint includes any of these:
         rented:rentalAvailable?renterCID!==null:null,
