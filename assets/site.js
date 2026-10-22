@@ -150,18 +150,48 @@ async function detailPage(){
  document.title=safeText(p.name)+' | Brick & Ivy Real Estate';
  const imgs=Array.isArray(p.images)?p.images.map(safeImage).filter(Boolean):[];
  const cover=safeImage(p.coverImage)||imgs[0]||'';
- const others=imgs.filter(x=>x!==cover).slice(0,2);
- const photo=(src,alt)=>src?'<img src="'+esc(src)+'" alt="'+esc(alt)+'">':'<div class="fallback-graphic" style="height:100%" aria-hidden="true">Brick & Ivy</div>';
+ const galleryImages=cover?[cover,...imgs.filter(x=>x!==cover)]:imgs;
+ const galleryMarkup=galleryImages.length?
+  '<div class="property-photo-gallery">'+
+   '<div class="property-photo-hero"><img id="propertyGalleryMain" src="'+esc(galleryImages[0])+'" alt="'+esc((p.name||'Property')+' photo 1')+'">'+
+    (galleryImages.length>1?'<button class="property-photo-nav is-prev" type="button" data-photo-nav="-1" aria-label="Previous property photo">‹</button><button class="property-photo-nav is-next" type="button" data-photo-nav="1" aria-label="Next property photo">›</button>':'')+
+   '</div>'+
+   (galleryImages.length>1?'<div class="property-photo-controls"><span id="propertyGalleryCount">1 of '+galleryImages.length+' photos</span></div>'+
+    '<div class="property-photo-strip" aria-label="Property photo thumbnails">'+
+    galleryImages.map((image,i)=>'<button type="button" class="property-photo-thumb'+(i===0?' is-active':'')+'" data-photo-index="'+i+'" aria-label="View property photo '+(i+1)+'"><img src="'+esc(image)+'" alt="" loading="lazy"></button>').join('')+
+    '</div>':'')+
+  '</div>':
+  '<div class="property-photo-gallery is-empty"><div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div></div>';
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price),priceText=Number.isFinite(price)?money.format(price):'Value on request';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+
  (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
  (storageText(p)?'<div class="property-detail-storage">Storage: '+esc(storageText(p))+'</div>':'')+
  '<div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
- '<div class="detail-gallery"><div>'+photo(cover,p.name||'Property cover photograph')+'</div><div class="detail-thumbs"><div>'+photo(others[0],(p.name||'Property')+' photograph 2')+'</div><div>'+photo(others[1],(p.name||'Property')+' photograph 3')+'</div></div></div>'+
+ galleryMarkup+
  '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed weekly value may be adjusted by Brick & Ivy management and does not necessarily match in-game billing or a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
  '<div class="property-bottom" style="margin-top:38px"><span>'+esc(interiorName(p.type))+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
- (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':safeText(p.status).toLowerCase()==='reserved'?'<div class="property-reserved-message"><strong>Currently reserved</strong><p>Brick &amp; Ivy has reserved this property. Contact a Realtor for details.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>'
+ (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':safeText(p.status).toLowerCase()==='reserved'?'<div class="property-reserved-message"><strong>Currently reserved</strong><p>Brick &amp; Ivy has reserved this property. Contact a Realtor for details.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>';
+ if(galleryImages.length>1){
+  let active=0;
+  const display=index=>{
+   active=(index+galleryImages.length)%galleryImages.length;
+   const main=$('#propertyGalleryMain',container);
+   if(main){main.src=galleryImages[active];main.alt=(p.name||'Property')+' photo '+(active+1);}
+   const count=$('#propertyGalleryCount',container);
+   if(count)count.textContent=(active+1)+' of '+galleryImages.length+' photos';
+   $('.property-photo-thumb',container).forEach((button,i)=>{
+    button.classList.toggle('is-active',i===active);
+    button.setAttribute('aria-pressed',String(i===active));
+   });
+  };
+  container.addEventListener('click',event=>{
+    const btn=event.target.closest('[data-photo-index],[data-photo-nav]');
+    if(!btn)return;
+    if(btn.hasAttribute('data-photo-index'))display(Number(btn.dataset.photoIndex));
+    else display(active+Number(btn.dataset.photoNav));
+  });
+ }
 }
 
 function realtorInitials(name){
