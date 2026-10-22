@@ -44,7 +44,7 @@ A property will appear on the website **only if** `published === true` and `stat
 
 ## Public Realtor directory
 
-The new **Meet Our Realtors** page is linked from the site navigation and footer. It reads `data/realtors.json`, which currently contains `[]` to avoid inventing staff identities or revealing private contact information.
+The new **Meet Our Realtors** page is linked from the site navigation and footer. It reads `data/realtors.json`, which currently includes Johnny Sausage's published Owner profile and the provided in-game contact details.
 
 Only explicitly approved and published profiles will display. Create entries in this format (example values below are **not** live profiles):
 
@@ -56,6 +56,7 @@ Only explicitly approved and published profiles will display. Create entries in 
     "name": "Character name",
     "role": "Realtor",
     "title": "Real Estate Agent",
+    "characterId": null,
     "photo": "assets/realtors/portrait.webp",
     "inGamePhone": "",
     "discordUsername": "",
@@ -71,8 +72,11 @@ Only explicitly approved and published profiles will display. Create entries in 
 - `inGamePhone` is a displayed in-game number with a convenient **Copy** button; the site does not dial phone numbers.
 - `discordUsername` appears as text. If `discordId` is provided as a valid 17–20 digit Discord user ID, a **View Discord** link appears. Do not publish IDs or handles without permission.
 - `email` is optional and creates a mailto contact button when present.
-- `photo` can be a public image URL or a file in the repository. If omitted, an initials avatar is displayed.
+- `photo` can be a public image URL or a file in the repository. A sanitized backend-supplied `mugshotUrl` is supported as a fallback. If both are empty, initials appear.
 - `displayOrder` lets owners control the team directory ordering. No Discord bot or third-party service is required for the public directory.
+- `characterId` is optional. The Owner will provide the exact character ID; do not infer it from a name. The public site never calls the token-protected OPFW API directly.
+- `bio` is optional; no description is displayed when blank.
+- Mugshot integration (not deployed): a secure backend requests `characters` from service `1973`, selecting only `character_id,mugshot_url`, filtered by the approved Character ID. It validates the response and outputs a public-safe photo URL. Neither the bearer token nor private character fields belong in the GitHub Pages feed.
 - Long term, the Owner dashboard should manage these profiles, photos and publishing status in a protected database; the static JSON format is an interim source until that backend is built.
 
 ## Backend integrations to build
