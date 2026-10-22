@@ -195,7 +195,10 @@ function beginRealtorStatusChecks(){
 async function realtorDirectory(){
  const grid=$('#realtorGrid'),count=$('#realtorCount');if(!grid)return;
  try{
- const response=await fetch('data/realtors.json',{cache:'no-store'});
+ const c=window.BRICK_IVY_CONFIG||{};
+ const useBackend=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||'');
+ const directoryUrl=useBackend?c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-realtors':'data/realtors.json';
+ const response=await fetch(directoryUrl,{cache:'no-store',credentials:'omit'});
  if(!response.ok)throw Error('Could not load Realtor data');
  const items=await response.json();
  if(!Array.isArray(items))throw Error('Invalid Realtor directory');
