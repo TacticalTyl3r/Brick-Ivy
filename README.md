@@ -4,7 +4,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Descriptions and advanced publishing controls remain future work.
+**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions are active; advanced publishing controls remain future work.
 
 ## Pages
 
@@ -94,6 +94,12 @@ The protected API implementation is `backend/edge-functions/brickivy-admin/index
 The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` returns only approved published profiles. The public Realtor website uses local `data/realtors.json` until `assets/brickivy-config.js` is filled with a new project's **public** URL and publishable API key. After that it uses the backend.
 
 **Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
+
+## Public property overview details
+
+Public `property.html` pages use a simple **Weekly Rent** label and prominently display the selected **Interior**, storage in **SU**, and max **Furniture Objects**. Listings without photos show the existing Brick & Ivy logo rather than an empty placeholder. Every property has a **Meet Our Realtors** link pointing directly to `realtors.html`.
+
+Owners can write a **custom public property overview** (up to 3,000 characters) from an expandable editor in Property Management; descriptions persist in Supabase, preserve line breaks and are HTML-escaped in public pages. See [details and tests](backend/PROPERTY-OVERVIEWS.md).
 
 ## Multi-photo property galleries
 
