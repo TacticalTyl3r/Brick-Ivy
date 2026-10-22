@@ -27,6 +27,17 @@ function interiorChoiceLabel(type){
  const code=safeText(type);
  return OPFW_INTERIORS[code]?'#'+code+' — '+OPFW_INTERIORS[code]:code;
 }
+function populatePropertyTypes(select,properties){
+ if(!select)return;
+ const prior=safeText(select.value);
+ const types=[...new Set(properties.map(p=>safeText(p.type)).filter(Boolean))]
+   .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+ select.innerHTML='<option value="">All property types</option>'+
+  types.map(type=>'<option value="'+esc(type)+'">'+esc(interiorChoiceLabel(type))+'</option>').join('');
+ // Keep a selected type only when it occurs in the live OPFW company feed.
+ if(types.includes(prior))select.value=prior;
+}
+
 function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
 function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable','available','reserved'].includes(safeText(p.status).toLowerCase());}
 async function getProperties(){
@@ -76,6 +87,7 @@ function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(togg
 async function home(){const target=$('#featuredGrid');if(!target)return;
  try{
    const props=await getProperties();
+   populatePropertyTypes($('#homeType'),props);
    const featured=props.filter(p=>p.featured===true);
    const show=(featured.length?featured:props).sort(availabilityOrder).slice(0,3);
    target.innerHTML=show.length?show.map(cardMarkup).join(''):emptyMarkup('No properties listed yet.','Brick & Ivy has no company properties in the live feed right now.');
@@ -94,7 +106,7 @@ function filterItems(items,form){
  const filtered=items.filter(p=>{
  const hay=[p.name,p.address,p.neighborhood,p.type,interiorName(p.type)].map(safeText).join(' ').toLowerCase();
  const matchArea=!area||safeText(p.area).toLowerCase()===area;
- const matchType=!type||safeText(p.type).toLowerCase().includes(type);
+ const matchType=!type||safeText(p.type).toLowerCase()===type;
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
  const matchPrice=!max||(Number.isFinite(price)&&price<=max);
  return matchArea&&matchType&&matchPrice&&(!search||hay.includes(search))
@@ -118,12 +130,8 @@ async function propertiesPage(){
    grid.innerHTML=emptyMarkup('Property feed is temporarily unavailable.','Our live property connection could not be reached. Please try refreshing the page later.');
    return;
  }
- // Populate real OPFW property types rather than assuming generic House/Apartment labels.
- const typeSelect=form.elements.namedItem('type');
- if(typeSelect){
-   const types=[...new Set(all.map(p=>safeText(p.type)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
-   typeSelect.innerHTML='<option value="">All property types</option>'+types.map(type=>'<option value="'+esc(type)+'">'+esc(interiorChoiceLabel(type))+'</option>').join('');
- }
+ // Both the homepage and Properties tab use the same live OPFW property types.
+ populatePropertyTypes(form.elements.namedItem('type'),all);
  const params=new URLSearchParams(location.search);
  for(const name of ['area','type','max','search','sort']){const field=form.elements.namedItem(name);if(field&&params.has(name))field.value=params.get(name)}
  function render(){
