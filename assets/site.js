@@ -81,4 +81,72 @@ async function detailPage(){
  '<div class="property-bottom" style="margin-top:38px"><span>'+esc(p.type||'Residential property')+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
  '<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div></article>'
 }
-document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home')home();if(page==='properties')propertiesPage();if(page==='detail')detailPage()});
+
+function realtorInitials(name){
+ const parts=safeText(name).split(/\s+/).filter(Boolean);
+ return (parts.length>1?parts[0].charAt(0)+parts[parts.length-1].charAt(0):parts[0]?.slice(0,2)||'BI').toUpperCase()
+}
+function realtorContactRow(label,value,copy){
+ if(!value)return '';
+ return '<div class="realtor-contact-row"><span class="realtor-contact-label">'+esc(label)+'</span><span class="realtor-contact-value">'+esc(value)+'</span>'+
+ (copy?'<button type="button" class="realtor-copy" data-copy="'+esc(value)+'" aria-label="Copy '+esc(label)+'">Copy</button>':'')+'</div>'
+}
+function realtorMarkup(person){
+ const name=safeText(person.name);
+ const title=safeText(person.title)||'Realtor';
+ const role=safeText(person.role).toLowerCase()==='owner'?'Owner':'Realtor';
+ const photo=safeImage(person.photo);
+ const phone=safeText(person.inGamePhone);
+ const username=safeText(person.discordUsername);
+ const discordId=safeText(person.discordId);
+ const hasDiscord=/^\d{17,20}$/.test(discordId);
+ const email=safeText(person.email);
+ const hasEmail=/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)&&email.length<=254;
+ const description=safeText(person.bio);
+ const actions=[];
+ if(hasDiscord)actions.push('<a class="button dark" href="https://discord.com/users/'+discordId+'" target="_blank" rel="noopener noreferrer" aria-label="View '+esc(name)+' on Discord">View Discord <span aria-hidden="true">↗</span></a>');
+ if(hasEmail)actions.push('<a class="button outline" href="mailto:'+esc(email)+'" aria-label="Email '+esc(name)+'">Send email <span aria-hidden="true">↗</span></a>');
+ const details=[
+   realtorContactRow('In-game',phone,true),
+   realtorContactRow('Discord',username,!hasDiscord),
+   hasEmail?realtorContactRow('Email',email,false):''
+ ].filter(Boolean).join('');
+ return '<article class="realtor-card">'+
+ '<div class="realtor-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Portrait of '+esc(name)+'" loading="lazy">':'<div class="realtor-avatar" aria-label="Photo not supplied">'+esc(realtorInitials(name))+'</div>')+
+ '<div class="realtor-role-badge">'+esc(role)+'</div></div>'+
+ '<div class="realtor-body"><h3 class="realtor-name">'+esc(name)+'</h3><div class="realtor-subtitle">'+esc(title)+'</div>'+
+ (description?'<p class="realtor-bio">'+esc(description)+'</p>':'<p class="realtor-bio">Contact our team to learn more about available properties in San Andreas.</p>')+
+ '<div class="realtor-details">'+(details||'<span class="realtor-contact-none">Public contact details not yet available.</span>')+'</div>'+
+ (actions.length?'<div class="realtor-actions">'+actions.join('')+'</div>':'')+'</div></article>'
+}
+async function realtorDirectory(){
+ const grid=$('#realtorGrid'),count=$('#realtorCount');if(!grid)return;
+ try{
+ const response=await fetch('data/realtors.json',{cache:'no-store'});
+ if(!response.ok)throw Error('Could not load Realtor data');
+ const items=await response.json();
+ if(!Array.isArray(items))throw Error('Invalid Realtor directory');
+ const publicProfiles=items.filter(p=>p&&p.published===true&&safeText(p.name)).sort((a,b)=>Number(a.displayOrder??999)-Number(b.displayOrder??999)||safeText(a.name).localeCompare(safeText(b.name)));
+ if(count)count.textContent=publicProfiles.length?(publicProfiles.length===1?'1 team member':publicProfiles.length+' team members'):'Our team directory';
+ grid.innerHTML=publicProfiles.length?publicProfiles.map(realtorMarkup).join(''):
+ '<div class="team-empty"><span class="team-empty-mark" aria-hidden="true">⌂</span><h3>Our team profiles are coming soon.</h3><p>Brick &amp; Ivy is preparing its public Realtor directory. Check back for our team members and their official in-game contact details.</p></div>';
+ grid.addEventListener('click',async event=>{
+ const button=event.target.closest('button[data-copy]');
+ if(!button||!grid.contains(button))return;
+ const original=button.textContent;
+ try{
+ if(!navigator.clipboard?.writeText)throw Error('Clipboard unsupported');
+ await navigator.clipboard.writeText(button.dataset.copy);
+ button.textContent='Copied!';
+ }catch{
+ button.textContent='Select text';
+ }
+ setTimeout(()=>{button.textContent=original},1800);
+ });
+ }catch(err){
+ console.warn('Unable to load Realtor directory:',err);
+ grid.innerHTML='<div class="team-empty"><span class="team-empty-mark" aria-hidden="true">⌂</span><h3>Our team directory is temporarily unavailable.</h3><p>Please try again later.</p></div>';
+ }finally{grid.setAttribute('aria-busy','false')}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home')home();if(page==='properties')propertiesPage();if(page==='detail')detailPage();if(page==='realtors')realtorDirectory()});
