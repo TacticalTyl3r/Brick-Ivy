@@ -28,7 +28,7 @@ function blockOrder(a,b){
 function availabilityOrder(a,b){return statusOrder(a)-statusOrder(b)||blockOrder(a,b)}
 function storageText(p){
  const data=[];
- if(p.storageKg!==null&&p.storageKg!==undefined&&Number.isFinite(Number(p.storageKg)))data.push(Number(p.storageKg).toLocaleString()+' kg');
+ if(p.storageKg!==null&&p.storageKg!==undefined&&Number.isFinite(Number(p.storageKg)))data.push(Number(p.storageKg).toLocaleString()+' SU');
  if(p.storageSlots!==null&&p.storageSlots!==undefined&&Number.isSafeInteger(Number(p.storageSlots)))data.push(Number(p.storageSlots)+' slots');
  return data.join(' · ');
 }
