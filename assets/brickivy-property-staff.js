@@ -5,6 +5,28 @@ const config=window.BRICK_IVY_CONFIG||{};
 const byId=id=>document.getElementById(id);
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const numeric=v=>v===null||v===undefined||v===''?null:Number(v);
+// Keep OPFW property_type codes as saved keys; change labels only.
+const OPFW_INTERIORS=Object.freeze({
+ '1':'Motel',
+ '2':"Trevor's Trailer",
+ '3':'Janitor Apartment',
+ '4':'Low-End Apartment',
+ '5':"Lester's House",
+ '6':"Franklin's House",
+ '7':'Mid-End Apartment',
+ '8':"Trevor's Beach House",
+ '9':"Michael's Mansion",
+ '10':"Franklin's Mansion",
+ '11':'High-End Apartment'
+});
+function interiorName(type){
+ const code=String(type??'').trim();
+ return OPFW_INTERIORS[code]||code||'Unknown interior';
+}
+function interiorHeading(type){
+ const code=String(type??'').trim();
+ return OPFW_INTERIORS[code]?'Interior #'+code+' — '+OPFW_INTERIORS[code]:'OPFW interior '+(code||'Unknown');
+}
 const usd=v=>{const n=numeric(v);return n!==null&&Number.isFinite(n)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n):'Not reported'};
 function weeklyIncome(rentPrice,maintenanceCost){
  const rent=numeric(rentPrice),maintenance=numeric(maintenanceCost);
@@ -68,11 +90,11 @@ function propertyCard(p){
  const regionOptions=['','Los Santos','Sandy Shores','Paleto Bay']
    .map(area=>'<option value="'+safe(area)+'" '+(p.area===area?'selected':'')+'>'+safe(area||'Unassigned')+'</option>').join('');
  const occupancyTools='<div class="property-listing-controls">'+
-   '<div><strong>Block '+safe(p.blockId||'Not recorded')+'</strong><small>'+safe(p.area||'Area unassigned')+' · '+safe(p.type||'Property')+'</small></div>'+
+   '<div><strong>Block '+safe(p.blockId||'Not recorded')+'</strong><small>'+safe(p.area||'Area unassigned')+' · '+safe(interiorHeading(p.type))+'</small></div>'+
    '<div><span class="property-management-label">Public status</span>'+
    '<strong>'+(rented?'Unavailable':p.reserved?'Reserved':unknown?'In portfolio':'Available')+'</strong></div>'+
    '<div><span class="property-management-label">Storage preset</span>'+
-   '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' SU':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots)+' slots':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
+   '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' SU':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots).toLocaleString()+' objects (furniture pieces)':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
    (isOwner?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
    (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
@@ -103,7 +125,7 @@ function render(){
  const search=byId('propertyStaffSearch')?.value?.toLowerCase().trim()||'';
  const filter=byId('propertyStaffFilter')?.value||'';
  const matches=roster.filter(p=>{
-   const hay=[p.name,p.address,p.id,p.type,p.blockId,p.area].join(' ').toLowerCase();
+   const hay=[p.name,p.address,p.id,p.type,interiorName(p.type),p.blockId,p.area].join(' ').toLowerCase();
    return (!search||hay.includes(search))&&(!filter||(filter==='rented'&&p.rented===true)||(filter==='vacant'&&p.rented===false));
  });
  if(!roster.length){
@@ -123,12 +145,12 @@ function renderStorage(){
  if(!panel||!el)return;
  panel.hidden=false;
  el.innerHTML=storageTypes.length?storageTypes.map(entry=>{
-   const kg=entry.capacityKg===null||entry.capacityKg===undefined?'':String(entry.capacityKg);
-   const slots=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
+   const su=entry.capacityKg===null||entry.capacityKg===undefined?'':String(entry.capacityKg);
+   const objects=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
    return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
-     '<div><h3>'+safe(entry.type)+'</h3><small>Applies to every property with this OPFW type</small></div>'+
-     '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(kg)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
-     '<label class="field"><span>Storage slots</span><input type="number" min="0" step="1" max="1000000" name="slots" value="'+safe(slots)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
+     '<div><h3>'+safe(interiorHeading(entry.type))+'</h3><small>Applies to every property using this OPFW interior code</small></div>'+
+     '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(su)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
+     '<label class="field"><span>Objects (furniture pieces)</span><input type="number" min="0" step="1" max="1000000" name="objects" value="'+safe(objects)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
      (role==='owner'?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
  }).join(''):'<p>No property types were returned from OPFW.</p>';
 }
@@ -257,9 +279,9 @@ async function setup(){
      if(!form)return;
      event.preventDefault();
      if(busy||role!=='owner'||!form.reportValidity())return;
-     const kg=form.elements.namedItem('weight').value.trim();
-     const slots=form.elements.namedItem('slots').value.trim();
-     await saveSetting('setStorage',{propertyType:form.dataset.storageType,capacityKg:kg||null,capacitySlots:slots||null});
+     const su=form.elements.namedItem('weight').value.trim();
+     const objects=form.elements.namedItem('objects').value.trim();
+     await saveSetting('setStorage',{propertyType:form.dataset.storageType,capacityKg:su||null,capacitySlots:objects||null});
    });
    await account();
  }catch(error){status('Property management could not load: '+(error.message||'Unknown error'))}
