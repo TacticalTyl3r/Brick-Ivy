@@ -64,7 +64,7 @@ function cardMarkup(p){
  const neighborhood=safeText(p.area||p.neighborhood||interiorName(p.type)||'San Andreas');
  const block=safeText(p.blockId),storage=storageText(p);
  return '<a class="property-card" href="property.html?id='+id+'" aria-label="View '+esc(p.name||'property')+'">'+
- '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div>')+
+ '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
  '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
  '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
@@ -161,17 +161,30 @@ async function detailPage(){
     galleryImages.map((image,i)=>'<button type="button" class="property-photo-thumb'+(i===0?' is-active':'')+'" data-photo-index="'+i+'" aria-label="View property photo '+(i+1)+'"><img src="'+esc(image)+'" alt="" loading="lazy"></button>').join('')+
     '</div>':'')+
   '</div>':
-  '<div class="property-photo-gallery is-empty"><div class="fallback-graphic" aria-hidden="true">Brick & Ivy</div></div>';
+  '<div class="property-photo-gallery is-empty"><div class="property-logo-placeholder is-detail" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt=""><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div></div>';
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price),priceText=Number.isFinite(price)?money.format(price):'Value on request';
+ const interior=interiorName(p.type);
+ const capacity=(value,suffix)=>value===null||value===undefined||value===''||!Number.isFinite(Number(value))
+   ?'Not listed':Number(value).toLocaleString()+' '+suffix;
+ const featureGrid='<div class="property-detail-features" aria-label="Property interior and capacity">'+
+    '<div class="property-detail-feature is-interior"><span>Interior</span><strong>'+esc(interior)+'</strong></div>'+
+    '<div class="property-detail-feature"><span>Storage Capacity</span><strong>'+esc(capacity(p.storageKg,'SU'))+'</strong></div>'+
+    '<div class="property-detail-feature"><span>Furniture Objects</span><strong>'+esc(capacity(p.storageSlots,'pieces'))+'</strong></div>'+
+    '</div>';
+ const overview=safeText(p.description)||'Contact our Realtors to learn more about this property and its features.';
+ const propertyStatus=safeText(p.status).toLowerCase();
+ const contactText=propertyStatus==='unavailable'?'This property is currently unavailable. Our Realtors can help you find another home.':
+  propertyStatus==='reserved'?'This property is reserved. Our Realtors can provide further information.':
+  'Interested in this home? Our Realtors can help with details and arrange a viewing.';
+ const contactMarkup='<div class="property-realtor-cta"><div><strong>Talk to a Brick &amp; Ivy Realtor</strong><p>'+esc(contactText)+'</p></div>'+
+  '<a class="button dark" href="realtors.html">Meet Our Realtors <span aria-hidden="true">→</span></a></div>';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+
  (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
- (storageText(p)?'<div class="property-detail-storage">Storage: '+esc(storageText(p))+'</div>':'')+
- '<div class="property-value-label">Website weekly cost / property value — confirm sale terms with a Realtor</div><div class="detail-price">'+priceText+'</div>'+
- galleryMarkup+
- '<h2 class="serif" style="font-size:29px">Property overview</h2><p class="detail-copy">'+esc(p.description||'This property is included in the Brick & Ivy company portfolio. The displayed weekly value may be adjusted by Brick & Ivy management and does not necessarily match in-game billing or a confirmed asking price. Contact a Realtor for availability and sale terms.')+'</p>'+
- '<div class="property-bottom" style="margin-top:38px"><span>'+esc(interiorName(p.type))+'</span><span>'+esc(p.neighborhood||'San Andreas')+'</span></div>'+
- (safeText(p.status).toLowerCase()==='unavailable'?'<div class="property-unavailable-message"><strong>Currently unavailable</strong><p>This property is not available at this time. Contact a Brick & Ivy Realtor for further information or explore other properties.</p></div>':safeText(p.status).toLowerCase()==='reserved'?'<div class="property-reserved-message"><strong>Currently reserved</strong><p>Brick &amp; Ivy has reserved this property. Contact a Realtor for details.</p></div>':'<div style="margin-top:36px;padding:24px;background:#eef1e9"><strong>Interested in this property?</strong><p style="margin:8px 0 0;color:#677569;font-size:13px">Connect with a Brick & Ivy Realtor in Legendary Roleplay for details or to arrange a viewing.</p></div>')+'</article>';
+ '<div class="property-value-label">Weekly Rent</div><div class="detail-price">'+priceText+'</div>'+
+ featureGrid+galleryMarkup+
+ '<section class="property-overview-section"><h2 class="serif">Property Overview</h2><p class="detail-copy">'+esc(overview)+'</p></section>'+
+ contactMarkup+'</article>';
  if(galleryImages.length>1){
   let active=0;
   const display=index=>{
