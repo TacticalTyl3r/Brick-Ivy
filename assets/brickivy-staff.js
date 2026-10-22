@@ -107,6 +107,17 @@ function formEntry(){
     displayOrder:editingId?(roster.find(x=>x.id===id)?.displayOrder??100):roster.length+1
   };
 }
+async function discordProviderAvailable(){
+  try {
+    const response=await fetch(cfg.supabaseUrl+'/auth/v1/settings',{
+      headers:{apikey:cfg.publishableKey,Accept:'application/json'},cache:'no-store',credentials:'omit'
+    });
+    if(!response.ok)return null;
+    const settings=await response.json();
+    return typeof settings?.external?.discord==='boolean'?settings.external.discord:null;
+  }catch{return null}
+}
+
 async function setup(){
   const login=element('staffSignIn');
   const logout=element('staffSignOut');
@@ -118,6 +129,16 @@ async function setup(){
     show(element('staffTeamContent'),false);
     show(element('staffManagementContent'),false);
     message('Discord login is awaiting the dedicated Brick & Ivy Supabase project and OAuth setup. No credentials or staff roles are exposed here.');
+    return;
+  }
+  const providerEnabled=await discordProviderAvailable();
+  if(providerEnabled===false){
+    show(element('staffLogin'),false);
+    show(element('staffSession'),false);
+    show(element('staffOwnerContent'),false);
+    show(element('staffTeamContent'),false);
+    show(element('staffManagementContent'),false);
+    message('Supabase Auth still reports Discord as disabled, even if its dashboard toggle appears on. Recheck the saved Discord provider settings in the Brick & Ivy Supabase project, then refresh this page.');
     return;
   }
   try {
