@@ -41,7 +41,7 @@ When a secure backend is connected, it should produce a sanitized, public-only f
 ]
 ```
 
-The public client accepts `published === true` and `status` of `listed`, `for-sale`, `pending`, or `sold`. Imported OPFW company records use `listed` (shown as **In portfolio**), since membership in the company database does not prove sale availability. The field `property_cost` is displayed as an unverified reported value, not an established asking price.
+The public client accepts `published === true` and `status` of `listed`, `unavailable`, `for-sale`, `pending`, or `sold`. Imported OPFW company records are shown as **In portfolio** by default. A private server-side renter check marks a confirmed rented property **Unavailable** on public property cards and detail pages. Only the status is public; renter CIDs, tenant names, income, and last payments are never exposed. If OPFW rental access fails, the status remains neutral instead of claiming the property is vacant. The website weekly rent value can be overridden by an Owner without changing in-game billing.
 
 
 ## Public Realtor directory
