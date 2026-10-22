@@ -94,6 +94,19 @@ The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` retur
 
 **Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
 
+## Position sections and roster ordering
+
+**Implemented:** Both the public `realtors.html` page and the Owner-only `manage-realtors.html` page group members by their **public position**, using `title` for Realtors and the fixed `Owner` category for Owners. The Owner section is pinned first; remaining sections follow the order set in management.
+
+- Use **Edit** to update a Realtor's **Public position / group** (for example `Senior Realtor`); that moves the person to the corresponding section when saved.
+- Use the row's **↑ / ↓** buttons to rearrange people *within that same position*.
+- Use the **↑ / ↓** controls on a position section to reorder entire non-Owner groups.
+- All changes are saved immediately through the `brickivy-admin` `reorder` action. This endpoint confirms current Discord Owner membership on each request, validates a full roster snapshot, preserves grouped positions, and only writes `display_order` on existing profiles.
+- Public listings are returned in stored order. The public page groups members without altering their availability status or contact details.
+- Changing a displayed position never grants Owner status or Discord roles. `role_label` remains protected server-side.
+- The Owner group is always displayed first and cannot be deleted through management.
+- Position ordering currently uses the existing `display_order` column; no SQL migration was needed and existing Realtor records were retained.
+
 ## In-game availability on Realtor profiles
 
 The public Realtor directory now attempts a **live online status check every 60 seconds** for profiles with an approved `characterId`:
