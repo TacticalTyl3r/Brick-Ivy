@@ -195,11 +195,17 @@ Deno.serve(async request => {
         if (!validId(id)) return json({error:"Invalid profile ID"},400,cors);
         const {data:existing,error:fetchError} = await admin.from("brickivy_realtors").select("id,role_label").eq("id",id).single();
         if (fetchError || !existing) return json({error:"Realtor profile not found"},404,cors);
+        if (existing.role_label !== "Owner" && payload.title.toLowerCase() === "owner") {
+          return json({error:"Owner is a reserved position"},400,cors);
+        }
         const {data,error:e} = await admin.from("brickivy_realtors")
           .update({...payload,updated_by:user.id,updated_at:new Date().toISOString()})
           .eq("id",id).select(FIELDS).single();
         if (e) return json({error:e.code==="23505"?"Character ID already in use":"Unable to update Realtor"},e.code==="23505"?409:500,cors);
         return json({realtor:toPublicShape(data)},200,cors);
+      }
+      if (payload.title.toLowerCase() === "owner") {
+        return json({error:"Owner is a reserved position"},400,cors);
       }
       const {data,error:e} = await admin.from("brickivy_realtors")
         .insert({...payload,role_label:"Realtor",updated_by:user.id})
