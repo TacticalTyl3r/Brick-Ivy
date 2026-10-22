@@ -6,6 +6,18 @@ const byId=id=>document.getElementById(id);
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const numeric=v=>v===null||v===undefined||v===''?null:Number(v);
 const usd=v=>{const n=numeric(v);return n!==null&&Number.isFinite(n)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n):'Not reported'};
+function weeklyIncome(rentPrice,maintenanceCost){
+ const rent=numeric(rentPrice),maintenance=numeric(maintenanceCost);
+ if(!Number.isFinite(rent)||!Number.isFinite(maintenance))return null;
+ return Math.round((rent-maintenance)*100)/100;
+}
+function incomeDisplay(value){
+ if(value===null)return 'Not reported';
+ if(value>0)return '+'+usd(value);
+ if(value<0)return '-'+usd(Math.abs(value));
+ return usd(0);
+}
+
 let supabase=null,roster=[],role=null,rentalAvailable=false,busy=false;
 function toggle(id,value){const el=byId(id);if(el)el.hidden=!value}
 function status(text){const el=byId('propertyStaffStatus');if(el)el.textContent=text}
@@ -40,12 +52,18 @@ function propertyCard(p){
  const rentalLabel=unknown?'Rental details unavailable':rented?'Currently rented':'No renter on record';
  const hasOverride=p.weeklyCostOverride!==null&&p.weeklyCostOverride!==undefined;
  const total=hasOverride?p.weeklyCostOverride:p.sourceWeeklyCost;
+ const income=weeklyIncome(total,p.sourceWeeklyCost);
+ const incomeClass=income===null?'is-unknown':income>0?'is-positive':income<0?'is-negative':'is-zero';
+ const incomeRow='<div><span>Brick &amp; Ivy Income</span>'+
+   '<strong class="property-private-income '+incomeClass+'">'+safe(incomeDisplay(income))+'</strong>'+
+   '<small>Weekly rent price − weekly maintenance cost</small></div>';
  const rentalRows=unknown?
-   '<p class="property-private-subtle">The OPFW rental fields could not be read. No occupancy status can be confirmed.</p>':
+   '<p class="property-private-subtle">The OPFW rental fields could not be read. No occupancy status can be confirmed.</p>'+
+   '<div class="property-private-meta">'+incomeRow+'</div>':
    '<div class="property-private-meta">'+
    '<div><span>Renter character</span><strong>'+safe(p.renterName|| (p.renterCharacterId?'CID '+p.renterCharacterId:'None'))+'</strong>'+
      (p.renterName&&p.renterCharacterId?'<small>CID '+safe(p.renterCharacterId)+'</small>':'')+'</div>'+
-   '<div><span>OPFW property income</span><strong>'+usd(p.propertyIncome)+'</strong></div>'+
+   incomeRow+
    '<div><span>Last payment</span><strong>'+safe(payDate(p.lastPayment))+'</strong></div></div>';
  const ownerEditor=isOwner?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
