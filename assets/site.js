@@ -17,7 +17,7 @@ async function getProperties(){
  if(!Array.isArray(data))throw new Error('Unexpected property feed response');
  return data.filter(listed);
 }
-function statusOrder(p){const value=safeText(p.status).toLowerCase();return value==='available'?0:value==='listed'?1:value==='reserved'?2:value==='unavailable'?3:1}
+function statusOrder(p){return safeText(p.status).toLowerCase()==='unavailable'?1:0}
 function blockOrder(a,b){
  const x=safeText(a.blockId),y=safeText(b.blockId);
  if(!x&&y)return 1;if(x&&!y)return -1;
