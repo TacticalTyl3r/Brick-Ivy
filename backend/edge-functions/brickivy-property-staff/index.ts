@@ -1,0 +1,171 @@
+import { createClient } from "npm:@supabase/supabase-js@2.84.0";
+
+/* Brick & Ivy private property financial and rental view.
+ * Auth: Supabase Discord OAuth + live guild role membership checked for EVERY request.
+ * Owners may override website weekly property values, Realtors have READ ONLY access.
+ * No private fields appear in the public brickivy-properties function.
+ */
+const GUILD_ID="1001110667580932168";
+const OWNER_ROLE_ID="1502871124378259526";
+const REALTOR_ROLE_ID="1502870035176357968";
+const COMPANY_ID=5;
+const OPFW_ENDPOINT="https://opfw.gg/api/rest/1973/stocks_company_properties";
+const BASIC="company_id,property_id,property_name,property_type,property_address,property_cost";
+const RENTAL=",property_income,property_renter_cid,property_last_pay";
+const ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
+const idPattern=/^[a-zA-Z0-9_-]{1,80}$/;
+const response=(body:unknown,status=200,cors:Record<string,string>={})=>
+  new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff",...cors}});
+const str=(v:unknown,n=160)=>String(v??"").trim().slice(0,n);
+function nonnegative(v:unknown):number|null{
+  if(v===null||v===undefined||v==="")return null;
+  const num=Number(v);
+  return Number.isFinite(num)&&num>=0&&num<=9999999999.99?num:null;
+}
+function pid(value:unknown):string{
+  const id=typeof value==="string"?value:typeof value==="number"&&Number.isSafeInteger(value)?String(value):"";
+  return idPattern.test(id)?id:"";
+}
+async function guildRoles(discordUserId:string,botToken:string):Promise<string[]>{
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),8000);
+  try{
+    const res=await fetch(`https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordUserId}`,{
+      headers:{Authorization:"Bot "+botToken,Accept:"application/json"},signal:ctrl.signal
+    });
+    if(res.status===404)return [];
+    if(!res.ok)throw new Error("Discord role lookup failed");
+    const data=await res.json();
+    if(!Array.isArray(data.roles))throw new Error("Unexpected guild member response");
+    return data.roles.filter((x:unknown)=>typeof x==="string");
+  }finally{clearTimeout(timer)}
+}
+async function opfw(token:string,fields:string){
+  const url=new URL(OPFW_ENDPOINT);
+  url.searchParams.set("select",fields);
+  url.searchParams.set("where","company_id="+COMPANY_ID);
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+  let res:Response;
+  try{res=await fetch(url,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},signal:ctrl.signal})}
+  finally{clearTimeout(timer)}
+  if(!res.ok){
+    // Do not show upstream content; it may contain private data.
+    const err=new Error("OPFW request failed") as Error & {status?:number};
+    err.status=res.status;
+    throw err;
+  }
+  const payload=await res.json();
+  if(!payload||!Array.isArray(payload.data))throw new Error("Unexpected OPFW payload");
+  if(payload.data.length>1000)throw new Error("OPFW response limit exceeded");
+  if(payload.data.some((r:unknown)=>!r||typeof r!=="object"||Array.isArray(r)||(r as Record<string,unknown>).company_id===undefined||Number((r as Record<string,unknown>).company_id)!==COMPANY_ID)){
+    throw new Error("Invalid company filter in OPFW response");
+  }
+  return payload.data as Record<string,unknown>[];
+}
+async function stock(token:string){
+  try{
+    return {rows:await opfw(token,BASIC+RENTAL),rentalAvailable:true};
+  }catch(e){
+    // Tokens may be field-restricted. Never pretend a rental is vacant when
+    // rental details are unavailable.
+    if((e as {status?:number}).status===400||(e as {status?:number}).status===403){
+      return {rows:await opfw(token,BASIC),rentalAvailable:false};
+    }
+    throw e;
+  }
+}
+Deno.serve(async(req:Request)=>{
+  const origin=req.headers.get("origin")||"";
+  const cors:Record<string,string>={
+    "Vary":"Origin","Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info",
+    "Access-Control-Allow-Methods":"POST,OPTIONS"
+  };
+  if(ORIGINS.has(origin))cors["Access-Control-Allow-Origin"]=origin;
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
+  if(origin&&!ORIGINS.has(origin))return response({error:"Origin not allowed"},403,cors);
+  if(req.method!=="POST")return response({error:"Method not allowed"},405,cors);
+  const jwt=req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if(!jwt)return response({error:"Sign in required"},401,cors);
+  const url=Deno.env.get("SUPABASE_URL"),service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+    bot=Deno.env.get("DISCORD_BOT_TOKEN"),opfwToken=Deno.env.get("OPFW_REST_TOKEN");
+  if(!url||!service||!bot||!opfwToken)return response({error:"Backend setup incomplete"},503,cors);
+  const db=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
+  try{
+    const {data:{user},error:authError}=await db.auth.getUser(jwt);
+    if(authError||!user)return response({error:"Invalid session"},401,cors);
+    const {data:account,error:lookupError}=await db.auth.admin.getUserById(user.id);
+    if(lookupError||!account?.user)return response({error:"Account lookup failed"},503,cors);
+    const discord=account.user.identities?.find(i=>i.provider==="discord");
+    const providerId=discord?.identity_data?.provider_id??discord?.id;
+    if(typeof providerId!=="string"||!/^[0-9]{17,20}$/.test(providerId)){
+      return response({error:"Discord sign-in required"},403,cors);
+    }
+    const roles=await guildRoles(providerId,bot);
+    const owner=roles.includes(OWNER_ROLE_ID),realtor=owner||roles.includes(REALTOR_ROLE_ID);
+    if(!realtor)return response({error:"Brick & Ivy staff role required"},403,cors);
+    const input=await req.json();
+    if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
+    const action=(input as Record<string,unknown>).action;
+    if(action!=="list"&&action!=="saveWeeklyCost")return response({error:"Unsupported action"},400,cors);
+    if(action==="saveWeeklyCost"&&!owner)return response({error:"Only Owners can change property values"},403,cors);
+    // Each staff request fetches an up-to-date OPFW company snapshot.
+    const {rows,rentalAvailable}=await stock(opfwToken);
+    const properties=rows.filter(r=>pid(r.property_id)!=="");
+    if(action==="saveWeeklyCost"){
+      const body=input as Record<string,unknown>;
+      const propertyId=pid(body.propertyId);
+      if(!propertyId||!properties.some(r=>pid(r.property_id)===propertyId)){
+        return response({error:"Property is not in the current Brick & Ivy company feed"},404,cors);
+      }
+      const clearing=body.weeklyCost===null;
+      const proposed=body.weeklyCost;
+      if(!clearing&&(typeof proposed!=="string"&&typeof proposed!=="number")){
+        return response({error:"Enter a valid weekly amount or reset it"},400,cors);
+      }
+      const amount=clearing?null:Number(proposed);
+      if(!clearing&&(!Number.isFinite(amount)||amount<0||amount>9999999999.99||Math.round(amount*100)!==amount*100)){
+        return response({error:"Weekly cost must be between $0 and $9,999,999,999.99 with up to two decimals"},400,cors);
+      }
+      const {data:before,error:previousError}=await db.from("brickivy_property_weekly_costs")
+        .select("weekly_cost_override").eq("property_id",propertyId).maybeSingle();
+      if(previousError)throw new Error("Could not read current property value");
+      const previous=before?.weekly_cost_override===null||before?.weekly_cost_override===undefined?null:Number(before.weekly_cost_override);
+      const {error:saveError}=await db.from("brickivy_property_weekly_costs")
+        .upsert({property_id:propertyId,weekly_cost_override:amount,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:"property_id"});
+      if(saveError)throw new Error("Could not save weekly cost");
+      const {error:auditError}=await db.from("brickivy_property_weekly_cost_audit")
+        .insert({property_id:propertyId,previous_weekly_cost:previous,new_weekly_cost:amount,changed_by:user.id});
+      if(auditError)console.error("Brick & Ivy property cost audit insert failed");
+      // The public property endpoint caches its feed for up to 60 seconds.
+      return response({success:true,propertyId,weeklyCostOverride:amount,publicFeedRefreshSeconds:90,auditRecorded:!auditError},200,cors);
+    }
+    const ids=properties.map(r=>pid(r.property_id));
+    let overrides:Record<string,unknown>[]=[];
+    if(ids.length){
+      const {data,error}=await db.from("brickivy_property_weekly_costs")
+        .select("property_id,weekly_cost_override").in("property_id",ids);
+      if(error)throw new Error("Unable to load property value overrides");
+      overrides=data||[];
+    }
+    const amounts=new Map(overrides.map(x=>[String(x.property_id),x.weekly_cost_override]));
+    return response({role:owner?"owner":"realtor",rentalAvailable,properties:properties.map(r=>{
+      const propertyId=pid(r.property_id),raw=nonnegative(r.property_cost),stored=amounts.get(propertyId);
+      const override=stored===null||stored===undefined?null:nonnegative(stored);
+      const renter=rentalAvailable?Number(r.property_renter_cid):NaN;
+      const renterCID=Number.isSafeInteger(renter)&&renter>0?renter:null;
+      return {
+        id:propertyId,name:str(r.property_name),address:str(r.property_address,200),
+        type:str(r.property_type,80),sourceWeeklyCost:raw,weeklyCostOverride:override,
+        weeklyCost:override??raw,
+        // Only the authenticated staff endpoint includes any of these:
+        rented:rentalAvailable?renterCID!==null:null,
+        renterCharacterId:rentalAvailable?renterCID:null,
+        propertyIncome:rentalAvailable?nonnegative(r.property_income):null,
+        lastPayment:rentalAvailable?str(r.property_last_pay,80)||null:null
+      };
+    })},200,cors);
+  }catch(e){
+    console.error("Brick & Ivy private property request failed:",e instanceof Error?e.message:"unknown");
+    return response({error:"Unable to load private property information. Check the staff Edge Function logs."},503,cors);
+  }
+});
