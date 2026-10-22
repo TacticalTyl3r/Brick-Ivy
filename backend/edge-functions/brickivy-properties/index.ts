@@ -165,12 +165,24 @@ async function loadProperties(token:string):Promise<unknown[]> {
       const {data:overrides,error}=await db.from("brickivy_property_weekly_costs")
         .select("property_id,weekly_cost_override").in("property_id",listings.map(p=>p.id));
       if(error)throw new Error("Property pricing lookup failed");
-      const [propertyMeta,storageMeta]=await Promise.all([
+      const [propertyMeta,storageMeta,photoMeta]=await Promise.all([
         db.from("brickivy_property_listing_settings").select("property_id,area,reserved").in("property_id",listings.map(p=>p.id)),
         db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
-          .in("property_type",[...new Set(listings.map(p=>p.type))])
+          .in("property_type",[...new Set(listings.map(p=>p.type))]),
+        db.from("brickivy_property_photos").select("property_id,object_key,is_cover,display_order,id")
+          .in("property_id",listings.map(p=>p.id))
+          .order("display_order",{ascending:true}).order("id",{ascending:true})
       ]);
-      if(propertyMeta.error||storageMeta.error)throw new Error("Listing metadata lookup failed");
+      if(propertyMeta.error||storageMeta.error||photoMeta.error)throw new Error("Listing metadata lookup failed");
+      const photoById=new Map<string,{url:string;cover:boolean}[]>();
+      for(const row of photoMeta.data||[]){
+        const id=String(row.property_id||""),key=String(row.object_key||"");
+        if(!key.startsWith(id+"/")||!/^[a-f0-9-]{36}\.(?:jpg|png|webp)$/i.test(key.slice(id.length+1)))continue;
+        if(!listings.some(p=>p.id===id))continue;
+        const url=db.storage.from("brickivy-property-photos").getPublicUrl(key).data.publicUrl;
+        if(!photoById.has(id))photoById.set(id,[]);
+        photoById.get(id)!.push({url,cover:row.is_cover===true});
+      }
       const details=new Map((propertyMeta.data||[]).map(row=>[String(row.property_id),row]));
       const capacities=new Map((storageMeta.data||[]).map(row=>[String(row.property_type),row]));
       const prices=new Map((overrides||[]).map(row=>[String(row.property_id),row.weekly_cost_override]));
@@ -186,6 +198,9 @@ async function loadProperties(token:string):Promise<unknown[]> {
         item.storageKg=storage?.capacity_kg===null||storage?.capacity_kg===undefined?null:safePrice(storage.capacity_kg);
         const slots=Number(storage?.capacity_slots);
         item.storageSlots=storage?.capacity_slots===null||storage?.capacity_slots===undefined||!Number.isSafeInteger(slots)||slots<0?null:slots;
+        const photos=photoById.get(item.id)||[];
+        item.images=photos.map(photo=>photo.url);
+        item.coverImage=photos.find(photo=>photo.cover)?.url||item.images[0]||"";
       }
       // Set only the public availability badge. Tenant identity stays private.
       // If OPFW rental data cannot be read, retain neutral "In portfolio".
