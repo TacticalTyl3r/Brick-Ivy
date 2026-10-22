@@ -18,7 +18,7 @@ function incomeDisplay(value){
  return usd(0);
 }
 
-let supabase=null,roster=[],role=null,rentalAvailable=false,busy=false;
+let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy=false;
 function toggle(id,value){const el=byId(id);if(el)el.hidden=!value}
 function status(text){const el=byId('propertyStaffStatus');if(el)el.textContent=text}
 function feedback(text){const el=byId('propertyStaffFeedback');if(el)el.textContent=text}
@@ -49,7 +49,7 @@ function propertyCard(p){
  const isOwner=role==='owner';
  const rented=p.rented===true,unknown=p.rented===null;
  const rentalClass=unknown?'is-unknown':rented?'is-rented':'is-vacant';
- const rentalLabel=unknown?'Rental details unavailable':rented?'Currently rented':'No renter on record';
+ const rentalLabel=unknown?'Rental details unavailable':rented?'Currently rented':p.reserved?'Reserved':'No renter on record';
  const hasOverride=p.weeklyCostOverride!==null&&p.weeklyCostOverride!==undefined;
  const total=hasOverride?p.weeklyCostOverride:p.sourceWeeklyCost;
  const income=weeklyIncome(total,p.sourceWeeklyCost);
@@ -65,6 +65,18 @@ function propertyCard(p){
      (p.renterName&&p.renterCharacterId?'<small>CID '+safe(p.renterCharacterId)+'</small>':'')+'</div>'+
    incomeRow+
    '<div><span>Last payment</span><strong>'+safe(payDate(p.lastPayment))+'</strong></div></div>';
+ const regionOptions=['','Los Santos','Sandy Shores','Paleto Bay']
+   .map(area=>'<option value="'+safe(area)+'" '+(p.area===area?'selected':'')+'>'+safe(area||'Unassigned')+'</option>').join('');
+ const occupancyTools='<div class="property-listing-controls">'+
+   '<div><strong>Block '+safe(p.blockId||'Not recorded')+'</strong><small>'+safe(p.area||'Area unassigned')+' · '+safe(p.type||'Property')+'</small></div>'+
+   '<div><span class="property-management-label">Public status</span>'+
+   '<strong>'+(rented?'Unavailable':p.reserved?'Reserved':unknown?'In portfolio':'Available')+'</strong></div>'+
+   '<div><span class="property-management-label">Storage preset</span>'+
+   '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' kg':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots)+' slots':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
+   (isOwner?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
+   '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
+   (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
+   (p.reserved?'Remove reservation':'Mark Reserved')+'</button></div>';
  const ownerEditor=isOwner?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
    '<div class="field"><label>Override weekly rent price ($)</label>'+
@@ -78,6 +90,7 @@ function propertyCard(p){
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
    '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></header>'+
+   occupancyTools+
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
    (hasOverride?'<small>Owner override active</small>':'<small>Using OPFW value</small>')+'</div></div>'+
@@ -90,17 +103,68 @@ function render(){
  const search=byId('propertyStaffSearch')?.value?.toLowerCase().trim()||'';
  const filter=byId('propertyStaffFilter')?.value||'';
  const matches=roster.filter(p=>{
-   const hay=[p.name,p.address,p.id,p.type].join(' ').toLowerCase();
+   const hay=[p.name,p.address,p.id,p.type,p.blockId,p.area].join(' ').toLowerCase();
    return (!search||hay.includes(search))&&(!filter||(filter==='rented'&&p.rented===true)||(filter==='vacant'&&p.rented===false));
  });
  if(!roster.length){
    target.innerHTML='<div class="manage-panel">No properties were returned for Brick &amp; Ivy company ID 5.</div>';
  }else{
-   target.innerHTML=matches.length?matches.map(propertyCard).join(''):
+   target.innerHTML=matches.length?matches.sort((a,b)=>
+      String(a.blockId??'').localeCompare(String(b.blockId??''),undefined,{numeric:true,sensitivity:'base'})
+      ||String(a.address??'').localeCompare(String(b.address??''),undefined,{numeric:true})
+    ).map(propertyCard).join(''):
     '<div class="manage-panel">No properties match your current filters.</div>';
  }
  const count=byId('propertyManagerCount');
  if(count)count.textContent=matches.length+' of '+roster.length+' properties';
+}
+function renderStorage(){
+ const panel=byId('propertyTypeStoragePanel'),el=byId('propertyTypeStorageList');
+ if(!panel||!el)return;
+ panel.hidden=false;
+ el.innerHTML=storageTypes.length?storageTypes.map(entry=>{
+   const kg=entry.capacityKg===null||entry.capacityKg===undefined?'':String(entry.capacityKg);
+   const slots=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
+   return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
+     '<div><h3>'+safe(entry.type)+'</h3><small>Applies to every property with this OPFW type</small></div>'+
+     '<label class="field"><span>Storage weight (kg)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(kg)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
+     '<label class="field"><span>Storage slots</span><input type="number" min="0" step="1" max="1000000" name="slots" value="'+safe(slots)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
+     (role==='owner'?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
+ }).join(''):'<p>No property types were returned from OPFW.</p>';
+}
+async function saveSetting(action,data){
+ if(busy)return;
+ busy=true;feedback('Saving property settings…');
+ const grid=byId('propertyStaffGrid'),storage=byId('propertyTypeStorageList');
+ if(grid)grid.setAttribute('aria-busy','true');
+ if(storage)storage.setAttribute('aria-busy','true');
+ try{
+   const result=await api(action,data);
+   if(action==='setStorage'){
+     const current=storageTypes.find(x=>x.type===data.propertyType);
+     if(current){current.capacityKg=result.capacityKg;current.capacitySlots=result.capacitySlots;}
+     for(const p of roster)if(p.type===data.propertyType){p.storageKg=result.capacityKg;p.storageSlots=result.capacitySlots;}
+   }else{
+     const current=roster.find(x=>x.id===data.propertyId);
+     if(current){current.area=result.area;current.reserved=result.reserved;}
+   }
+   feedback('Saved. Updated public listings should reflect this change within approximately 90 seconds.'+
+    (result.auditRecorded===false?' Change history was not recorded; notify the Owner.':''));
+   render();renderStorage();
+ }catch(error){
+   feedback(error.message||'Unable to save property settings');
+   // Restore server values in the case of a partially completed request.
+   try{
+     const latest=await api('list');
+     roster=latest.properties||[];
+     storageTypes=latest.propertyTypes||[];
+     render();renderStorage();
+   }catch{}
+ }finally{
+   busy=false;
+   grid?.setAttribute('aria-busy','false');
+   storage?.setAttribute('aria-busy','false');
+ }
 }
 async function load(){
  if(busy)return;
@@ -112,11 +176,13 @@ async function load(){
    role=result.role;
    rentalAvailable=result.rentalAvailable===true;
    roster=Array.isArray(result.properties)?result.properties:[];
+   storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
    toggle('propertyStaffContent',true);
    toggle('propertyStaffRentalWarning',!rentalAvailable);
    status(role==='owner'?'Signed in as Owner — value editing enabled.':'Signed in as Realtor — private rental details (read-only).');
    feedback(roster.length+' company properties loaded. Website values may take up to 90 seconds to refresh after a save.');
    render();
+   renderStorage();
  }catch(error){feedback(error.message||'Unable to load property records');toggle('propertyStaffContent',false);status(error.message||'Access denied')}
  finally{busy=false;if(button)button.disabled=false}
 }
@@ -172,8 +238,28 @@ async function setup(){
      await saveCost(id,input.value.trim());
    });
    byId('propertyStaffGrid')?.addEventListener('click',async event=>{
+     const reserve=event.target.closest('[data-toggle-reserve]');
+     if(reserve&&!busy){
+       const current=roster.find(p=>p.id===reserve.dataset.toggleReserve);
+       if(current && (role==='owner'||role==='realtor'))
+         await saveSetting('setReservation',{propertyId:current.id,reserved:!current.reserved});
+       return;
+     }
      const reset=event.target.closest('[data-reset-price]');
      if(reset&&role==='owner'&&!busy)await saveCost(reset.dataset.resetPrice,null);
+   });
+   byId('propertyStaffGrid')?.addEventListener('change',async event=>{
+     const area=event.target.closest('[data-property-area]');
+     if(area&&role==='owner'&&!busy)await saveSetting('setArea',{propertyId:area.dataset.propertyArea,area:area.value});
+   });
+   byId('propertyTypeStorageList')?.addEventListener('submit',async event=>{
+     const form=event.target.closest('[data-storage-type]');
+     if(!form)return;
+     event.preventDefault();
+     if(busy||role!=='owner'||!form.reportValidity())return;
+     const kg=form.elements.namedItem('weight').value.trim();
+     const slots=form.elements.namedItem('slots').value.trim();
+     await saveSetting('setStorage',{propertyType:form.dataset.storageType,capacityKg:kg||null,capacitySlots:slots||null});
    });
    await account();
  }catch(error){status('Property management could not load: '+(error.message||'Unknown error'))}
