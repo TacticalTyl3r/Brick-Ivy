@@ -8,12 +8,13 @@ import { createClient } from "npm:@supabase/supabase-js@2.84.0";
  * Renter IDs, company financials, the bearer token and the upstream SQL are never returned.
  *
  * This feed reflects Brick & Ivy company stock, NOT confirmed sale availability.
- * 'listed' is neutral; only a confirmed renter changes the public status
- * to 'unavailable'. All renter records remain internal to this Edge Function.
+ * Public badges: unavailable (rented) > reserved (staff) > available (no renter).
+ * Unknown occupancy remains neutral; only safe status, block, area and storage
+ * preset fields are exposed. Tenant details never enter the public response.
  */
 const OPFW_ENDPOINT = "https://opfw.gg/api/rest/1973/stocks_company_properties";
 const COMPANY_ID = 5;
-const FIELDS = "company_id,property_id,property_name,property_type,property_address,property_cost";
+const FIELDS = "company_id,block_id,property_id,property_name,property_type,property_address,property_cost";
 const ORIGINS = new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
 const MAX_RECORDS = 1000;
 const CACHE_TIME_MS = 60_000;
@@ -51,11 +52,15 @@ function toListing(input: Record<string,unknown>) {
   if (!id || !name) return null;
   return {
     id,
+    blockId: (typeof input.block_id==="number"&&Number.isSafeInteger(input.block_id))?String(input.block_id):text(input.block_id,80),
     name,
     type:text(input.property_type,80)||"Property",
     address:text(input.property_address,200),
     price:safePrice(input.property_cost),
     status:"listed",
+    area:"",
+    storageKg:null as number|null,
+    storageSlots:null as number|null,
     published:true,
     featured:false,
     neighborhood:"",
@@ -137,8 +142,8 @@ async function loadProperties(token:string):Promise<unknown[]> {
     const listings=rows.map(r=>toListing(r as Record<string,unknown>)).filter((x):x is NonNullable<typeof x>=>x!==null)
       .filter(x=>{if(ids.has(x.id))return false;ids.add(x.id);return true})
       .sort((a,b)=>a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
-    // Apply privately-managed weekly cost overrides. No renter fields are
-    // fetched or returned by this public function.
+    // Join only explicitly public website metadata. Private renter IDs, income
+    // and payment information are never serialised into the response.
     if(listings.length){
       const dbUrl=Deno.env.get("SUPABASE_URL");
       const serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -147,6 +152,14 @@ async function loadProperties(token:string):Promise<unknown[]> {
       const {data:overrides,error}=await db.from("brickivy_property_weekly_costs")
         .select("property_id,weekly_cost_override").in("property_id",listings.map(p=>p.id));
       if(error)throw new Error("Property pricing lookup failed");
+      const [propertyMeta,storageMeta]=await Promise.all([
+        db.from("brickivy_property_listing_settings").select("property_id,area,reserved").in("property_id",listings.map(p=>p.id)),
+        db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
+          .in("property_type",[...new Set(listings.map(p=>p.type))])
+      ]);
+      if(propertyMeta.error||storageMeta.error)throw new Error("Listing metadata lookup failed");
+      const details=new Map((propertyMeta.data||[]).map(row=>[String(row.property_id),row]));
+      const capacities=new Map((storageMeta.data||[]).map(row=>[String(row.property_type),row]));
       const prices=new Map((overrides||[]).map(row=>[String(row.property_id),row.weekly_cost_override]));
       for(const item of listings){
         const override=prices.get(item.id);
@@ -154,14 +167,21 @@ async function loadProperties(token:string):Promise<unknown[]> {
           const value=safePrice(override);
           if(value!==null)item.price=value;
         }
+        const detail=details.get(item.id);
+        item.area=detail?.area || "";
+        const storage=capacities.get(item.type);
+        item.storageKg=storage?.capacity_kg===null||storage?.capacity_kg===undefined?null:safePrice(storage.capacity_kg);
+        const slots=Number(storage?.capacity_slots);
+        item.storageSlots=storage?.capacity_slots===null||storage?.capacity_slots===undefined||!Number.isSafeInteger(slots)||slots<0?null:slots;
       }
       // Set only the public availability badge. Tenant identity stays private.
       // If OPFW rental data cannot be read, retain neutral "In portfolio".
       const rented=await rentedPropertyIds(token);
-      if(rented){
-        for(const item of listings){
-          if(rented.has(item.id))item.status="unavailable";
-        }
+      for(const item of listings){
+        if(rented?.has(item.id))item.status="unavailable";
+        else if(details.get(item.id)?.reserved===true)item.status="reserved";
+        else if(rented!==null)item.status="available";
+        // If OPFW rental data is unreadable, don't falsely call it available.
       }
     }
     cached={items:listings,until:Date.now()+CACHE_TIME_MS};
