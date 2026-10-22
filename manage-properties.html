@@ -15,7 +15,7 @@ window.BRICK_IVY_CONFIG=Object.freeze({
   discordAuthReady:true
 });
 </script>
-<script type="module" src="assets/brickivy-property-staff.js?v=20261022-su1"></script>
+<script type="module" src="assets/brickivy-property-staff.js?v=20261022-interiors1"></script>
 </head>
 <body data-page="staff-properties">
 <header class="site-header"><div class="container header-inner">
@@ -49,8 +49,8 @@ window.BRICK_IVY_CONFIG=Object.freeze({
 <p id="propertyStaffRentalWarning" class="property-private-warning" hidden>OPFW did not allow the rental fields on this token. Rental status is unknown; contact an administrator to review this token's read permissions.</p>
 <div id="propertyStaffGrid" class="property-staff-grid" aria-live="polite"></div>
 <section class="manage-panel property-storage-settings" id="propertyTypeStoragePanel" hidden>
-  <div class="manage-panel-header"><div><span class="eyebrow">Storage capacities</span><h2 class="serif">Storage by property type</h2></div></div>
-  <p class="manage-reorder-intro">The types below come directly from OPFW. Set the storage weight and slots for each type, where known. The OPFW stock API does not provide these capacities, so no sizes are assumed.</p>
+  <div class="manage-panel-header"><div><span class="eyebrow">Storage capacities</span><h2 class="serif">Storage by Interior</h2></div></div>
+  <p class="manage-reorder-intro">Each numbered OPFW property type is shown with its interior name. Set the storage capacity in SU and the maximum number of objects (furniture pieces) for that interior. Values are only filled in when configured.</p>
   <p id="propertyStorageFeedback" class="manage-message" role="status" aria-live="polite"></p>
   <div id="propertyTypeStorageList" class="property-storage-list"></div>
 </section>
