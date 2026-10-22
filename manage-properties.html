@@ -6,7 +6,7 @@
 <meta name="description" content="Private Brick & Ivy company property rental and weekly cost management.">
 <title>Property Management | Brick & Ivy Real Estate</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<link rel="stylesheet" href="assets/styles.css?v=20261022-income2">
+<link rel="stylesheet" href="assets/styles.css?v=20261022-listings1">
 <script defer src="assets/site.js?v=20261022-opfw2"></script>
 <script>
 window.BRICK_IVY_CONFIG=Object.freeze({
@@ -15,7 +15,7 @@ window.BRICK_IVY_CONFIG=Object.freeze({
   discordAuthReady:true
 });
 </script>
-<script type="module" src="assets/brickivy-property-staff.js?v=20261022-income2"></script>
+<script type="module" src="assets/brickivy-property-staff.js?v=20261022-listings1"></script>
 </head>
 <body data-page="staff-properties">
 <header class="site-header"><div class="container header-inner">
@@ -26,7 +26,7 @@ window.BRICK_IVY_CONFIG=Object.freeze({
 <main>
 <section class="page-header admin-management-hero"><div class="container"><div class="eyebrow">Brick &amp; Ivy / Private staff tools</div>
 <h1 class="section-heading">Property <em>management.</em></h1>
-<p>Review weekly property values and private rental information from your company portfolio. Changes to website values never edit the OPFW game database.</p>
+<p>Manage property availability, block ordering, regions, weekly rent prices, storage presets, and private rental details. Changes here do not modify the OPFW game database.</p>
 </div></section>
 <div class="container manage-workspace">
 <div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span><div>
@@ -48,6 +48,12 @@ window.BRICK_IVY_CONFIG=Object.freeze({
 <p id="propertyStaffFeedback" class="manage-message" role="status" aria-live="polite"></p>
 <p id="propertyStaffRentalWarning" class="property-private-warning" hidden>OPFW did not allow the rental fields on this token. Rental status is unknown; contact an administrator to review this token's read permissions.</p>
 <div id="propertyStaffGrid" class="property-staff-grid" aria-live="polite"></div>
+<section class="manage-panel property-storage-settings" id="propertyTypeStoragePanel" hidden>
+  <div class="manage-panel-header"><div><span class="eyebrow">Storage capacities</span><h2 class="serif">Storage by property type</h2></div></div>
+  <p class="manage-reorder-intro">The types below come directly from OPFW. Set the storage weight and slots for each type, where known. The OPFW stock API does not provide these capacities, so no sizes are assumed.</p>
+  <p id="propertyStorageFeedback" class="manage-message" role="status" aria-live="polite"></p>
+  <div id="propertyTypeStorageList" class="property-storage-list"></div>
+</section>
 </div>
 </div>
 </main>
