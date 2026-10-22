@@ -4,20 +4,20 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Public-facing design and property browsing are in place. The production listing API, staff login and image upload backend are **not connected yet**.
+**Status:** Discord staff sign-in, Owner-only Realtor Management and the public Realtor directory are active. The live OPFW property feed is deployed and wired to public pages; it requires the private `OPFW_REST_TOKEN` secret to complete data access. Property editing and image uploads are the next phase.
 
 ## Pages
 
 - `index.html` — branded homepage, property search, featured listings, neighborhoods, company introduction.
 - `properties.html` — property search, filters and sorting.
 - `property.html?id=...` — published property detail and photo gallery.
-- `realtors.html` — public Realtor and Owner contact directory; it reads `data/realtors.json`.
-- `admin.html` — role-aware Discord login screen that unlocks when the dedicated Supabase project is configured.
-- `manage-realtors.html` — Owner-only Realtor CRUD UI. Sign-in is currently disabled until the dedicated Supabase project and its Edge Functions are deployed.
+- `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
+- `admin.html` — Discord authenticated staff portal with live verification of guild roles.
+- `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
 
 ## Public data contract
 
-The website reads `data/properties.json`. It currently contains `[]`, so no invented or private listings are published.
+The live public pages now read `brickivy-properties` from the dedicated Supabase project. `data/properties.json` is retained only as an unconfigured-development fallback; it contains `[]`. OPFW token configuration is required to display real company properties. See [OPFW setup](backend/OPFW-PROPERTIES.md).
 
 When a secure backend is connected, it should produce a sanitized, public-only feed in this shape:
 
@@ -30,7 +30,7 @@ When a secure backend is connected, it should produce a sanitized, public-only f
     "neighborhood": "Los Santos",
     "type": "House",
     "price": 250000,
-    "status": "for-sale",
+    "status": "listed",
     "published": true,
     "featured": false,
     "description": "Public listing description",
@@ -40,7 +40,7 @@ When a secure backend is connected, it should produce a sanitized, public-only f
 ]
 ```
 
-A property will appear on the website **only if** `published === true` and `status` is one of `for-sale`, `pending`, or `sold`.
+The public client accepts `published === true` and `status` of `listed`, `for-sale`, `pending`, or `sold`. Imported OPFW company records use `listed` (shown as **In portfolio**), since membership in the company database does not prove sale availability. The field `property_cost` is displayed as an unverified reported value, not an established asking price.
 
 
 ## Public Realtor directory
@@ -121,7 +121,15 @@ The public Realtor directory now attempts a **live online status check every 60 
 
 The badge reports whether the Realtor is logged in with that **specific character**. It does not measure whether they are free for appointments or whether their account is playing as a different character.
 
-## Backend integrations to build
+## Property integration (deployed; private secret required)
+
+- **Function:** `backend/edge-functions/brickivy-properties/index.ts` deployed as `brickivy-properties` with JWT check OFF (public, read-only, sanitized data only).
+- **OPFW V3:** `https://rest.opfw.net/1973/stocks_company_properties?select=company_id,property_id,property_name,property_type,property_address,property_cost&where=company_id%3D5`.
+- **Server-only secret:** `OPFW_REST_TOKEN` in Brick & Ivy Supabase Edge Function Secrets, never GitHub.
+- **Frontend:** live `index.html`, `properties.html`, `property.html`; no fake fallback when production backend is configured.
+- **Docs and verification:** [backend/OPFW-PROPERTIES.md](backend/OPFW-PROPERTIES.md).
+
+## Remaining backend integrations to build
 
 - **Source:** OPFW readonly REST endpoint for Legendary service ID `1973`, table `stocks_company_properties`.
 - **Server-side company restriction:** `company_id = 5`.
