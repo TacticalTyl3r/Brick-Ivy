@@ -19,6 +19,7 @@ type CharacterRow={
  character_id?:number|string;first_name?:string;last_name?:string;
  phone_number?:string;mugshot_url?:string;license_identifier?:string;
 };
+type OnlineCharacter={portrait:string;phoneNumber:string};
 const text=(v:unknown,max=255)=>typeof v==="string"?v.trim().slice(0,max):"";
 const goodCid=(v:unknown)=>Number.isSafeInteger(Number(v))&&Number(v)>0&&Number(v)<2147483647;
 const safePhoto=(v:unknown)=>{
@@ -67,19 +68,28 @@ function playersFrom(payload:unknown):Record<string,unknown>[]{
  if(!arr||arr.length>1024)throw Error("Unexpected players API response");
  return arr.filter(x=>x&&typeof x==="object");
 }
-async function onlineCids(cids:number[],token:string):Promise<Set<number>>{
+async function onlineCharacters(cids:number[],token:string):Promise<Map<number,OnlineCharacter>>{
  const endpoint=new URL(OPFW_PLAYERS);
  endpoint.searchParams.set("characterId",cids.join(","));
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7500);
  try{
-  const result=await fetch(endpoint.toString(),{headers:{Accept:"application/json",Authorization:"Bearer "+token},signal:ctrl.signal});
+  // This p323 game-server route uses a separate Bearer credential from
+  // opfw.gg's readonly REST service. No token is sent to visitors' browsers.
+  const result=await fetch(endpoint.toString(),{
+   headers:{Accept:"application/json",Authorization:"Bearer "+token},signal:ctrl.signal
+  });
   if(!result.ok)throw Error("OPFW players HTTP "+result.status);
   const rows=playersFrom(await result.json());
-  const allowed=new Set(cids),online=new Set<number>();
+  const allowed=new Set(cids),online=new Map<number,OnlineCharacter>();
   for(const row of rows){
-   const character=row.character as {id?:unknown}|undefined;
+   const character=row.character as {id?:unknown;portrait?:unknown;phoneNumber?:unknown}|undefined;
    const cid=Number(character?.id);
-   if(allowed.has(cid))online.add(cid);
+   if(allowed.has(cid)){
+    online.set(cid,{
+     portrait:safePhoto(character?.portrait),
+     phoneNumber:text(character?.phoneNumber,35)
+    });
+   }
   }
   return online;
  }finally{clearTimeout(timer)}
@@ -99,15 +109,16 @@ Deno.serve(async req=>{
   if(error)throw Error("Directory query failed");
   const profiles=(data||[]) as DirectoryRecord[];
   const cids=[...new Set(profiles.map(p=>Number(p.character_id)).filter(goodCid))];
-  let details=new Map<number,CharacterRow>(),online:Set<number>|null=null;
+  let details=new Map<number,CharacterRow>(),online:Map<number,OnlineCharacter>|null=null;
   if(cids.length){
-   const token=Deno.env.get("OPFW_REST_TOKEN");
-   // Prefer a dedicated game-server API token when configured. Some OPFW
-   // installations distinguish it from a readonly REST token.
-   const playerToken=Deno.env.get("OPFW_SERVER_TOKEN")||token;
+   const restToken=Deno.env.get("OPFW_REST_TOKEN");
+   const gameServerToken=Deno.env.get("OPFW_SERVER_TOKEN");
+   // The user's game-server Bearer token is distinct from OPFW_REST_TOKEN.
+   // Never silently substitute the REST token; this caused HTTP 401 responses.
    const [characters,players]=await Promise.allSettled([
-    token?characterData(token,cids):Promise.resolve(new Map<number,CharacterRow>()),
-    playerToken?onlineCids(cids,playerToken):Promise.reject(Error("OPFW player-status credential not configured"))
+    restToken?characterData(restToken,cids):Promise.resolve(new Map<number,CharacterRow>()),
+    gameServerToken?onlineCharacters(cids,gameServerToken):
+      Promise.reject(Error("OPFW_SERVER_TOKEN is not configured"))
    ]);
    if(characters.status==="fulfilled")details=characters.value;
    else console.warn("Brick & Ivy character enrichment temporarily unavailable:",characters.reason instanceof Error?characters.reason.message:"unknown");
@@ -115,15 +126,15 @@ Deno.serve(async req=>{
    else console.warn("Brick & Ivy online status temporarily unavailable:",players.reason instanceof Error?players.reason.message:"unknown");
   }
   return json(profiles.map(r=>{
-   const cid=Number(r.character_id),character=details.get(cid);
+   const cid=Number(r.character_id),character=details.get(cid),connected=online?.get(cid);
    const sourcePhone=text(character?.phone_number,35);
-   const mugshot=safePhoto(character?.mugshot_url);
+   const mugshot=connected?.portrait||safePhoto(character?.mugshot_url);
    return {
     characterId:r.character_id,
     name:r.name,
     role:r.role_label,
     title:r.title,
-    inGamePhone:text(r.in_game_phone,35)||sourcePhone,
+    inGamePhone:text(r.in_game_phone,35)||connected?.phoneNumber||sourcePhone,
     discordUsername:r.discord_username,
     discordId:r.discord_user_id,
     photo:safePhoto(r.photo_url),
