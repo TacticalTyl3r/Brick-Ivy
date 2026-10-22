@@ -6,7 +6,7 @@ The public property listing pipeline is implemented. The read-only bearer token 
 
 - **OPFW Readonly REST API V3** → `https://opfw.gg/api/rest/1973/stocks_company_properties`.
 - The Supabase Edge Function `brickivy-properties` performs server-to-server GET:
-  - `select=company_id,property_id,property_name,property_type,property_address,property_cost`
+  - `select=company_id,block_id,property_id,property_name,property_type,property_address,property_cost`
   - `where=company_id=5`
   - `Authorization: Bearer <private token>` sent **only from Supabase**.
 - The function verifies the company on **every returned row**, limits response size, removes anything outside the public field allowlist, and emits the site's safe listing format.
@@ -31,7 +31,7 @@ Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 
 ## Behavior and security boundaries
 
-- Imported properties use `status: "listed"` (**In portfolio**) until a renter is confirmed by OPFW; then they use `status: "unavailable"` (**Unavailable**) on cards and property pages. A neutral listing does not guarantee the property is for sale; no renter data is exposed to visitors.
+- When OPFW confirms a complete renter snapshot: property is **Unavailable** if rented, **Reserved** if a staff reservation flag is set, otherwise **Available**. When occupancy cannot be verified, unreserved homes show neutral **In portfolio**. This is calculated privately and never reveals renter information.
 - `property_cost` is displayed as a **reported property value**, not a confirmed asking price.
 - Property `id`, name, type, address and original cost come from OPFW. The displayed weekly value can now be overridden by an Owner in the secured `manage-properties.html` dashboard without modifying OPFW. Private rental details are shown in that staff dashboard, never here. See [PROPERTY-STAFF.md](PROPERTY-STAFF.md). Photos, custom descriptions, and manual publication management remain future work.
 - If OPFW fails, the website displays **temporarily unavailable**, not an invented empty inventory or misleading stale sample properties.
@@ -45,3 +45,7 @@ Supabase project: **Brick & Ivy Real Estate** / `rcbbnzqmfvapwuqmpmhk`.
 - Confirm the homepage correctly shows actual returned properties.
 - Confirm missing/invalid API token yields an error and no private raw OPFW output.
 - Confirm existing `realtors.html`, Discord sign-in and Realtor Management still work.
+
+## Region, block and storage metadata
+
+The public feed includes `blockId` from OPFW and the Owner-defined `area`, `storageKg` and `storageSlots` fields, joined from protected Supabase metadata. Property browsing orders all non-unavailable listings by block, with unavailable homes last. The staff-side reservation flag and area are private editable records, but the resulting public badge and selected area are public-safe. See [detailed setup](LISTING-AREAS-STATUS-STORAGE.md).
