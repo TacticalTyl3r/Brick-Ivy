@@ -93,8 +93,9 @@ function realtorContactRow(label,value,copy){
 }
 function realtorMarkup(person){
  const name=safeText(person.name);
- const title=safeText(person.title)||'Realtor';
  const role=safeText(person.role).toLowerCase()==='owner'?'Owner':'Realtor';
+ const publicTitle=safeText(person.title)||'Realtor';
+ const title=role==='Realtor'&&publicTitle.toLowerCase()==='owner'?'Realtor':publicTitle;
  const photo=safeImage(person.photo||person.mugshotUrl);
  const phone=safeText(person.inGamePhone);
  const username=safeText(person.discordUsername);
@@ -197,7 +198,8 @@ function publicRealtorGroups(people){
  const map=new Map(),groups=[];
  for(const person of sorted){
   const owner=safeText(person.role).toLowerCase()==='owner';
-  const label=owner?'Owner':safeText(person.title)||'Realtor';
+  const title=safeText(person.title)||'Realtor';
+  const label=owner?'Owner':title.toLowerCase()==='owner'?'Realtor':title;
   const key=(owner?'owner:':'realtor:')+label.toLowerCase();
   if(!map.has(key)){
    const group={label,owner,people:[]};
