@@ -1,3 +1,4 @@
+import { createClient } from "npm:@supabase/supabase-js@2.84.0";
 /*
  * Brick & Ivy public OPFW property feed.
  *
@@ -97,6 +98,25 @@ async function loadProperties(token:string):Promise<unknown[]> {
     const listings=rows.map(r=>toListing(r as Record<string,unknown>)).filter((x):x is NonNullable<typeof x>=>x!==null)
       .filter(x=>{if(ids.has(x.id))return false;ids.add(x.id);return true})
       .sort((a,b)=>a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
+    // Apply privately-managed weekly cost overrides. No renter fields are
+    // fetched or returned by this public function.
+    if(listings.length){
+      const dbUrl=Deno.env.get("SUPABASE_URL");
+      const serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if(!dbUrl||!serviceKey)throw new Error("Property pricing backend unavailable");
+      const db=createClient(dbUrl,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
+      const {data:overrides,error}=await db.from("brickivy_property_weekly_costs")
+        .select("property_id,weekly_cost_override").in("property_id",listings.map(p=>p.id));
+      if(error)throw new Error("Property pricing lookup failed");
+      const prices=new Map((overrides||[]).map(row=>[String(row.property_id),row.weekly_cost_override]));
+      for(const item of listings){
+        const override=prices.get(item.id);
+        if(override!==undefined && override!==null){
+          const value=safePrice(override);
+          if(value!==null)item.price=value;
+        }
+      }
+    }
     cached={items:listings,until:Date.now()+CACHE_TIME_MS};
     return listings;
   })();
