@@ -1,10 +1,10 @@
 # Brick & Ivy: launch the secure Realtor backend
 
-**Stage:** Application source is in GitHub. No new Supabase project has been created and neither Edge Function is deployed. Leave `assets/brickivy-config.js` blank until setup is complete.
+**Stage (October 22, 2026):** Dedicated project `rcbbnzqmfvapwuqmpmhk` has been created in us-east-1. `backend/schema.sql` has been applied; both Edge Functions are deployed as active. The public URL and publishable key are configured in `assets/brickivy-config.js`. `discordAuthReady: false` keeps login disabled until Discord OAuth and server-side bot configuration are complete.
 
 ## 1. Create a dedicated project
 
-Use the user's chosen Supabase organization to create a **new** project named `Brick & Ivy Real Estate`, in a US region close to the user. Do not put Brick & Ivy tables or secrets into the existing Green Wonderland POS project. The Supabase cost check on October 22, 2026 returned **$0/month** for a new project in TacticalTyl3r's Org, pending the owner's selection and creation.
+**Completed:** Project `Brick & Ivy Real Estate` was created at `https://supabase.com/dashboard/project/rcbbnzqmfvapwuqmpmhk` in `us-east-1`, separate from the existing Green Wonderland POS project; Supabase quoted `$0/month` at project creation.
 
 ## 2. Configure the Discord OAuth application
 
@@ -19,11 +19,11 @@ Use the [Discord Developer Portal](https://discord.com/developers/applications) 
 
 ## 3. Create the backend schema
 
-Run `backend/schema.sql` in the **new** project via Supabase SQL Editor or the authorized connector.
+**Completed:** `backend/schema.sql` was applied to project `rcbbnzqmfvapwuqmpmhk` through a Supabase migration. Row-level security was verified enabled, with zero public RLS policies.
 
 The schema creates `public.brickivy_realtors` with RLS enabled and revokes `anon` and `authenticated` table privileges. A record for Johnny Sausage (CID 8, phone 145-7459, Discord TacticalTyl3r) is seeded **as a public profile only**, not as a permission grant.
 
-## 4. Deploy two Edge Functions
+## 4. Edge Functions — deployed
 
 - `brickivy-admin`: source `backend/edge-functions/brickivy-admin/index.ts`, **JWT verification enabled**; uses the authenticated user's verified Discord identity and the bot token to check guild roles for every request. Handles `me`, `list`, `save`, `delete`.
 - `brickivy-realtors`: source `backend/edge-functions/brickivy-realtors/index.ts`, **JWT verification disabled** because it is a public read-only endpoint; returns explicitly allowlisted fields for published profiles only.
@@ -32,20 +32,21 @@ Supabase provides `SUPABASE_URL` and the legacy `SUPABASE_SERVICE_ROLE_KEY` to h
 
 ## 5. Wire the public website
 
-Retrieve the new project's **project URL** and **publishable key**, and set **only** those two public settings in `assets/brickivy-config.js`:
+**Completed:** The new project's public URL and publishable key are now in `assets/brickivy-config.js`. Keep `discordAuthReady: false` until the Discord provider, redirects, bot secret and authorized role checks work.
 
 ```js
 window.BRICK_IVY_CONFIG = Object.freeze({
-  supabaseUrl: "https://YOUR_PROJECT_REF.supabase.co",
-  publishableKey: "sb_publishable_YOUR_PUBLIC_KEY"
+  supabaseUrl: "https://rcbbnzqmfvapwuqmpmhk.supabase.co",
+  publishableKey: "YOUR_PUBLIC_PUBLISHABLE_KEY",
+  discordAuthReady: false
 });
 ```
 
 Once this is set:
 
-- The public `realtors.html` page reads approved public profiles from the read-only Edge Function.
-- `admin.html` shows Discord sign-in and checks roles on the backend.
-- An **Owner** can add, edit, publish/unpublish and remove Realtor profiles in `manage-realtors.html`.
+- The public `realtors.html` page is configured to read approved public profiles from the read-only Edge Function (live browser response still needs verification).
+- After Discord setup and changing `discordAuthReady` to `true`, `admin.html` will show Discord sign-in and check roles on the backend.
+- After Discord setup, a verified **Owner** can add, edit, publish/unpublish and remove Realtor profiles in `manage-realtors.html`.
 - A **Realtor** can sign in, but cannot access Owner-only Realtor management.
 - All profile changes are saved to the protected database; **no GitHub JSON copy/paste** is needed.
 
