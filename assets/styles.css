@@ -200,8 +200,9 @@ h1,h2,h3,p{margin-top:0}
 .realtor-availability .availability-dot{height:8px;width:8px;flex:0 0 8px;border-radius:50%;background:#a8aca4}
 .realtor-availability[data-status="available"]{background:#eaf3e7;border-color:#bed6b7;color:#326b3c}
 .realtor-availability[data-status="available"] .availability-dot{background:#3c9d57;box-shadow:0 0 0 3px #d5e8d4}
-.realtor-availability[data-status="unavailable"]{background:#f5f1ea;border-color:#e5ded2;color:#826f57}
-.realtor-availability[data-status="unavailable"] .availability-dot{background:#b4a38e}
-.realtor-availability[data-status="unknown"]{background:#f5f5f0;border-color:#dde1d9;color:#777f76}
+.realtor-availability[data-status="unavailable"]{background:#fde8e7;border-color:#efc0be;color:#a12424}
+.realtor-availability[data-status="unavailable"] .availability-dot{background:#dc3c37;box-shadow:0 0 0 3px #f9d3d1}
+.realtor-availability[data-status="unknown"]{background:#fff5d2;border-color:#ecd78b;color:#7a5d0f}
+.realtor-availability[data-status="unknown"] .availability-dot{background:#d8a120;box-shadow:0 0 0 3px #ffebad}
 
 .team-status-help{max-width:650px;margin:10px 0 0;color:#7c887c;font-size:11px;line-height:1.8}
