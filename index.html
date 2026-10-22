@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7f6f2" />
+  <meta name="description" content="Brick & Ivy Real Estate — homes and properties in Legendary Roleplay. Our website is coming soon." />
+  <title>Brick & Ivy | Real Estate</title>
+  <style>
+    :root { color-scheme: light; --ink:#333b37; --sage:#879588; --paper:#f7f6f2; --line:#dedfd8; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink); font-family: 'Segoe UI', Arial, sans-serif; display:flex; flex-direction:column; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:28px clamp(24px,6vw,100px); border-bottom:1px solid var(--line); gap:24px; }
+    .brand { font-size:1.05rem; font-weight:600; letter-spacing:.17em; text-transform:uppercase; text-decoration:none; color:inherit; }
+    .top-note { font-size:.75rem; letter-spacing:.13em; text-transform:uppercase; color:#697770; }
+    main { flex:1; display:grid; place-items:center; padding:70px 24px 90px; }
+    .intro { max-width:900px; text-align:center; }
+    .eyebrow { text-transform:uppercase; font-size:.78rem; letter-spacing:.26em; font-weight:600; color:#65796a; }
+    h1 { font-family:Georgia, 'Times New Roman', serif; font-weight:400; letter-spacing:-.055em; line-height:1.08; font-size:clamp(3.2rem,8.5vw,7.4rem); margin:24px 0; }
+    .ivy { color:#738b77; font-style:italic; }
+    .rule { width:84px; height:1px; background:var(--sage); margin:34px auto; }
+    p { color:#5f6962; line-height:1.85; font-size:clamp(1rem,2vw,1.17rem); max-width:585px; margin:0 auto; }
+    .soon { display:inline-block; margin-top:42px; padding:15px 30px; border:1px solid #a0aca0; color:#4a5a4d; font-size:.78rem; font-weight:650; letter-spacing:.18em; text-transform:uppercase; }
+    footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:24px clamp(24px,6vw,100px); border-top:1px solid var(--line); font-size:.78rem; color:#768179; }
+    @media(max-width:600px){ header{padding:23px 22px;} .top-note{display:none;} footer{justify-content:center; text-align:center;} }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="./" aria-label="Brick and Ivy home">Brick &amp; Ivy</a>
+    <span class="top-note">Real Estate · Legendary Roleplay</span>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="intro-title">
+      <div class="eyebrow">Brick &amp; Ivy Real Estate</div>
+      <h1 id="intro-title">Find a place<br>to <span class="ivy">call home.</span></h1>
+      <div class="rule" aria-hidden="true"></div>
+      <p>A fresh way to discover properties across Legendary Roleplay is taking shape. Our new real estate website will be opening soon.</p>
+      <span class="soon">Website coming soon</span>
+    </section>
+  </main>
+  <footer>
+    <span>© <span id="year">2026</span> Brick &amp; Ivy Real Estate</span>
+    <span>Made for the Legendary Roleplay community</span>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
