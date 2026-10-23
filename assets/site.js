@@ -258,7 +258,8 @@ async function detailPage(){
   propertyStatus==='reserved'?'This property is reserved. Our Realtors can provide further information.':
   'Interested in this home? Our Realtors can help with details and arrange a viewing.';
  const contactMarkup='<div class="property-realtor-cta"><div><strong>Talk to a Brick &amp; Ivy Realtor</strong><p>'+esc(contactText)+'</p></div>'+
-  '<a class="button dark" href="realtors.html">Meet Our Realtors <span aria-hidden="true">→</span></a></div>';
+  '<div class="property-contact-actions"><a class="button dark" href="#biInquiry">Inquire About This Property <span aria-hidden="true">→</span></a>'+
+  '<a class="button outline" href="realtors.html">Meet Our Realtors <span aria-hidden="true">→</span></a></div></div>';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+
  (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
