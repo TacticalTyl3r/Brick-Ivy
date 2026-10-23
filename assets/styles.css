@@ -838,3 +838,27 @@ html[data-ui-theme="dark"] .property-inquiry-cta:hover{background:#55916f}
 .property-contact-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .property-contact-actions .button{white-space:normal;text-align:center}
 @media(max-width:600px){.property-contact-actions{width:100%}.property-contact-actions .button{flex:1 1 100%;justify-content:center}}
+
+/* Photo coverage at a glance in the private Property Management portfolio. */
+.property-private-card-tags{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.property-photo-count{
+ display:inline-flex;align-items:center;justify-content:center;
+ padding:9px 11px;font-size:10px;line-height:1.35;letter-spacing:.04em;
+ font-weight:800;white-space:nowrap;border:1px solid transparent;
+}
+.property-photo-count.has-photos{background:#e3f0e4;color:#285b39;border-color:#b9d7bc}
+.property-photo-count.no-photos{background:#f7e8dc;color:#945b33;border-color:#e7c8ac}
+.property-photo-count.is-unknown{background:#edf0ed;color:#627167;border-color:#d6ddd6}
+@media(max-width:680px){
+ .property-private-card-tags{width:100%;justify-content:flex-start;align-items:center}
+ .property-photo-count{min-height:35px}
+}
+html[data-ui-theme="dark"] .property-photo-count.has-photos{
+ background:#254330;color:#b9e1bd;border-color:#4d7654
+}
+html[data-ui-theme="dark"] .property-photo-count.no-photos{
+ background:#493426;color:#f1c59e;border-color:#79553c
+}
+html[data-ui-theme="dark"] .property-photo-count.is-unknown{
+ background:#303d34;color:#d1ddd1;border-color:#586b5e
+}
