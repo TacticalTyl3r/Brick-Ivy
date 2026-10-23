@@ -20,7 +20,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 ## Live Owner Homepage Editor and financial visibility
 
-From the [Staff Portal](https://brickandivyhomes.com/admin.html), the Owner can open the [Homepage Editor](https://brickandivyhomes.com/manage-homepage.html) to customize the hero, headings, descriptions, images, neighborhoods, announcement and homepage sections with a **private draft and Publish Homepage button**. The homepage content lives in Supabase, so normal content edits do not require GitHub commits.
+From the [Staff Portal](https://brickandivyhomes.com/admin.html), the Owner can open the [Homepage Editor](https://brickandivyhomes.com/manage-homepage.html) to customize the hero, headings, descriptions, announcements and homepage sections with **private drafts and one-click publishing**. The editor now supports **direct JPEG/PNG/WebP image uploads**, a reusable image library, section reordering, color controls, five theme presets and alternate homepage layouts. The homepage content lives in Supabase, so normal edits do not require GitHub commits.
 
 The Owner can also use [Realtor Permissions](https://brickandivyhomes.com/manage-permissions.html) to enable the individual **View Financial Snapshot** permission. This permits access to the private weekly rental revenue, total company maintenance and net weekly income view without giving the Realtor other editing powers. It is disabled by default and independently checked server-side.
 
