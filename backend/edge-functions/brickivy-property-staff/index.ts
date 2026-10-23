@@ -324,6 +324,27 @@ Deno.serve(async(req:Request)=>{
       if(error)throw new Error("Unable to load property value overrides");
       overrides=data||[];
     }
+    // Include the complete photo count for each stock property in the protected
+    // list response, so staff see coverage without opening every gallery.
+    // Read all pages: PostgREST's default/max page size is often 1,000 rows.
+    const photoCounts=new Map<string,number>();
+    if(ids.length){
+      const pageSize=1000;
+      for(let from=0;from<25000;from+=pageSize){
+        const {data:photos,error:photoError}=await db.from("brickivy_property_photos")
+          .select("property_id").in("property_id",ids)
+          .order("property_id",{ascending:true})
+          .order("id",{ascending:true})
+          .range(from,from+pageSize-1);
+        if(photoError)throw new Error("Unable to load property photo counts");
+        for(const photo of photos||[]){
+          const key=String(photo.property_id);
+          photoCounts.set(key,(photoCounts.get(key)||0)+1);
+        }
+        if((photos||[]).length<pageSize)break;
+        if(from+pageSize>=25000)throw new Error("Property photo summary exceeds the supported limit");
+      }
+    }
     const [listingMeta,storageMeta]=await Promise.all([
       ids.length?db.from("brickivy_property_listing_settings")
         .select("property_id,area,reserved,description,published,featured").in("property_id",ids):
@@ -347,6 +368,7 @@ Deno.serve(async(req:Request)=>{
       const renterCID=Number.isSafeInteger(renter)&&renter>0?renter:null;
       return {
         id:propertyId,blockId:str(r.block_id,80),name:str(r.property_name),address:str(r.property_address,200),
+        photoCount:photoCounts.get(propertyId)||0,
         type:str(r.property_type,80),area:settings.get(propertyId)?.area||"",
         description:str(settings.get(propertyId)?.description,3000),
         published:settings.get(propertyId)?.published!==false,
