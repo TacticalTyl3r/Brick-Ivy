@@ -44,6 +44,16 @@ let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy
 let permissions={};
 const allowed=key=>role==='owner'||permissions[key]===true;
 const galleries=new Map(),openedGalleries=new Set(),loadedGalleries=new Set();
+function syncPhotoCount(propertyId,photos){
+ const property=roster.find(p=>String(p.id)===String(propertyId));
+ if(property&&Array.isArray(photos))property.photoCount=photos.length;
+}
+function photoBadge(p){
+ const count=Number(p.photoCount);
+ if(!Number.isInteger(count)||count<0)return '<span class="property-photo-count is-unknown">Photos unavailable</span>';
+ return '<span class="property-photo-count '+(count?'has-photos':'no-photos')+'">'+
+   (count?count+' photo'+(count===1?'':'s'):'No photos')+'</span>';
+}
 function toggle(id,value){const el=byId(id);if(el)el.hidden=!value}
 function status(text){const el=byId('propertyStaffStatus');if(el)el.textContent=text}
 function feedback(text){const el=byId('propertyStaffFeedback');if(el)el.textContent=text}
@@ -131,6 +141,7 @@ async function toggleGallery(id){
    feedback('Loading property photos…');
    const data=await photosApi('list',id);
    galleries.set(id,data.photos||[]);loadedGalleries.add(id);
+   syncPhotoCount(id,data.photos||[]);
    feedback('Photos loaded.');
   }catch(e){feedback(e.message||'Photo gallery unavailable');openedGalleries.delete(id);}
   render();
@@ -142,6 +153,7 @@ async function mutateGallery(action,propertyId,payload={}){
  try{
   const data=await photosApi(action,propertyId,payload);
   galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);
+  syncPhotoCount(propertyId,data.photos||[]);
   feedback(action==='upload'?'Image uploaded.':'Property photos updated. Public listings may take approximately 90 seconds to refresh.');
  }catch(e){feedback(e.message||'Unable to change photos');}
  finally{busy=false;grid?.setAttribute('aria-busy','false');render();}
@@ -214,7 +226,8 @@ function propertyCard(p){
  return '<article class="property-private-card">'+
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
-   '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></header>'+
+   '<div class="property-private-card-tags">'+photoBadge(p)+
+   '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></div></header>'+
    publishTools+occupancyTools+
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
@@ -358,6 +371,7 @@ async function load(){
    finance=allowed('can_view_financials')?result.financialSummary:null;
    rentalAvailable=result.rentalAvailable===true;
    roster=Array.isArray(result.properties)?result.properties:[];
+   galleries.clear();loadedGalleries.clear();openedGalleries.clear();
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
    toggle('propertyStaffContent',true);
    toggle('propertyStaffRentalWarning',!rentalAvailable);
@@ -500,7 +514,8 @@ async function setup(){
            const form=new FormData();
            form.append('action','upload');form.append('propertyId',propertyId);form.append('file',file);
            const data=await photosApi('upload',propertyId,form);
-           galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);added++;
+           galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);
+           syncPhotoCount(propertyId,data.photos||[]);added++;
          }
          feedback(added+' photo'+(added===1?'':'s')+' uploaded. The public property gallery may take up to 90 seconds to refresh.');
        }catch(e){feedback(added+' uploaded; '+(e.message||'some photos could not be uploaded'));}
