@@ -71,6 +71,31 @@ async function hydrateHomepageContent(){
     const value=fields[element.dataset.homeSection];
     if(typeof value==='boolean')element.hidden=!value;
   });
+  // The server only accepts approved values; keep a client allowlist as well.
+  const designFields=[
+   ['homeTheme','homeTheme',['classic','forest','coastal','slate','warm']],
+   ['heroLayout','homeHeroLayout',['split','stacked','image-focus']],
+   ['featuredLayout','homeFeaturedLayout',['three','two','compact']],
+   ['neighborhoodLayout','homeNeighborhoodLayout',['cards','compact']],
+   ['aboutLayout','homeAboutLayout',['image-left','image-right','text-first']]
+  ];
+  for(const [field,attribute,options] of designFields){
+   if(options.includes(fields[field]))document.body.dataset[attribute]=fields[field];
+  }
+  for(const [field,variable] of [['primaryColor','--home-primary'],['accentColor','--home-accent']]){
+   const value=fields[field];
+   if(typeof value==='string'&&/^#[0-9a-fA-F]{6}$/.test(value))
+     document.body.style.setProperty(variable,value);
+  }
+  const order=fields.sectionOrder;
+  const keys=['featured','neighborhoods','about','contact'];
+  if(Array.isArray(order)&&order.length===keys.length&&new Set(order).size===keys.length&&keys.every(x=>order.includes(x))){
+   const quick=$('.quick-search'), sections=new Map(keys.map(x=>[x,document.getElementById(x)]));
+   if(quick && keys.every(x=>sections.get(x))){
+    let prior=quick;
+    for(const key of order){const item=sections.get(key);prior.after(item);prior=item;}
+   }
+  }
   const announcement=$('#homeAnnouncement');
   if(announcement)announcement.hidden=fields.announcementEnabled!==true||!safeText(fields.announcementText);
  }catch(error){console.warn('Using default homepage content:',error);}
@@ -129,8 +154,10 @@ async function home(){const target=$('#featuredGrid');if(!target)return;
    populatePropertyTypes($('#homeType'),props);
    // Featured listings always lead the homepage; fill remaining spaces with
    // the normal public block-order collection if fewer than three are featured.
+   const limit=document.body.dataset.homeFeaturedLayout==='two'?4:
+     document.body.dataset.homeFeaturedLayout==='compact'?6:3;
    const show=[...props].sort((a,b)=>
-     Number(b.featured===true)-Number(a.featured===true)||availabilityOrder(a,b)).slice(0,3);
+     Number(b.featured===true)-Number(a.featured===true)||availabilityOrder(a,b)).slice(0,limit);
    target.innerHTML=show.length?show.map(cardMarkup).join(''):emptyMarkup('No properties listed yet.','Brick & Ivy has no company properties in the live feed right now.');
  }catch(error){
    console.warn('Property feed unavailable:',error);
@@ -402,4 +429,4 @@ async function realtorDirectory(){
  }finally{grid.setAttribute('aria-busy','false')}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home'){hydrateHomepageContent();home();}if(page==='properties')propertiesPage();if(page==='detail')detailPage();if(page==='realtors')realtorDirectory()});
+document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home'){hydrateHomepageContent().then(home);}if(page==='properties')propertiesPage();if(page==='detail')detailPage();if(page==='realtors')realtorDirectory()});
