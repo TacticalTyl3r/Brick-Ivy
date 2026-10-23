@@ -13,6 +13,8 @@ const OPFW_ENDPOINT="https://opfw.gg/api/rest/1973/stocks_company_properties";
 const BASIC="company_id,block_id,property_id,property_name,property_type,property_address,property_cost";
 const RENTAL=",property_income,property_renter_cid,property_last_pay";
 const ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
+// OPFW standard interior IDs are 1–11. Presets may be configured before Brick & Ivy owns one.
+const STANDARD_INTERIOR_CODES=Array.from({length:11},(_,index)=>String(index+1));
 const DEFAULT_PERMISSIONS={
  can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
  can_set_prices:false,can_manage_storage:false,can_publish:false,
@@ -257,8 +259,8 @@ Deno.serve(async(req:Request)=>{
     }
     if(action==="setStorage"){
       const type=typeof inputData.propertyType==="string"?inputData.propertyType.trim():"";
-      if(!type||type.length>80||!properties.some(p=>str(p.property_type,80)===type)){
-        return response({error:"Choose a current OPFW property type"},400,cors);
+      if(!type||type.length>80||!(STANDARD_INTERIOR_CODES.includes(type)||properties.some(p=>str(p.property_type,80)===type))){
+        return response({error:"Choose one of the 11 standard OPFW interiors or an interior used by your company"},400,cors);
       }
       const weight=inputData.capacityKg,slots=inputData.capacitySlots;
       const cleared=(v:unknown)=>v===null||v==="";
@@ -327,12 +329,13 @@ Deno.serve(async(req:Request)=>{
         .select("property_id,area,reserved,description,published,featured").in("property_id",ids):
         Promise.resolve({data:[],error:null}),
       db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
-        .in("property_type",[...new Set(properties.map(x=>str(x.property_type,80)))])
+        .in("property_type",[...new Set([...STANDARD_INTERIOR_CODES,...properties.map(x=>str(x.property_type,80))])])
     ]);
     if(listingMeta.error||storageMeta.error)throw new Error("Unable to load listing settings");
     const settings=new Map((listingMeta.data||[]).map(row=>[String(row.property_id),row]));
     const storedTypes=new Map((storageMeta.data||[]).map(row=>[String(row.property_type),row]));
-    const propertyTypes=[...new Set(properties.map(row=>str(row.property_type,80)).filter(Boolean))].sort();
+    const propertyTypes=[...new Set([...STANDARD_INTERIOR_CODES,...properties.map(row=>str(row.property_type,80)).filter(Boolean)])]
+      .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:"base"}));
     const amounts=new Map(overrides.map(x=>[String(x.property_id),x.weekly_cost_override]));
     // Names are optional. A field-restricted OPFW token may not allow the characters table.
     // Never return player names outside authenticated staff responses.
@@ -389,7 +392,8 @@ Deno.serve(async(req:Request)=>{
       financialSummary:finance,
       propertyTypes:propertyTypes.map(type=>({
         type,capacityKg:storedTypes.get(type)?.capacity_kg??null,
-        capacitySlots:storedTypes.get(type)?.capacity_slots??null
+        capacitySlots:storedTypes.get(type)?.capacity_slots??null,
+        propertyCount:properties.filter(p=>str(p.property_type,80)===type).length
       })),
       properties:propertyRows},200,cors);
   }catch(e){
