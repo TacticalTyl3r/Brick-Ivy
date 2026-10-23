@@ -241,56 +241,152 @@ Deno.serve(async request => {
     const action = body.action;
     if (action === "me") return json({role:isOwner?"owner":"realtor",displayName:account.user.user_metadata?.full_name || "Team member"},200,cors);
 
-    // Inquiries have their own independent Realtor grant. Do not broaden other Owner-only actions.
-    if (action === "listInquiries" || action === "updateInquiry") {
+    // All inquiry actions are checked against live Discord guild roles, plus
+    // explicit per-Realtor permissions; never expose private inquiry tables.
+    if (["listInquiries","claimInquiry","updateInquiry","inquiryActivity","inquirySummary","inquiryAnalytics"].includes(String(action))) {
       if (!isOwner) {
         const {data:grant,error:grantError}=await admin.from("brickivy_realtor_permissions")
           .select("can_manage_inquiries").eq("discord_user_id",providerId).maybeSingle();
         if(grantError)throw Error("Unable to check inquiry access");
-        if(grant?.can_manage_inquiries !== true)
-          return json({error:"Inquiry management permission required"},403,cors);
+        if(grant?.can_manage_inquiries!==true)return json({error:"Inquiry management permission required"},403,cors);
       }
-      if (action === "listInquiries") {
-        const [inbox,realtors]=await Promise.all([
-          admin.from("brickivy_property_inquiries")
-            .select("id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at")
-            .order("created_at",{ascending:false}).limit(150),
-          admin.from("brickivy_realtors")
-            .select("name,discord_user_id,role_label").eq("published",true)
-        ]);
-        if(inbox.error||realtors.error)throw Error("Unable to load inquiries");
-        return json({inquiries:inbox.data||[],realtors:(realtors.data||[])
-          .filter(r=>r.role_label==="Realtor" && /^\\d{17,20}$/.test(r.discord_user_id||""))
-          .map(r=>({name:r.name,discordId:r.discord_user_id})),
+      const validStatuses=["new","in_progress","contacted","awaiting_customer","closed"];
+      const inboxFields="id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at,claimed_at,contacted_at,closed_at";
+      const now=new Date().toISOString();
+      const [team,analytics]=await Promise.all([
+        admin.from("brickivy_realtors").select("name,discord_user_id,role_label,published").order("display_order",{ascending:true}),
+        admin.rpc("brickivy_inquiry_analytics")
+      ]);
+      if(team.error||analytics.error)throw Error("Unable to load inquiry dashboard data");
+      const realtorNames=new Map((team.data||[]).filter(r=>/^\d{17,20}$/.test(r.discord_user_id||""))
+        .map(r=>[r.discord_user_id,r.role_label==="Owner"?"Owner · "+r.name:r.name]));
+      const realtors=(team.data||[]).filter(r=>r.role_label==="Realtor"&&r.published===true&&/^\d{17,20}$/.test(r.discord_user_id||""))
+        .map(r=>({name:r.name,discordId:r.discord_user_id}));
+      const metrics=analytics.data||{};
+      if(action==="inquirySummary"){
+        const {data:recent,error:recentError}=await admin.from("brickivy_property_inquiries")
+          .select("id,property_name,status,assigned_discord_id,created_at").order("created_at",{ascending:false}).limit(4);
+        if(recentError)throw Error("Could not load latest inquiries");
+        return json({metrics,recent:recent||[]},200,cors);
+      }
+      if(action==="inquiryAnalytics"){
+        const {data:activity,error:activityError}=await admin.from("brickivy_inquiry_activity")
+          .select("inquiry_id,event_type,actor_discord_id,previous_status,new_status,old_assignee,new_assignee,note_changed,created_at")
+          .order("created_at",{ascending:false}).limit(35);
+        if(activityError)throw Error("Could not load recent inquiry activity");
+        return json({metrics,recentActivity:activity||[],names:Object.fromEntries(realtorNames)},200,cors);
+      }
+      if(action==="listInquiries"){
+        const {data:inquiries,error:e}=await admin.from("brickivy_property_inquiries")
+          .select(inboxFields).order("created_at",{ascending:false}).limit(150);
+        if(e)throw Error("Unable to load inquiries");
+        return json({inquiries:inquiries||[],realtors,metrics,
+          currentDiscordId:providerId,names:Object.fromEntries(realtorNames),
           role:isOwner?"owner":"realtor",
-          ...(isOwner?{discordConfigured:Boolean(Deno.env.get("DISCORD_BOT_TOKEN") &&
-           (Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK") ||
+          ...(isOwner?{discordConfigured:Boolean(Deno.env.get("DISCORD_BOT_TOKEN")&&
+           (Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||
             Deno.env.get("BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID"))),discordSender:"Brick & Ivy App"}:{})
         },200,cors);
       }
       const inquiryId=string(body.id,36);
-      const status=string(body.status,30),note=body.note,assignee=string(body.assignedDiscordId,20);
-      if(!uuid.test(inquiryId)||!["new","in_progress","closed"].includes(status)
-        ||typeof note!=="string"||note.length>2000
-        ||(assignee && !/^\\d{17,20}$/.test(assignee)))
-        return json({error:"Invalid inquiry update"},400,cors);
-      if(assignee){
-        const {data:matches,error:matchError}=await admin.from("brickivy_realtors")
-          .select("id").eq("discord_user_id",assignee).eq("role_label","Realtor").eq("published",true).limit(1);
-        if(matchError||!matches?.length)return json({error:"Assign a published team Realtor"},400,cors);
+      if(!uuid.test(inquiryId))return json({error:"Invalid inquiry ID"},400,cors);
+      if(action==="inquiryActivity"){
+        const {data:history,error:e}=await admin.from("brickivy_inquiry_activity")
+          .select("event_type,actor_discord_id,previous_status,new_status,old_assignee,new_assignee,note_changed,created_at")
+          .eq("inquiry_id",inquiryId).order("created_at",{ascending:false}).limit(80);
+        if(e)throw Error("Unable to load inquiry activity");
+        return json({history:history||[],names:Object.fromEntries(realtorNames)},200,cors);
       }
       const {data:before,error:beforeError}=await admin.from("brickivy_property_inquiries")
-        .select("status").eq("id",inquiryId).maybeSingle();
+        .select("id,property_id,property_name,character_name,status,assigned_discord_id,internal_note,updated_at,claimed_at,contacted_at,closed_at")
+        .eq("id",inquiryId).maybeSingle();
       if(beforeError)throw Error("Unable to load selected inquiry");
       if(!before)return json({error:"Inquiry not found"},404,cors);
-      const {error:updateError}=await admin.from("brickivy_property_inquiries")
-        .update({status,internal_note:note.trim(),assigned_discord_id:assignee||null,
-          updated_at:new Date().toISOString(),updated_by:user.id}).eq("id",inquiryId);
-      if(updateError)throw Error("Unable to save inquiry");
-      const {error:auditError}=await admin.from("brickivy_inquiry_activity")
-        .insert({inquiry_id:inquiryId,actor:user.id,previous_status:before.status,new_status:status});
-      if(auditError)console.warn("Inquiry activity audit unavailable");
-      return json({success:true,auditRecorded:!auditError},200,cors);
+      if(action==="claimInquiry"){
+        if(before.status==="closed")return json({error:"Reopen this inquiry before claiming it"},409,cors);
+        const assignee=providerId;
+        // Atomic conditional update: only the first claimant wins.
+        const {data:claimed,error:claimError}=await admin.from("brickivy_property_inquiries")
+          .update({assigned_discord_id:assignee,claimed_at:before.claimed_at||now,
+            status:before.status==="new"?"in_progress":before.status,
+            updated_at:now,updated_by:user.id})
+          .eq("id",inquiryId).is("assigned_discord_id",null).neq("status","closed")
+          .select("id").maybeSingle();
+        if(claimError)throw Error("Unable to claim this inquiry");
+        if(!claimed)return json({error:"This inquiry was already claimed. Refresh your inbox."},409,cors);
+        const {error:auditError}=await admin.from("brickivy_inquiry_activity").insert({
+          inquiry_id:inquiryId,actor:user.id,actor_discord_id:providerId,
+          event_type:"claimed",previous_status:before.status,
+          new_status:before.status==="new"?"in_progress":before.status,
+          old_assignee:null,new_assignee:assignee
+        });
+        if(auditError)console.warn("Claim activity could not be recorded");
+        const target=assignee;
+        const delivery=await sendInquiryAsBot({
+          content:"<@"+target+">",
+          allowed_mentions:{parse:[],users:[target]},
+          embeds:[{title:"🏡 Property Inquiry Claimed",
+            description:"**"+String(before.property_name).replace(/[@<>]/g,"")+"** has been claimed by a Realtor.",
+            color:0x285640,
+            fields:[{name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80)},
+              {name:"Status",value:"In progress"}],
+            footer:{text:"BRICK & IVY • Staff workflow"},
+            timestamp:now}]
+        });
+        return json({success:true,auditRecorded:!auditError,notification:delivery.sent?"sent":"failed"},200,cors);
+      }
+      const status=string(body.status,30);
+      if(!validStatuses.includes(status)||typeof body.note!=="string"||body.note.length>2000)
+        return json({error:"Invalid inquiry status or internal notes"},400,cors);
+      const note=body.note.trim(),assignee=string(body.assignedDiscordId,20);
+      if(assignee&&!/^\d{17,20}$/.test(assignee))
+        return json({error:"Invalid assigned Realtor"},400,cors);
+      if(assignee&&!realtors.some(r=>r.discordId===assignee))
+        return json({error:"Assigned Realtor must be a published team member"},400,cors);
+      if(assignee!==before.assigned_discord_id&&assignee){
+        const targetRoles=await membership(assignee,botToken);
+        if(!targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID))
+          return json({error:"Assigned Realtor is not currently in Brick & Ivy Discord"},400,cors);
+      }
+      const changedStatus=before.status!==status,changedAssignee=(before.assigned_discord_id||"")!==assignee,
+        changedNote=before.internal_note!==note;
+      if(!changedStatus&&!changedAssignee&&!changedNote)return json({success:true,unchanged:true},200,cors);
+      const next:any={status,internal_note:note,assigned_discord_id:assignee||null,
+        updated_at:now,updated_by:user.id};
+      if(assignee&&!before.claimed_at)next.claimed_at=now;
+      if(["contacted","awaiting_customer"].includes(status)&&!before.contacted_at)next.contacted_at=now;
+      if(status==="closed")next.closed_at=before.closed_at||now;
+      else if(before.status==="closed")next.closed_at=null;
+      const {data:updated,error:updateError}=await admin.from("brickivy_property_inquiries")
+        .update(next).eq("id",inquiryId).eq("updated_at",before.updated_at)
+        .select("id").maybeSingle();
+      if(updateError)throw Error("Unable to update inquiry");
+      if(!updated)return json({error:"This inquiry was changed by someone else. Refresh and retry."},409,cors);
+      const eventType=changedAssignee?(assignee?"assigned":"unassigned"):
+        changedStatus?"status_changed":changedNote?"note_updated":"updated";
+      const {error:auditError}=await admin.from("brickivy_inquiry_activity").insert({
+        inquiry_id:inquiryId,actor:user.id,actor_discord_id:providerId,
+        event_type:eventType,previous_status:before.status,new_status:status,
+        old_assignee:before.assigned_discord_id,new_assignee:assignee||null,note_changed:changedNote
+      });
+      if(auditError)console.warn("Inquiry change activity could not be recorded");
+      let notification:"none"|"sent"|"failed"="none";
+      if(changedAssignee&&assignee){
+        const safeProperty=String(before.property_name).replace(/[@<>]/g,"").slice(0,150);
+        const target=assignee;
+        const result=await sendInquiryAsBot({
+          content:"<@"+target+">",
+          allowed_mentions:{parse:[],users:[target]},
+          embeds:[{title:"🏡 Property Inquiry Assigned",
+            description:"**"+safeProperty+"** has been assigned to you.\n\nOpen the Brick & Ivy Staff Portal to follow up.",
+            color:0x285640,
+            fields:[{name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80)},
+              {name:"Status",value:status.replaceAll("_"," ")}],
+            footer:{text:"BRICK & IVY • Staff workflow"},timestamp:now}]
+        });
+        notification=result.sent?"sent":"failed";
+      }
+      return json({success:true,auditRecorded:!auditError,notification},200,cors);
     }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
     if (action === "diagnoseInquiryDiscord") {
