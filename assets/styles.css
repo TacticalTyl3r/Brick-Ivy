@@ -783,3 +783,5 @@ body[data-page="home"][data-home-about-layout="text-first"] .about-visual .logo-
 .audit-restore{margin-top:15px;font-size:10px;min-height:39px}
 .audit-empty{color:#748275;font-size:12px}
 @media(max-width:750px){.owner-finance-filters{grid-template-columns:1fr}.audit-filters{grid-template-columns:1fr}.audit-topbar{flex-wrap:wrap}.owner-finance-report{padding:15px}.audit-event{padding:16px}}
+
+.home-editor-top-links{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.home-editor-top-links .button{font-size:10px;min-height:41px;padding:9px 12px}@media(max-width:550px){.home-editor-top-links{width:100%}.home-editor-top-links .button{flex:1;width:auto}}
