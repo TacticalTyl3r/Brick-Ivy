@@ -35,17 +35,27 @@ Deno.serve(async request=>{
   if(/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook)){
    const roleIds=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968").split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
    const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
-   const content=roleIds.map(id=>"<@&"+id+">").join(" ")+"\n"+
-    "**New Brick & Ivy property inquiry**\n"+
-    "**Property:** "+safe(String(property.property_name||id))+"\n"+
-    "**Character:** "+safe(name)+"\n**Phone:** "+safe(phone)+
-    (data.discordContact?"\n**Discord:** "+safe(String(data.discordContact).slice(0,80)):"")+
-    "\n**Message:** "+safe(message)+
-    "\n**Listing:** https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
+   const payload={
+    content:roleIds.map(id=>"<@&"+id+">").join(" ")||undefined,
+    allowed_mentions:{parse:[],roles:roleIds},
+    embeds:[{
+      title:"New Brick & Ivy Property Inquiry",
+      description:safe(message),
+      color:2437942,
+      url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id),
+      fields:[
+        {name:"Property",value:safe(String(property.property_name||id)).slice(0,240)},
+        {name:"Character",value:safe(name),inline:true},
+        {name:"In-game phone",value:safe(phone),inline:true},
+        {name:"Discord contact",value:safe(String(data.discordContact||"Not provided")).slice(0,80),inline:true}
+      ],
+      footer:{text:"Private staff inquiry · follow up in the Brick & Ivy Staff Portal"}
+    }]
+   };
    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
    try{
     const response=await fetch(webhook,{method:"POST",headers:{"content-type":"application/json"},
-      body:JSON.stringify({content,allowed_mentions:{parse:[],roles:roleIds}}),signal:controller.signal});
+      body:JSON.stringify(payload),signal:controller.signal});
     notification=response.ok?"sent":"failed";
    }catch{notification="failed"}finally{clearTimeout(timer)}
   }
