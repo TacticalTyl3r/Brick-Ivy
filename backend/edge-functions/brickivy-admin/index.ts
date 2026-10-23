@@ -189,6 +189,28 @@ Deno.serve(async request => {
       return json({success:true,auditRecorded:!auditError},200,cors);
     }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
+    if (action === "testInquiryDiscord") {
+      const webhook=Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||"";
+      if(!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook))
+        return json({error:"A valid Discord webhook must be configured in Supabase secrets"},503,cors);
+      const ids=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||REALTOR_ROLE_ID)
+        .split(",").map(x=>x.trim()).filter(x=>/^\d{17,20}$/.test(x)).slice(0,5);
+      const message={
+        content:"**[TEST] Brick & Ivy Inquiry Notifications**\\n"+
+          ids.map(x=>"<@&"+x+">").join(" ")+"\\n"+
+          "This is a test of the property inquiry webhook. No customer inquiry was created.",
+        allowed_mentions:{parse:[],roles:ids}
+      };
+      try{
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
+        try{
+          const sent=await fetch(webhook,{method:"POST",headers:{"content-type":"application/json"},
+            body:JSON.stringify(message),signal:controller.signal});
+          if(!sent.ok)return json({error:"Discord rejected the test notification (HTTP "+sent.status+")"},502,cors);
+        }finally{clearTimeout(timer)}
+      }catch{return json({error:"Discord test delivery failed"},502,cors)}
+      return json({success:true,message:"Test notification sent to the configured Discord channel"},200,cors);
+    }
     if (action === "listPermissions") {
       const [roster,grants]=await Promise.all([
         admin.from("brickivy_realtors").select("id,name,title,role_label,character_id,discord_user_id").order("display_order",{ascending:true}),
