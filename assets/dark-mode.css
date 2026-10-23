@@ -455,6 +455,10 @@ html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="charcoal"
 html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="lavender"]{background:#342e45}
 html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="autumn"]{background:#3b3025}
 html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="winter"]{background:#263c46}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="forest"]{background:#253e2d}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="coastal"]{background:#254044}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="slate"]{background:#2e3945}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="warm"]{background:#403426}
 html[data-ui-theme="dark"] .home-preview-section{background:#294332}
 html[data-ui-theme="dark"] .home-preview-section :is(small,p){color:#c9dfcf}
 html[data-ui-theme="dark"] .home-preview-section h3{color:var(--dm-text)}
