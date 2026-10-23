@@ -337,12 +337,7 @@ Deno.serve(async(req:Request)=>{
     // Names are optional. A field-restricted OPFW token may not allow the characters table.
     // Never return player names outside authenticated staff responses.
     const names=rentalAvailable?await renterNames(opfwToken,properties):new Map<number,string>();
-    return response({role:owner?"owner":"realtor",permissions,rentalAvailable,
-      propertyTypes:propertyTypes.map(type=>({
-        type,capacityKg:storedTypes.get(type)?.capacity_kg??null,
-        capacitySlots:storedTypes.get(type)?.capacity_slots??null
-      })),
-      properties:properties.map(r=>{
+    const propertyRows=properties.map(r=>{
       const propertyId=pid(r.property_id),raw=nonnegative(r.property_cost),stored=amounts.get(propertyId);
       const override=stored===null||stored===undefined?null:nonnegative(stored);
       const renter=rentalAvailable?Number(r.property_renter_cid):NaN;
@@ -358,14 +353,45 @@ Deno.serve(async(req:Request)=>{
         storageSlots:storedTypes.get(str(r.property_type,80))?.capacity_slots??null,
         sourceWeeklyCost:raw,weeklyCostOverride:override,
         weeklyCost:override??raw,
-        // Only the authenticated staff endpoint includes any of these:
         rented:rentalAvailable?renterCID!==null:null,
         renterCharacterId:rentalAvailable?renterCID:null,
         renterName:rentalAvailable&&renterCID!==null?names.get(renterCID)||null:null,
         propertyIncome:rentalAvailable?nonnegative(r.property_income):null,
         lastPayment:rentalAvailable?str(r.property_last_pay,80)||null:null
       };
-    })},200,cors);
+    });
+    // Income = weekly rent from rented homes only - OPFW maintenance for
+    // EVERY property, including vacant, reserved and hidden homes.
+    // All math is calculated in integer cents. Never show a fake $0 net when
+    // OPFW occupancy, rent or maintenance data is unavailable.
+    const toCents=(n:number)=>Math.round(n*100);
+    const maintenanceKnown=propertyRows.every(p=>p.sourceWeeklyCost!==null);
+    const rentsKnown=rentalAvailable&&propertyRows.filter(p=>p.rented===true).every(p=>p.weeklyCost!==null);
+    const complete=maintenanceKnown&&rentsKnown;
+    const finance=owner?{
+      totalProperties:propertyRows.length,
+      rented:rentalAvailable?propertyRows.filter(p=>p.rented===true).length:null,
+      vacant:rentalAvailable?propertyRows.filter(p=>p.rented===false).length:null,
+      reserved:propertyRows.filter(p=>p.reserved).length,
+      published:propertyRows.filter(p=>p.published).length,
+      featured:propertyRows.filter(p=>p.published&&p.featured).length,
+      complete,
+      rentalRevenue:complete?propertyRows.filter(p=>p.rented).reduce((sum,p)=>sum+toCents(p.weeklyCost!),0)/100:null,
+      maintenance:maintenanceKnown?propertyRows.reduce((sum,p)=>sum+toCents(p.sourceWeeklyCost!),0)/100:null,
+      netWeeklyIncome:complete?(
+        propertyRows.filter(p=>p.rented).reduce((sum,p)=>sum+toCents(p.weeklyCost!),0)-
+        propertyRows.reduce((sum,p)=>sum+toCents(p.sourceWeeklyCost!),0)
+      )/100:null,
+      missingMaintenance:propertyRows.filter(p=>p.sourceWeeklyCost===null).length,
+      missingRent:rentalAvailable?propertyRows.filter(p=>p.rented&&p.weeklyCost===null).length:null
+    }:null;
+    return response({role:owner?"owner":"realtor",permissions,rentalAvailable,
+      financialSummary:finance,
+      propertyTypes:propertyTypes.map(type=>({
+        type,capacityKg:storedTypes.get(type)?.capacity_kg??null,
+        capacitySlots:storedTypes.get(type)?.capacity_slots??null
+      })),
+      properties:propertyRows},200,cors);
   }catch(e){
     console.error("Brick & Ivy private property request failed:",e instanceof Error?e.message:"unknown");
     return response({error:"Unable to load private property information. Check the staff Edge Function logs."},503,cors);
