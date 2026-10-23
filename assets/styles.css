@@ -608,3 +608,13 @@ h1,h2,h3,p{margin-top:0}
 @media(max-width:980px){.home-editor-layout{grid-template-columns:1fr}.home-editor-preview-panel{position:static}.home-preview-hero{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}.home-preview-image{height:100%;min-height:250px}}
 @media(max-width:580px){.home-editor-top .button{width:100%}.home-editor-group summary{padding:15px}.home-editor-fields{padding:16px}.home-editor-savebar{padding:16px}.home-editor-secondary-actions{padding:15px}.home-editor-save-actions,.home-editor-save-actions .button{width:100%}.home-preview-hero{grid-template-columns:1fr}.home-preview-image{min-height:180px;height:180px}}
 @media(prefers-reduced-motion:reduce){.home-editor-group summary>span:last-child{transition:none}}
+
+
+/* Expanded homepage Owner draft preview */
+.home-preview-location-images{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0 0}
+.home-preview-location-images img{width:100%;height:86px;object-fit:cover;background:#e2eadf;display:block}
+.home-preview-about-image{margin-top:12px;width:100%;height:155px;background:#e3ebe0}
+.home-preview-about-image img{display:block;max-width:100%;width:100%;height:100%;object-fit:cover}
+.home-preview-small-button{display:inline-block;margin-top:10px;padding:9px 12px;background:#295138;color:#fff;font-size:10px;font-weight:700}
+.home-preview-location-images img[hidden],.home-preview-about-image img[hidden]{display:none}
+@media(max-width:550px){.home-preview-location-images img{height:67px}.home-preview-about-image{height:125px}}
