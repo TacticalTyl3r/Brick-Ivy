@@ -161,6 +161,8 @@ The **Property Management** link in the Staff Portal opens `manage-properties.ht
 
 The **public Realtor endpoint now performs enrichment server-side**, rather than having a GitHub Pages browser retrieve raw game-server player or connection records.
 
+**Realtor CID privacy:** The public Realtor directory and its JSON endpoint do not expose in-game Character IDs. Public live-status badges are associated with non-CID roster profile IDs; the private Edge Function still uses CID server-side for OPFW status and mugshot lookups. CID remains visible and editable in the protected Realtor Management pages.
+
 - For published profiles with valid character IDs, `brickivy-realtors` optionally retrieves approved character mugshots and phone information through the private OPFW REST token.
 - It optionally queries the game server's `players.json` route with a **separate** private `OPFW_SERVER_TOKEN` and matches exact approved character IDs. That token is **not** interchangeable with `OPFW_REST_TOKEN`.
 - The public API emits only a sanitized photo/phone and `onlineStatus` of `available`, `unavailable` or `unknown`. Missing credentials, rejected upstream authorization and network failures result in `unknown`, not a false offline report.
