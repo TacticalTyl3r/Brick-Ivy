@@ -785,3 +785,11 @@ body[data-page="home"][data-home-about-layout="text-first"] .about-visual .logo-
 @media(max-width:750px){.owner-finance-filters{grid-template-columns:1fr}.audit-filters{grid-template-columns:1fr}.audit-topbar{flex-wrap:wrap}.owner-finance-report{padding:15px}.audit-event{padding:16px}}
 
 .home-editor-top-links{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.home-editor-top-links .button{font-size:10px;min-height:41px;padding:9px 12px}@media(max-width:550px){.home-editor-top-links{width:100%}.home-editor-top-links .button{flex:1;width:auto}}
+
+
+/* Expandable line-by-line property profit detail for permitted financial viewers. */
+.finance-property-details{margin-top:10px;padding:8px 10px;background:#f3f7f1;border:1px solid #dbe8d9;max-width:430px}
+.finance-property-details summary{font-size:11px;color:#305b3d;cursor:pointer;font-weight:800;line-height:1.5}
+.finance-property-details[open] summary{margin-bottom:9px}
+.finance-property-details>div{font-weight:400;font-size:11px;color:#58725d;line-height:1.6;margin:5px 0;overflow-wrap:anywhere}
+.finance-property-details summary:focus-visible{outline:2px solid #4b7b56;outline-offset:3px}
