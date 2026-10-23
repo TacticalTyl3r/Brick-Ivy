@@ -403,7 +403,7 @@ Deno.serve(async request => {
       // Only transitions to these three statuses create lifecycle posts.
       let statusNotification:"none"|"sent"|"failed"="none";
       if(changedStatus&&["contacted","awaiting_customer","closed"].includes(status)){
-        const statusInfo={
+        const statusInfo:Record<string,{title:string;message:string;color:number;label:string}>={
           contacted:{
             title:"📞 Customer Contacted",
             message:"A Realtor has contacted the customer about this property.",
@@ -422,22 +422,23 @@ Deno.serve(async request => {
             color:0x2ECC71,
             label:"Closed"
           }
-        }[status]!;
+        };
+        const chosen=statusInfo[status];
         const clean=(value:unknown,max:number)=>String(value??"")
           .replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›").slice(0,max);
         const outcome=await sendInquiryAsBot({
           allowed_mentions:{parse:[]},
           embeds:[{
             author:{name:"BRICK & IVY · REAL ESTATE"},
-            title:statusInfo.title,
+            title:chosen.title,
             url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
-            description:statusInfo.message,
-            color:statusInfo.color,
+            description:chosen.message,
+            color:chosen.color,
             fields:[
               {name:"Property",value:clean(before.property_name,160),inline:true},
               {name:"Customer",value:clean(before.character_name,80),inline:true},
               {name:"Previous Status",value:clean(validStatuses.includes(before.status)?before.status.replaceAll("_"," "):"Unknown",70),inline:true},
-              {name:"Current Status",value:statusInfo.label,inline:true},
+              {name:"Current Status",value:chosen.label,inline:true},
               {name:"Updated by",value:clean(realtorNames.get(providerId)||"Brick & Ivy staff",80),inline:true}
             ],
             footer:{text:"BRICK & IVY • Inquiry status update • No pings"},
@@ -455,12 +456,9 @@ Deno.serve(async request => {
       return json({success:true,...diagnostic},200,cors);
     }
     if (action === "testInquiryDiscord") {
-      const ids=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||REALTOR_ROLE_ID)
-        .split(",").map(x=>x.trim()).filter(x=>/^\d{17,20}$/.test(x)).slice(0,5);
       const payload={
-        // Only the Realtor role ping stays outside the embed, so it actually notifies.
-        content:ids.map(x=>"<@&"+x+">").join(" ")||undefined,
-        allowed_mentions:{parse:[],roles:ids},
+        // This test checks embed delivery without pinging any roles or users.
+        allowed_mentions:{parse:[]},
         embeds:[{
           author:{name:"BRICK & IVY  ·  REAL ESTATE"},
           title:"🏡 Notification Test",
