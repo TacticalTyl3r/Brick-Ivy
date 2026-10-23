@@ -311,16 +311,14 @@ function realtorMarkup(person){
  const email=safeText(person.email);
  const hasEmail=/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)&&email.length<=254;
  const description=safeText(person.bio);
- const cid=Number(person.characterId);
- const hasCid=Number.isSafeInteger(cid)&&cid>0;
- const online=hasCid&&['available','unavailable'].includes(safeText(person.onlineStatus))
+ const profileId=safeText(person.profileId);
+ const online=['available','unavailable'].includes(safeText(person.onlineStatus))
   ?safeText(person.onlineStatus):'unknown';
  const statusLabel=online==='available'?'Available':online==='unavailable'?'Unavailable':'Status unavailable';
  const actions=[];
  if(hasDiscord)actions.push('<a class="button dark" href="https://discord.com/users/'+discordId+'" target="_blank" rel="noopener noreferrer" aria-label="View '+esc(name)+' on Discord">View Discord <span aria-hidden="true">↗</span></a>');
  if(hasEmail)actions.push('<a class="button outline" href="mailto:'+esc(email)+'" aria-label="Email '+esc(name)+'">Send email <span aria-hidden="true">↗</span></a>');
  const details=[
-   hasCid?realtorContactRow('Character ID (CID)',String(cid),true):'',
    realtorContactRow('In-game phone',phone,true),
    realtorContactRow('Discord',username,!hasDiscord),
    hasEmail?realtorContactRow('Email',email,false):''
@@ -329,7 +327,7 @@ function realtorMarkup(person){
  '<div class="realtor-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Portrait of '+esc(name)+'" loading="lazy">':'<div class="realtor-avatar" aria-label="Photo not supplied">'+esc(realtorInitials(name))+'</div>')+
  '<div class="realtor-role-badge">'+esc(role)+'</div></div>'+
  '<div class="realtor-body"><h3 class="realtor-name">'+esc(name)+'</h3><div class="realtor-subtitle">'+esc(title)+'</div>'+ 
- '<div class="realtor-availability" data-status="'+online+'" data-character-id="'+(hasCid?cid:'')+'"><span class="availability-dot" aria-hidden="true"></span><span class="availability-text" role="status">'+statusLabel+'</span></div>'+
+ '<div class="realtor-availability" data-status="'+online+'" data-profile-id="'+esc(profileId)+'"><span class="availability-dot" aria-hidden="true"></span><span class="availability-text" role="status">'+statusLabel+'</span></div>'+
  (description?'<p class="realtor-bio">'+esc(description)+'</p>':'')+
  '<div class="realtor-details">'+(details||'<span class="realtor-contact-none">Public contact details not yet available.</span>')+'</div>'+
  (actions.length?'<div class="realtor-actions">'+actions.join('')+'</div>':'')+'</div></article>'
@@ -353,7 +351,7 @@ function setRealtorStatus(element,status){
 async function refreshRealtorStatus(){
  const c=window.BRICK_IVY_CONFIG||{};
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
- const elements=Array.from(document.querySelectorAll('#realtorGrid [data-character-id]'));
+ const elements=Array.from(document.querySelectorAll('#realtorGrid [data-profile-id]'));
  if(!elements.length)return;
  const url=c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-realtors';
  try{
@@ -361,10 +359,10 @@ async function refreshRealtorStatus(){
   if(!result.ok)throw Error('Directory status HTTP '+result.status);
   const people=await result.json();
   if(!Array.isArray(people))throw Error('Invalid Realtor status data');
-  const statuses=new Map(people.filter(p=>p&&p.published===true).map(p=>[Number(p.characterId),p.onlineStatus]));
+  const statuses=new Map(people.filter(p=>p&&p.published===true&&safeText(p.profileId)).map(p=>[safeText(p.profileId),p.onlineStatus]));
   for(const el of elements){
-   const cid=Number(el.dataset.characterId);
-   setRealtorStatus(el,statuses.get(cid)||'unknown');
+   const profileId=el.dataset.profileId||'';
+   setRealtorStatus(el,statuses.get(profileId)||'unknown');
   }
  }catch(error){
   console.warn('Unable to refresh public Realtor status:',error);
