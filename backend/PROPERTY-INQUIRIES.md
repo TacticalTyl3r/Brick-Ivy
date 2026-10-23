@@ -36,6 +36,22 @@ The bot displaying **Offline** does not prevent HTTP API message delivery. A gre
 
 Do not paste or commit bot tokens, channel-webhook credentials, or Discord secrets.
 
+## Realtor workflow, follow-up, and reporting
+
+The protected Staff Portal (`admin.html`) displays an **Inquiry pulse** only for Owners and Realtors with the individual `can_manage_inquiries` grant. It shows counts for new, unassigned, awaiting-customer and closed inquiries, with links to recent inquiries. Unauthorized Realtors do not receive these numbers.
+
+The private inbox (`manage-inquiries.html`) now supports:
+- **Claim Inquiry:** An unassigned, open inquiry can be claimed by an authorized staff member. Conditional database updates ensure only one simultaneous claimant succeeds; a second claimant receives a conflict and should refresh.
+- **Assignment:** Owners and authorized Realtors can assign to an active published Realtor with a verified current Brick & Ivy Discord role. Claims and new assignments mention **only that one Realtor** in the existing notification channel using the Brick & Ivy bot. Routine note/status edits do not reping the full Realtor role.
+- **Statuses:** New, In progress, Contacted, Awaiting customer, Closed. First-contact and closing timestamps are retained for analytics; reopening resets the closing timestamp.
+- **Activity history:** Private event log records the authenticated Discord staff actor, when an inquiry was claimed or assigned, previous/new status and whether an internal note changed. Actual internal note contents are *not* duplicated into the activity log.
+- **Customer follow-up:** One-click copying of first response, viewing, follow-up and unavailable-property message templates. Staff must review and send them manually by in-game phone or their chosen channel. Copying a template does not send a customer notification or change the inquiry status.
+- **Filters and reports:** Search, status, assigned-to-me, unassigned-only; company-wide counts, top ten requested properties, weekly inquiry volume, Realtor current assignments/closed cases/claim events, and average elapsed hours from inquiry creation to closure.
+
+Metrics are aggregated entirely server-side via `brickivy_inquiry_analytics()`, using the service role from a verified staff endpoint. This SQL function is `SECURITY INVOKER` and grants execute **only to `service_role`**; it returns counts and names but no customer messages, phone numbers or contact details. Direct Data API roles cannot call it. Analytics always covers all saved inquiries; the inbox shows up to 150 newest inquiries by design.
+
+**Testing to complete with real staff credentials:** Owner can claim, assign, update and inspect audit history; a Realtor granted the inquiry permission can do the same; a Realtor without permission receives HTTP 403 from the API and sees no pulse; simultaneous claim race returns one HTTP 409; assignment mentions only the named Realtor; message templates only copy locally and never message the customer; complete and reopen a record to verify timestamps and average-close calculation. No credentials or fabricated test customer inquiries were used during deployment verification.
+
 ## Authorization and workflow
 Owners always have full access. Realtors require their live Brick & Ivy Discord Realtor role **and** the individual `can_manage_inquiries` permission, which is off by default. The Owner grants it in Realtor Permissions. Server-side checks run on each inbox action; a public Realtor profile label never grants access.
 
