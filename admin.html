@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#182d25"><meta name="description" content="Brick & Ivy staff portal for authorized Owners and Realtors."><meta name="robots" content="noindex,nofollow"><title>Staff Portal | Brick & Ivy Real Estate</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><script src="assets/theme.js?v=20261022-dark1"></script>
 <link rel="stylesheet" href="assets/styles.css?v=20261023-themes13">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261022-dark1"><script defer src="assets/site.js"></script><script>
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261022-dark1"><link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261023-workflow1"><script defer src="assets/site.js"></script><script>
 window.BRICK_IVY_CONFIG = Object.freeze({
   supabaseUrl: "https://rcbbnzqmfvapwuqmpmhk.supabase.co",
   publishableKey: "sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",
   discordAuthReady: true
 });
-</script><script type="module" src="assets/brickivy-staff.js?v=20261022-positions2"></script></head>
+</script><script type="module" src="assets/brickivy-staff.js?v=20261023-inquiry-pulse1"></script></head>
 <body>
 <header class="site-header"><div class="container header-inner"><a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a><nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="index.html#our-story">About us</a></nav><div class="header-actions"><a class="link-button" href="properties.html">View listings <span aria-hidden="true">↗</span></a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="primary-nav" aria-expanded="false"><span aria-hidden="true"></span></button></div></div></header>
 <main class="container page-spacer"><section class="admin-note" aria-labelledby="portalTitle">
@@ -17,6 +17,7 @@ window.BRICK_IVY_CONFIG = Object.freeze({
 <p class="staff-auth-message" id="staffMessage" role="status" aria-live="polite">Checking sign-in setup…</p>
 <div id="staffLogin" hidden><button class="button dark" id="staffSignIn" type="button">Sign in with Discord ↗</button></div>
 <div id="staffSession" hidden><button class="button outline" id="staffSignOut" type="button">Sign out</button></div>
+<section id="staffInquirySummary" class="bi-portal-pulse" aria-label="Property inquiry summary" hidden></section>
 <div id="staffOwnerContent" hidden>
  <div class="admin-tool-grid">
   <a class="admin-tool-card" href="manage-realtors.html"><span class="admin-tool-arrow" aria-hidden="true">♟</span><strong>Realtor Management →</strong><span>Add, edit or remove Realtor profiles and control which ones are publicly visible.</span></a>
