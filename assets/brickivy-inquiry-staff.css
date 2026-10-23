@@ -26,3 +26,5 @@
 .bi-inbox-actions small{align-self:center;color:var(--muted,#687b70)}
 .bi-inbox-empty{padding:30px;border:1px solid var(--line,#cbd4cb);text-align:center}
 @media(max-width:680px){.bi-inbox-summary{grid-template-columns:1fr}.bi-inbox-contacts{grid-template-columns:1fr}.bi-inbox-actions{grid-template-columns:1fr}.bi-inbox-top{flex-direction:column}.bi-inbox-note{grid-column:auto}}
+
+.bi-inbox-test{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px}.bi-inbox-test small{color:var(--muted,#67766d)}.bi-inbox-test[hidden]{display:none}
