@@ -29,44 +29,102 @@ const DEFAULT_PERMISSIONS={
 /** Send as the existing Brick & Ivy Discord bot, never as the webhook identity.
  * The saved webhook is used ONLY to discover its channel when no channel ID is configured.
  */
-async function sendInquiryAsBot(payload:unknown):Promise<{sent:boolean;configured:boolean;reason:string}>{
+/** Sends through Discord's bot API; webhook URL is metadata-only channel discovery. */
+async function sendInquiryAsBot(payload:unknown):Promise<{sent:boolean;configured:boolean;reason:string;botName?:string}>{
  const token=(Deno.env.get("DISCORD_BOT_TOKEN")||"").trim();
  const configuredChannel=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID")||"").trim();
  const webhook=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||"").trim();
- if(!token||(!configuredChannel&&!webhook))return {sent:false,configured:false,reason:"Bot token or notification channel is not configured"};
- let channelId="";
+ if(!token)return {sent:false,configured:false,reason:"The Brick & Ivy Discord bot token is not configured"};
+ if(!configuredChannel&&!webhook)return {sent:false,configured:false,reason:"No notification channel or webhook has been configured"};
+ const base="https://discord.com/api/v10";
  try{
-  if(configuredChannel){
-   if(!/^\d{17,20}$/.test(configuredChannel))
-    return {sent:false,configured:false,reason:"Invalid Discord channel ID configuration"};
-   const response=await fetch("https://discord.com/api/v10/channels/"+configuredChannel,{
-    headers:{Authorization:"Bot "+token,Accept:"application/json"},signal:AbortSignal.timeout(6500)
-   });
-   if(!response.ok)return {sent:false,configured:true,reason:"Bot cannot access notification channel (HTTP "+response.status+")"};
-   const channel=await response.json();
-   if(String(channel.guild_id)!=="1001110667580932168")
-    return {sent:false,configured:true,reason:"Notification channel is outside Brick & Ivy Discord"};
-   channelId=configuredChannel;
-  }else{
-   if(!/^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook))
-    return {sent:false,configured:false,reason:"Invalid saved webhook URL"};
-   // This GET reads metadata only; it does not create a webhook-authored message.
-   const response=await fetch(webhook,{headers:{Accept:"application/json"},signal:AbortSignal.timeout(6500)});
-   if(!response.ok)return {sent:false,configured:true,reason:"Cannot resolve saved webhook channel (HTTP "+response.status+")"};
-   const detail=await response.json();
-   if(String(detail.guild_id)!=="1001110667580932168"||! /^\d{17,20}$/.test(String(detail.channel_id||"")))
-    return {sent:false,configured:true,reason:"Saved webhook does not point to a Brick & Ivy server channel"};
-   channelId=String(detail.channel_id);
-  }
-  const sent=await fetch("https://discord.com/api/v10/channels/"+channelId+"/messages",{
-   method:"POST",headers:{Authorization:"Bot "+token,"Content-Type":"application/json"},
-   body:JSON.stringify(payload),signal:AbortSignal.timeout(6500)
+  const meRes=await fetch(base+"/users/@me",{
+    headers:{Authorization:"Bot "+token,Accept:"application/json"},signal:AbortSignal.timeout(7000)
   });
-  if(!sent.ok)return {sent:false,configured:true,reason:"Discord bot message rejected (HTTP "+sent.status+")"};
-  return {sent:true,configured:true,reason:"Sent by the Brick & Ivy Discord bot"};
- }catch{
-  return {sent:false,configured:true,reason:"Discord bot delivery could not be completed"};
+  if(!meRes.ok)return {sent:false,configured:true,reason:"The Discord bot token was rejected (HTTP "+meRes.status+")"};
+  const me=await meRes.json();
+  const botName=String(me.global_name||me.username||"Discord bot").slice(0,80);
+  if(me.bot!==true)return {sent:false,configured:true,reason:"Configured token does not represent a Discord bot"};
+  let channelId=configuredChannel;
+  if(!channelId){
+   if(!/^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook))
+    return {sent:false,configured:true,reason:"Saved notification webhook has an invalid URL",botName};
+   const lookup=await fetch(webhook,{headers:{Accept:"application/json"},signal:AbortSignal.timeout(7000)});
+   if(!lookup.ok)return {sent:false,configured:true,reason:"Could not read existing webhook channel (HTTP "+lookup.status+"). Set BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID instead.",botName};
+   const detail=await lookup.json();
+   channelId=String(detail.channel_id||"");
+   // Webhook.guild_id is optional: verify the actual channel via Bot authentication below.
+   if(detail.guild_id&&String(detail.guild_id)!=="1001110667580932168")
+    return {sent:false,configured:true,reason:"Saved webhook points to a different Discord server",botName};
+  }
+  if(!/^\d{17,20}$/.test(channelId))
+   return {sent:false,configured:true,reason:"The notification channel ID could not be resolved",botName};
+  const channelResponse=await fetch(base+"/channels/"+channelId,{
+   headers:{Authorization:"Bot "+token,Accept:"application/json"},signal:AbortSignal.timeout(7000)
+  });
+  if(!channelResponse.ok){
+   const hint=channelResponse.status===403?"Bot is denied access to the notification channel":channelResponse.status===404?"Bot cannot see the notification channel":"Discord channel lookup failed";
+   return {sent:false,configured:true,reason:hint+" (HTTP "+channelResponse.status+"). Check View Channel permission.",botName};
+  }
+  const channel=await channelResponse.json();
+  if(String(channel.guild_id)!=="1001110667580932168")
+   return {sent:false,configured:true,reason:"Target channel is not inside the Brick & Ivy Discord server",botName};
+  const post=await fetch(base+"/channels/"+channelId+"/messages",{
+   method:"POST",headers:{Authorization:"Bot "+token,"Content-Type":"application/json"},
+   body:JSON.stringify(payload),signal:AbortSignal.timeout(7000)
+  });
+  if(!post.ok){
+   let code="";
+   try{const detail=await post.json();if(Number.isInteger(detail.code))code=" (Discord error "+detail.code+")"}catch{}
+   const hint=post.status===403?"The bot cannot send messages to this channel; grant Send Messages and Embed Links":
+    post.status===401?"Bot token is invalid":post.status===429?"Discord temporarily rate limited the bot":"Discord rejected the bot message";
+   return {sent:false,configured:true,reason:hint+" (HTTP "+post.status+")"+code,botName};
+  }
+  return {sent:true,configured:true,reason:"Message delivered through Discord bot API",botName};
+ }catch(error){
+  const name=error instanceof Error?error.name:"unknown";
+  return {sent:false,configured:true,reason:"Discord request did not complete ("+name+")."};
  }
+}
+/** Owner-only, non-posting check. Never expose token, webhook URL, IDs or payload. */
+async function diagnoseInquiryBot():Promise<{bot:string;status:string;detail:string}>{
+ const token=(Deno.env.get("DISCORD_BOT_TOKEN")||"").trim();
+ if(!token)return {bot:"Unknown",status:"not_configured",detail:"DISCORD_BOT_TOKEN is missing from Supabase secrets"};
+ try{
+  const res=await fetch("https://discord.com/api/v10/users/@me",{
+    headers:{Authorization:"Bot "+token,Accept:"application/json"},signal:AbortSignal.timeout(7000)
+  });
+  if(!res.ok)return {bot:"Unknown",status:"token_error",detail:"Discord rejected the configured bot token (HTTP "+res.status+")"};
+  const user=await res.json();const bot=String(user.global_name||user.username||"Unknown").slice(0,80);
+  const channel=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID")||"").trim();
+  const webhook=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||"").trim();
+  if(!channel&&!webhook)return {bot,status:"no_channel",detail:"Set a channel ID or webhook secret for inquiry notifications"};
+  // Check channel access and Discord author without posting a message.
+  const result=await sendInquiryAsBotDiagnosticChannel(token,channel,webhook);
+  return {bot,...result};
+ }catch(error){return {bot:"Unknown",status:"error",detail:"Bot diagnostic timed out or Discord was unreachable"}}
+}
+async function sendInquiryAsBotDiagnosticChannel(token:string,selected:string,webhook:string):Promise<{status:string;detail:string}>{
+ let channelId=selected;
+ if(!channelId){
+  if(!/^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook))
+   return {status:"invalid_webhook",detail:"Webhook URL is invalid. Configure BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID instead"};
+  const resolved=await fetch(webhook,{signal:AbortSignal.timeout(7000)});
+  if(!resolved.ok)return {status:"webhook_error",detail:"Webhook channel lookup failed (HTTP "+resolved.status+"). Configure a channel ID instead"};
+  const item=await resolved.json();
+  channelId=String(item.channel_id||"");
+  if(item.guild_id&&String(item.guild_id)!=="1001110667580932168")
+   return {status:"wrong_server",detail:"Webhook belongs to a different Discord server"};
+ }
+ if(!/^\d{17,20}$/.test(channelId))return {status:"invalid_channel",detail:"Invalid Discord notification channel ID"};
+ const channel=await fetch("https://discord.com/api/v10/channels/"+channelId,{
+  headers:{Authorization:"Bot "+token},signal:AbortSignal.timeout(7000)
+ });
+ if(!channel.ok)return {status:"no_access",detail:"Bot cannot view notification channel (HTTP "+channel.status+"). Grant View Channel"};
+ const details=await channel.json();
+ if(String(details.guild_id)!=="1001110667580932168")
+  return {status:"wrong_server",detail:"Notification channel is not in the Brick & Ivy server"};
+ return {status:"channel_accessible",detail:"Bot credentials and channel visibility verified. Next test Send Messages and Embed Links."};
 }
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -235,6 +293,10 @@ Deno.serve(async request => {
       return json({success:true,auditRecorded:!auditError},200,cors);
     }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
+    if (action === "diagnoseInquiryDiscord") {
+      const diagnostic=await diagnoseInquiryBot();
+      return json({success:true,...diagnostic},200,cors);
+    }
     if (action === "testInquiryDiscord") {
       const ids=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||REALTOR_ROLE_ID)
         .split(",").map(x=>x.trim()).filter(x=>/^\d{17,20}$/.test(x)).slice(0,5);
@@ -246,7 +308,7 @@ Deno.serve(async request => {
       };
       const result=await sendInquiryAsBot(payload);
       if(!result.sent)return json({error:result.reason},result.configured?502:503,cors);
-      return json({success:true,message:"Test sent through the Brick & Ivy Discord App (bot)."},200,cors);
+      return json({success:true,message:"Discord test sent by "+(result.botName||"the configured bot")+".",botName:result.botName},200,cors);
     }
     if (action === "listPermissions") {
       const [roster,grants]=await Promise.all([
