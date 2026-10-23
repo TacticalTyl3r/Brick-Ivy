@@ -65,6 +65,26 @@ Staff can search inquiries, filter New / In progress / Contacted / Awaiting cust
 
 The public intake checks the company property against the private OPFW read-only API and rejects unpublished properties. It caps inquiries per hashed origin address in a rolling one-hour window, includes a bot-trap field, and never shares OPFW or Supabase credentials with visitors. Public visitors cannot browse submitted inquiries.
 
+## Overdue follow-ups, safe notification retry, and public inquiry shortcuts
+
+### Follow-up reminders in the Staff Portal
+
+The authorized Staff Portal's inquiry pulse and the private inquiry dashboard now display **Attention needed (24h)** and **Urgent (48h)** totals, driven by the protected `brickivy_inquiry_analytics()` SQL function. An individual inquiry shows a highlighted label when its first customer contact is overdue, and staff can use the **Attention needed** filter to find these cases quickly.
+
+The clock runs from the original inquiry creation time. Only inquiries in **New** or **In progress** with no `contacted_at` timestamp are flagged. Cases already Contacted, Awaiting Customer, or Closed are excluded, so the app doesn't imply the Realtor owes a response when the customer is being awaited. Claiming or changing internal notes doesn't count as customer contact. These reminders are **on-screen only** and do not send automatic Discord pings. Refresh the page to update the counts.
+
+### Owner-only recovery of an undelivered initial inquiry notification
+
+For an original new-inquiry message with `discord_notification` = `failed` or `not_configured`, the Owner sees **Retry Discord notification** in the private inbox. The button invokes Owner-only `retryInquiryNotification` on `brickivy-admin`. The server rechecks the Owner's live Discord role, finds the **existing** inquiry, atomically changes its delivery state to `pending`, and makes one non-pinging bot attempt. The retry embeds existing property/customer details and the available current listing rent/status. It **does not** insert another inquiry, mention a Realtor, or replay later assignment/status messages.
+
+Retries have a one-minute cooldown, use a monotonically increasing attempt counter to prevent simultaneous double-sends, and are recorded as `notification_retried` in the private activity log. If an interrupted attempt stays `pending`, Owner recovery is possible after two minutes. If Discord delivery fails again, the inquiry remains saved with delivery state `failed`. Staff who are Realtors cannot call this recovery endpoint even with normal inquiry-management permission.
+
+### Inquiry buttons and website quality
+
+Public property cards now provide a separate **Inquire About This Property** link to `property.html?id=<property ID>#biInquiry`, while preserving independent View Home / See Details links. The property detail page has the same shortcut next to Meet Our Realtors. The public inquiry form is inserted after the property loads; its script recognizes the fragment and scrolls the form into view, respects reduced-motion settings, and uses a stacked mobile layout.
+
+Quality checks performed during this update: all four affected browser JavaScript files passed parsing, new linked page assets were cache-busted, the responsive/focus styles and image lazy-loading were checked in source, both updated Supabase functions were active, the aggregate overdue SQL returned results, and anonymous/signed-in Data API roles retained no access to private inquiry records or protected analytics. A complete live-browser mobile layout test, real 24/48-hour aging test, and real Owner-authenticated failed-delivery retry still require a browser session and appropriate data. No actual inquiry, bot message, or ping was generated during these checks.
+
 ## Acceptance tests (not replaced by deployment)
 1. Load a published home detail page and verify the form appears and is responsive.
 2. Submit one **clearly labeled test inquiry** with approved test contact information.
