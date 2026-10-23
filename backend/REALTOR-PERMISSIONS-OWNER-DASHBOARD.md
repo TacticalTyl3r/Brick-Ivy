@@ -10,7 +10,7 @@ Available per-Realtor grants:
 - Reserve / unreserve properties (`can_manage_reservations`)
 - Edit public description (`can_edit_description`)
 - Set/reset website weekly rent (`can_set_prices`)
-- Change interior storage SU/object presets (`can_manage_storage`)
+- Change interior storage SU/object presets (`can_manage_storage`) — includes all 11 standard OPFW interiors, even if the company owns none of a particular type.
 - Publish / unpublish (`can_publish`)
 - Feature / unfeature homes (`can_feature`)
 - Upload, remove, reorder and choose property images (`can_manage_photos`)
@@ -48,3 +48,9 @@ The public property cards now use consistent card layouts, stronger hover/focus 
 5. Confirm Owner dashboard **weekly revenue = occupied weekly rents**, **maintenance = all stock maintenance**, **net = revenue − maintenance**, including periods where rent revenue is zero and expenses continue.
 6. Confirm any unavailable OPFW rental data is clearly marked unavailable and is not treated as zero profit.
 7. Test property listings, public Realtor page and Owner management after the deployment.
+
+## All 11 OPFW storage interior presets
+
+The `Storage by Interior` section in Property Management now always displays all eleven standard OPFW interiors, numbered 1–11 in numeric order: Motel, Trevor's Trailer, Janitor Apartment, Low-End Apartment, Lester's House, Franklin's House, Mid-End Apartment, Trevor's Beach House, Michael's Mansion, Franklin's Mansion and High-End Apartment.
+
+The backend returns all eleven presets alongside any current nonstandard company property types, retaining previously saved capacity values. It distinguishes **not currently in inventory** from **preset not set**. Owners or Realtors granted `can_manage_storage` can configure or clear a standard interior preset even before the company acquires property of that type. The preset then applies automatically to any current or future owned property with the same OPFW interior code. Existing SU and object limits are unchanged by this update. This is website metadata; it does not alter in-game storage values or OPFW property records.
