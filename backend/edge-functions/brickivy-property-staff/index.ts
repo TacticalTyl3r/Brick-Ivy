@@ -386,7 +386,20 @@ Deno.serve(async(req:Request)=>{
         propertyRows.reduce((sum,p)=>sum+toCents(p.sourceWeeklyCost!),0)
       )/100:null,
       missingMaintenance:propertyRows.filter(p=>p.sourceWeeklyCost===null).length,
-      missingRent:rentalAvailable?propertyRows.filter(p=>p.rented&&p.weeklyCost===null).length:null
+      missingRent:rentalAvailable?propertyRows.filter(p=>p.rented&&p.weeklyCost===null).length:null,
+      propertyBreakdown:propertyRows.map(p=>{
+        const weeklyMaintenance=p.sourceWeeklyCost;
+        // An unoccupied property earns zero rent but still incurs maintenance.
+        // Occupancy unknown or missing required values means unknown net income.
+        const weeklyRevenue=p.rented===null?null:p.rented===false?0:p.weeklyCost;
+        const net=weeklyRevenue===null||weeklyMaintenance===null?null:
+          (toCents(weeklyRevenue)-toCents(weeklyMaintenance))/100;
+        return {
+          id:p.id,blockId:p.blockId,name:p.name,address:p.address,type:p.type,area:p.area,
+          rented:p.rented,published:p.published,weeklyRevenue,
+          weeklyMaintenance,netWeeklyIncome:net
+        };
+      })
     }:null;
     return response({role:owner?"owner":"realtor",permissions,rentalAvailable,
       financialSummary:finance,
