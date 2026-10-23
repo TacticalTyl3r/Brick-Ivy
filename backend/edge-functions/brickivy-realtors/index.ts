@@ -10,6 +10,7 @@ const OPFW_CHARACTERS="https://opfw.gg/api/rest/1973/characters";
 const OPFW_PLAYERS="https://p323.fivem.opfw.me/op-framework/players.json";
 const RELEVANT_ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
 type DirectoryRecord={
+ id:string;
  character_id:number|string;
  name:string;role_label:string;title:string;in_game_phone:string;
  discord_username:string;discord_user_id:string;photo_url:string;
@@ -104,7 +105,7 @@ Deno.serve(async req=>{
  try{
   const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data,error}=await client.from("brickivy_realtors")
-   .select("character_id,name,role_label,title,in_game_phone,discord_username,discord_user_id,photo_url,email,bio,published,display_order")
+   .select("id,character_id,name,role_label,title,in_game_phone,discord_username,discord_user_id,photo_url,email,bio,published,display_order")
    .eq("published",true).order("display_order",{ascending:true}).limit(100);
   if(error)throw Error("Directory query failed");
   const profiles=(data||[]) as DirectoryRecord[];
@@ -133,7 +134,9 @@ Deno.serve(async req=>{
    const sourcePhone=text(character?.phone_number,35);
    const mugshot=connected?.portrait||safePhoto(character?.mugshot_url);
    return {
-    characterId:r.character_id,
+    // Public identity is the roster profile UUID, never the in-game CID.
+    // CID remains private and is used only above for OPFW enrichment.
+    profileId:r.id,
     name:r.name,
     role:r.role_label,
     title:r.title,
