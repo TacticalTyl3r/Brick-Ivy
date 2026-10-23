@@ -25,12 +25,28 @@ const DEFAULTS={
  ctaDescription:"Ready to take a look? Explore our published properties or get in touch with a Brick & Ivy Realtor in Legendary Roleplay.",
  ctaButton:"Meet our Realtors",
  announcementText:"",announcementEnabled:false,
- showFeatured:true,showNeighborhoods:true,showAbout:true,showCta:true
+ showFeatured:true,showNeighborhoods:true,showAbout:true,showCta:true,
+ homeTheme:"classic",primaryColor:"#244436",accentColor:"#b39a70",
+ heroLayout:"split",featuredLayout:"three",neighborhoodLayout:"cards",aboutLayout:"image-left",
+ sectionOrder:["featured","neighborhoods","about","contact"]
 };
 type Field=keyof typeof DEFAULTS;
 const textKeys=Object.keys(DEFAULTS).filter(key=>typeof DEFAULTS[key as Field]==="string");
 const imageKeys=new Set(["heroImage","lsImage","sandyImage","paletoImage","aboutImage"]);
 const toggleKeys=Object.keys(DEFAULTS).filter(key=>typeof DEFAULTS[key as Field]==="boolean");
+const enumFields:Record<string,string[]>={
+ homeTheme:["classic","forest","coastal","slate","warm"],
+ heroLayout:["split","stacked","image-focus"],
+ featuredLayout:["three","two","compact"],
+ neighborhoodLayout:["cards","compact"],
+ aboutLayout:["image-left","image-right","text-first"]
+};
+const SECTIONS=["featured","neighborhoods","about","contact"];
+function validOrder(value:unknown):value is string[]{
+ return Array.isArray(value)&&value.length===SECTIONS.length&&
+  value.every(x=>typeof x==="string")&&new Set(value).size===SECTIONS.length&&
+  SECTIONS.every(x=>value.includes(x));
+}
 function clean(content:unknown):Record<string,string|boolean>{
  if(!content||typeof content!=="object"||Array.isArray(content))throw Error("Homepage content must be an object");
  const values=content as Record<string,unknown>,out:Record<string,string|boolean>={};
@@ -41,6 +57,8 @@ function clean(content:unknown):Record<string,string|boolean>{
   const value=raw.trim();
   const max=imageKeys.has(key)?2048:key.endsWith("Description")?1500:200;
   if(value.length>max)throw Error(key+" exceeds "+max+" characters");
+  if(enumFields[key]&&!enumFields[key].includes(value))throw Error("Invalid homepage layout or theme: "+key);
+  if(["primaryColor","accentColor"].includes(key)&&!/^#[0-9a-fA-F]{6}$/.test(value))throw Error("Use a six-digit hexadecimal color for "+key);
   if(imageKeys.has(key)){
    try{const url=new URL(value);if(url.protocol!=="https:"||url.username||url.password)throw Error();}
    catch{throw Error("Images must be valid HTTPS URLs");}
@@ -55,14 +73,17 @@ function clean(content:unknown):Record<string,string|boolean>{
   if(typeof values[key]!=="boolean")throw Error("Invalid visibility field: "+key);
   out[key]=values[key] as boolean;
  }
- return out;
+ if(!validOrder(values.sectionOrder))throw Error("Section order must contain each editable section once");
+ return {...out,sectionOrder:[...values.sectionOrder]};
 }
 const merge=(stored:unknown)=>{
- const fields={...DEFAULTS} as Record<string,string|boolean>;
+ const fields={...DEFAULTS,sectionOrder:[...DEFAULTS.sectionOrder]} as Record<string,string|boolean|string[]>;
  if(stored&&typeof stored==="object"&&!Array.isArray(stored)){
   for(const key of Object.keys(DEFAULTS)){
    const value=(stored as Record<string,unknown>)[key];
-   if(typeof value===typeof DEFAULTS[key as Field])fields[key]=value as string|boolean;
+   if(key==="sectionOrder"){
+    if(validOrder(value))fields[key]=[...value];
+   }else if(typeof value===typeof DEFAULTS[key as Field])fields[key]=value as string|boolean;
   }
  }
  return fields;
