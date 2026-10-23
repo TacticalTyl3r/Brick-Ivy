@@ -940,3 +940,22 @@ html[data-ui-theme="dark"] .home-image-status[data-state="success"]{background:#
 html[data-ui-theme="dark"] .home-image-advanced{border-color:#48644c;color:#c6e4ce}
 html[data-ui-theme="dark"] .home-image-advanced input{background:#13281c;color:#eff8ef;border-color:#739a7b}
 @media(max-width:600px){.home-image-editor{padding:12px}.home-image-file::file-selector-button{margin-right:7px}}
+
+
+/* Shared low-profile visitor tracker in the Brick & Ivy footer */
+.footer-visitor-counter{
+ display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+ font-size:11px;line-height:1.4;letter-spacing:.02em;color:#cedbce;
+}
+.footer-visitor-counter .visitor-indicator{
+ width:7px;height:7px;flex:none;border-radius:50%;background:#b39a70;
+ box-shadow:0 0 0 3px rgba(179,154,112,.13);
+}
+.footer-visitor-counter strong{color:#f0f5ec;font-weight:800;font-variant-numeric:tabular-nums}
+.footer-visitor-counter .visitor-label{color:#abbdae}
+html[data-ui-theme="dark"] .footer-visitor-counter strong{color:#ecf6ed}
+html[data-ui-theme="dark"] .footer-visitor-counter .visitor-label{color:#b7cbbb}
+@media(max-width:690px){
+ .footer-bottom{flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px 20px}
+ .footer-visitor-counter{white-space:normal}
+}
