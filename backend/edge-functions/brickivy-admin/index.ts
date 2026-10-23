@@ -138,6 +138,56 @@ Deno.serve(async request => {
     const body: Record<string, unknown> = await request.json();
     const action = body.action;
     if (action === "me") return json({role:isOwner?"owner":"realtor",displayName:account.user.user_metadata?.full_name || "Team member"},200,cors);
+
+    // Inquiries have their own independent Realtor grant. Do not broaden other Owner-only actions.
+    if (action === "listInquiries" || action === "updateInquiry") {
+      if (!isOwner) {
+        const {data:grant,error:grantError}=await admin.from("brickivy_realtor_permissions")
+          .select("can_manage_inquiries").eq("discord_user_id",providerId).maybeSingle();
+        if(grantError)throw Error("Unable to check inquiry access");
+        if(grant?.can_manage_inquiries !== true)
+          return json({error:"Inquiry management permission required"},403,cors);
+      }
+      if (action === "listInquiries") {
+        const [inbox,realtors]=await Promise.all([
+          admin.from("brickivy_property_inquiries")
+            .select("id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at")
+            .order("created_at",{ascending:false}).limit(150),
+          admin.from("brickivy_realtors")
+            .select("name,discord_user_id,role_label").eq("published",true)
+        ]);
+        if(inbox.error||realtors.error)throw Error("Unable to load inquiries");
+        return json({inquiries:inbox.data||[],realtors:(realtors.data||[])
+          .filter(r=>r.role_label==="Realtor" && /^\\d{17,20}$/.test(r.discord_user_id||""))
+          .map(r=>({name:r.name,discordId:r.discord_user_id})),
+          role:isOwner?"owner":"realtor",
+          ...(isOwner?{discordConfigured:Boolean(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK"))}:{})
+        },200,cors);
+      }
+      const inquiryId=string(body.id,36);
+      const status=string(body.status,30),note=body.note,assignee=string(body.assignedDiscordId,20);
+      if(!uuid.test(inquiryId)||!["new","in_progress","closed"].includes(status)
+        ||typeof note!=="string"||note.length>2000
+        ||(assignee && !/^\\d{17,20}$/.test(assignee)))
+        return json({error:"Invalid inquiry update"},400,cors);
+      if(assignee){
+        const {data:matches,error:matchError}=await admin.from("brickivy_realtors")
+          .select("id").eq("discord_user_id",assignee).eq("role_label","Realtor").eq("published",true).limit(1);
+        if(matchError||!matches?.length)return json({error:"Assign a published team Realtor"},400,cors);
+      }
+      const {data:before,error:beforeError}=await admin.from("brickivy_property_inquiries")
+        .select("status").eq("id",inquiryId).maybeSingle();
+      if(beforeError)throw Error("Unable to load selected inquiry");
+      if(!before)return json({error:"Inquiry not found"},404,cors);
+      const {error:updateError}=await admin.from("brickivy_property_inquiries")
+        .update({status,internal_note:note.trim(),assigned_discord_id:assignee||null,
+          updated_at:new Date().toISOString(),updated_by:user.id}).eq("id",inquiryId);
+      if(updateError)throw Error("Unable to save inquiry");
+      const {error:auditError}=await admin.from("brickivy_inquiry_activity")
+        .insert({inquiry_id:inquiryId,actor:user.id,previous_status:before.status,new_status:status});
+      if(auditError)console.warn("Inquiry activity audit unavailable");
+      return json({success:true,auditRecorded:!auditError},200,cors);
+    }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
     if (action === "listPermissions") {
       const [roster,grants]=await Promise.all([
