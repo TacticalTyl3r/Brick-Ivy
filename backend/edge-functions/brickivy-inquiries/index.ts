@@ -110,7 +110,7 @@ async function sendInquiryAsBotDiagnosticChannel(token:string,selected:string,we
 async function getInquiryListingDetails(supabaseUrl:string,propertyId:string):Promise<{weeklyRent:string;availability:string}>{
  const fallback={weeklyRent:"Check property listing",availability:"Not verified — check listing"};
  try{
-  const res=await fetch(supabaseUrl.replace(/\\/$/,"")+"/functions/v1/brickivy-properties",{
+  const res=await fetch(supabaseUrl.replace(/[/]$/,"")+"/functions/v1/brickivy-properties",{
    headers:{Accept:"application/json"},signal:AbortSignal.timeout(9000)
   });
   if(!res.ok)return fallback;
