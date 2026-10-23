@@ -196,8 +196,8 @@ Deno.serve(async request => {
       const ids=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||REALTOR_ROLE_ID)
         .split(",").map(x=>x.trim()).filter(x=>/^\d{17,20}$/.test(x)).slice(0,5);
       const message={
-        content:"**[TEST] Brick & Ivy Inquiry Notifications**\\n"+
-          ids.map(x=>"<@&"+x+">").join(" ")+"\\n"+
+        content:"**[TEST] Brick & Ivy Inquiry Notifications**\n"+
+          ids.map(x=>"<@&"+x+">").join(" ")+"\n"+
           "This is a test of the property inquiry webhook. No customer inquiry was created.",
         allowed_mentions:{parse:[],roles:ids}
       };
