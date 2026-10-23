@@ -451,6 +451,96 @@ Deno.serve(async request => {
       return json({success:true,auditRecorded:!auditError,notification,statusNotification},200,cors);
     }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
+    // Owner-only retry for an existing failed or previously unconfigured inquiry.
+    // Never creates a duplicate inquiry, never pings a role or user.
+    if (action === "retryInquiryNotification") {
+      const id=string(body.id,36);
+      if(!uuid.test(id))return json({error:"Invalid inquiry ID"},400,cors);
+      const {data:inquiry,error:lookupError}=await admin.from("brickivy_property_inquiries")
+        .select("id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,discord_notification,discord_retry_count,discord_last_retry_at")
+        .eq("id",id).maybeSingle();
+      if(lookupError)throw Error("Unable to load inquiry retry state");
+      if(!inquiry)return json({error:"Inquiry not found"},404,cors);
+      const previous=String(inquiry.discord_notification);
+      const retryDate=inquiry.discord_last_retry_at?Date.parse(inquiry.discord_last_retry_at):0;
+      const eligible=["failed","not_configured"].includes(previous) ||
+        (previous==="pending"&&retryDate>0&&Date.now()-retryDate>120000);
+      if(!eligible)return json({error:"This notification is not eligible for retry"},409,cors);
+      if(retryDate&&Date.now()-retryDate<60000)
+        return json({error:"Wait at least 60 seconds between notification retries"},429,cors);
+      if(!Deno.env.get("DISCORD_BOT_TOKEN") ||
+          !(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID")||Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")))
+        return json({error:"Configure the Discord bot and channel before retrying"},503,cors);
+      const now=new Date().toISOString();
+      // Lock this attempt using previous state and a monotonically increasing count.
+      const {data:locked,error:lockError}=await admin.from("brickivy_property_inquiries")
+        .update({discord_notification:"pending",discord_last_retry_at:now,
+          discord_retry_count:inquiry.discord_retry_count+1})
+        .eq("id",id).eq("discord_notification",previous)
+        .eq("discord_retry_count",inquiry.discord_retry_count)
+        .select("id").maybeSingle();
+      if(lockError)throw Error("Unable to lock notification retry");
+      if(!locked)return json({error:"Another staff action already retried this notification"},409,cors);
+      const clean=(value:unknown,max:number)=>String(value??"").replace(/@/g,"＠")
+        .replace(/</g,"‹").replace(/>/g,"›").slice(0,max);
+      // Use current public listing pricing/availability when it can be read.
+      let rent="Check property listing",availability="Not verified — check listing";
+      try {
+        const base=Deno.env.get("SUPABASE_URL")||"";
+        const response=await fetch(base.replace(/\/$/,"")+"/functions/v1/brickivy-properties",{
+          headers:{Accept:"application/json"},signal:AbortSignal.timeout(7000)
+        });
+        if(response.ok){
+          const entries=await response.json();
+          const listing=Array.isArray(entries)?entries.find((x:unknown)=>
+            x&&typeof x==="object"&&
+            (x as Record<string,unknown>).published===true&&
+            String((x as Record<string,unknown>).id)===String(inquiry.property_id)):null;
+          if(listing){
+            const raw=listing.price;
+            const price=raw===null||raw===undefined||raw===""?NaN:Number(raw);
+            if(Number.isFinite(price)&&price>=0)
+              rent=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(price)+" / week";
+            const labels:Record<string,string>={available:"Available",reserved:"Reserved",unavailable:"Unavailable (rented)",listed:"In portfolio"};
+            availability=labels[String(listing.status||"").toLowerCase()]||availability;
+          }
+        }
+      }catch{ /* A temporary property feed outage must not block a retry. */ }
+      const result=await sendInquiryAsBot({
+        allowed_mentions:{parse:[]},
+        embeds:[{
+          author:{name:"BRICK & IVY · REAL ESTATE"},
+          title:"🏡 Property Inquiry • Delivery Retry",
+          url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(inquiry.property_id),
+          description:"**Inquiry Message**\n"+clean(inquiry.message,1500),
+          color:0x285640,
+          fields:[
+            {name:"Property",value:clean(inquiry.property_name,160),inline:true},
+            {name:"Property ID",value:clean(inquiry.property_id,80),inline:true},
+            {name:"Address",value:clean(inquiry.property_address||"Not listed",200)},
+            {name:"Weekly Rent",value:rent,inline:true},
+            {name:"Availability",value:availability,inline:true},
+            {name:"Character",value:clean(inquiry.character_name,80),inline:true},
+            {name:"In-game phone",value:clean(inquiry.in_game_phone,35),inline:true},
+            {name:"Discord contact",value:clean(inquiry.discord_contact||"Not provided",80),inline:true}
+          ],
+          footer:{text:"BRICK & IVY · Private staff inquiry · Notification retry · No pings"},
+          timestamp:now
+        }]
+      });
+      const outcome=result.sent?"sent":"failed";
+      const {error:statusError}=await admin.from("brickivy_property_inquiries")
+        .update({discord_notification:outcome}).eq("id",id)
+        .eq("discord_notification","pending").eq("discord_retry_count",inquiry.discord_retry_count+1);
+      if(statusError)console.warn("Brick & Ivy retry delivery state could not be recorded");
+      const {error:auditError}=await admin.from("brickivy_inquiry_activity").insert({
+        inquiry_id:id,actor:user.id,actor_discord_id:providerId,
+        event_type:"notification_retried",details:{result:outcome}
+      });
+      if(auditError)console.warn("Brick & Ivy retry audit could not be recorded");
+      return json({success:result.sent,notification:outcome,
+        ...(result.sent?{message:"Notification resent without pinging anyone."}:{error:"Discord delivery failed: "+result.reason})},result.sent?200:502,cors);
+    }
     if (action === "diagnoseInquiryDiscord") {
       const diagnostic=await diagnoseInquiryBot();
       return json({success:true,...diagnostic},200,cors);
