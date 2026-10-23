@@ -94,20 +94,32 @@ function updatePreview(){
  setPreviewText('homePreviewDescription',d.heroDescription);
  setPreviewText('homePreviewPrimary',d.heroPrimaryText);
  setPreviewText('homePreviewSecondary',d.heroSecondaryText);
+ setPreviewText('homePreviewSearch',d.searchTitle);
+ setPreviewText('homePreviewSearchSub',d.searchSubtitle);
  setPreviewText('homePreviewCollection',d.collectionLead+' '+d.collectionHighlight);
+ setPreviewText('homePreviewCollectionDesc',d.collectionDescription);
+ setPreviewText('homePreviewNeighborhoods',d.neighborhoodsLead+' '+d.neighborhoodsHighlight);
+ setPreviewText('homePreviewNeighborhoodsDesc',d.neighborhoodsDescription);
  setPreviewText('homePreviewAbout',d.aboutLead+' '+d.aboutHighlight);
+ setPreviewText('homePreviewAboutDesc',d.aboutDescription);
  setPreviewText('homePreviewCta',d.ctaLead+' '+d.ctaHighlight);
+ setPreviewText('homePreviewCtaDesc',d.ctaDescription);
+ setPreviewText('homePreviewCtaButton',d.ctaButton);
  setPreviewText('homePreviewAnnouncement',d.announcementText);
- const img=$('homePreviewImage');
- if(img){
-  try{
-   const url=new URL(d.heroImage);
-   if(url.protocol==='https:'&&!url.username&&!url.password){img.src=url.href;img.hidden=false;}
-   else img.hidden=true;
-  }catch{img.hidden=true}
+ for(const [id,key] of [
+   ['homePreviewImage','heroImage'],['homePreviewLsImage','lsImage'],
+   ['homePreviewSandyImage','sandyImage'],['homePreviewPaletoImage','paletoImage'],
+   ['homePreviewAboutImage','aboutImage']]){
+   const el=$(id);if(!el)continue;
+   try{
+     const url=new URL(d[key]);
+     if(url.protocol==='https:'&&!url.username&&!url.password){el.src=url.href;el.hidden=false;}
+     else el.hidden=true;
+   }catch{el.hidden=true}
  }
  if($('homePreviewAnnouncementWrap'))$('homePreviewAnnouncementWrap').hidden=!d.announcementEnabled||!d.announcementText;
  if($('homePreviewCollectionWrap'))$('homePreviewCollectionWrap').hidden=!d.showFeatured;
+ if($('homePreviewNeighborhoodsWrap'))$('homePreviewNeighborhoodsWrap').hidden=!d.showNeighborhoods;
  if($('homePreviewAboutWrap'))$('homePreviewAboutWrap').hidden=!d.showAbout;
  if($('homePreviewCtaWrap'))$('homePreviewCtaWrap').hidden=!d.showCta;
  setPreviewText('homeEditorUnsaved',dirty?'Unsaved draft changes':'Draft matches saved version');
