@@ -103,6 +103,42 @@ async function sendInquiryAsBotDiagnosticChannel(token:string,selected:string,we
  return {status:"channel_accessible",detail:"Bot credentials and channel visibility verified. Next test Send Messages and Embed Links."};
 }
 
+/** Use the same sanitized, cached public feed as the website so overrides and
+ * availability badges match what visitors see. Never expose private renter data.
+ * Failure of this enrichment must not prevent a saved inquiry or Discord alert.
+ */
+async function getInquiryListingDetails(supabaseUrl:string,propertyId:string):Promise<{weeklyRent:string;availability:string}>{
+ const fallback={weeklyRent:"Check property listing",availability:"Not verified — check listing"};
+ try{
+  const res=await fetch(supabaseUrl.replace(/\\/$/,"")+"/functions/v1/brickivy-properties",{
+   headers:{Accept:"application/json"},signal:AbortSignal.timeout(9000)
+  });
+  if(!res.ok)return fallback;
+  const rows=await res.json();
+  if(!Array.isArray(rows))return fallback;
+  const record=rows.find((p:unknown)=>p&&typeof p==="object"&&!Array.isArray(p)
+   &&(p as Record<string,unknown>).published===true
+   &&String((p as Record<string,unknown>).id)===propertyId) as Record<string,unknown>|undefined;
+  if(!record)return fallback;
+  const raw=record.price;
+  const price=raw===null||raw===undefined||raw===""?NaN:Number(raw);
+  const weeklyRent=Number.isFinite(price)&&price>=0&&price<=1_000_000_000_000
+   ?new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(price)+" / week"
+   :"Value on request";
+  // Match the public site's normalStatus(). Never guess that an unreadable
+  // OPFW renter field means a property is available.
+  const labels:Record<string,string>={
+   available:"Available",reserved:"Reserved",
+   unavailable:"Unavailable (rented)",
+   listed:"In portfolio — occupancy not verified"
+  };
+  const availability=labels[String(record.status||"").toLowerCase()]||"Not verified — check listing";
+  return {weeklyRent,availability};
+ }catch{
+  return fallback;
+ }
+}
+
 Deno.serve(async request=>{
  const requestingOrigin=request.headers.get("origin")||"";
  const reply=(data:unknown,status=200)=>send(data,status,requestingOrigin);
@@ -136,6 +172,7 @@ Deno.serve(async request=>{
  const roles=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968")
   .split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
  const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
+ const {weeklyRent,availability}=await getInquiryListingDetails(url,id);
  const listingUrl="https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
  const inquiryPayload={
   // Role mention must be in content; Discord does not ping roles from embeds.
@@ -151,6 +188,8 @@ Deno.serve(async request=>{
     {name:"Property",value:safe(String(property.property_name||id)).slice(0,240),inline:true},
     {name:"Property ID",value:safe(id),inline:true},
     {name:"Address",value:safe(String(property.property_address||"Not provided")).slice(0,240)},
+    {name:"Weekly Rent",value:weeklyRent,inline:true},
+    {name:"Availability",value:availability,inline:true},
     {name:"Character",value:safe(name),inline:true},
     {name:"In-game phone",value:safe(phone),inline:true},
     {name:"Discord contact",value:safe(String(data.discordContact||"Not provided")).slice(0,80),inline:true}
