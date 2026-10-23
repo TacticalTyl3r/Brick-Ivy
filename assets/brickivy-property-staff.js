@@ -301,9 +301,19 @@ function renderFinanceReport(){
  const amount=value=>value===null||value===undefined?'Unavailable':usd(value);
  target.innerHTML=rows.length?rows.map(p=>{
   const net=p.netWeeklyIncome;
+  const breakdown=p.rented===true?'This property contributes weekly rent because OPFW confirms a renter.':
+    p.rented===false?'This property contributes no rent because it is vacant.':
+    'Current OPFW occupancy could not be verified. Rental revenue and net are unavailable.';
+  const calculation='<details class="finance-property-details"><summary>View calculation</summary>'+
+   '<div>Property ID: '+safe(p.id)+' · '+safe(p.area||'Area not specified')+'</div>'+
+   '<div>'+safe(breakdown)+'</div>'+
+   '<div>Weekly rent collected (projected): '+safe(amount(p.weeklyRevenue))+'</div>'+
+   '<div>Weekly maintenance charged: '+safe(amount(p.weeklyMaintenance))+'</div>'+
+   '<div>Net weekly contribution: '+safe(net===null?'Unavailable':incomeDisplay(net))+'</div>'+
+   '</details>';
   return '<tr><th scope="row"><strong>'+safe(p.name||'Property')+'</strong>'+
    '<small>Block '+safe(p.blockId||'—')+' · '+safe(p.address||'Unknown address')+'</small>'+
-   (!p.published?'<small>Unpublished</small>':'')+'</th>'+
+   (!p.published?'<small>Unpublished</small>':'')+calculation+'</th>'+
    '<td>'+safe(p.rented===true?'Rented':p.rented===false?'Vacant':'Unknown')+'</td>'+
    '<td class="finance-number">'+safe(amount(p.weeklyRevenue))+'</td>'+
    '<td class="finance-number">'+safe(amount(p.weeklyMaintenance))+'</td>'+
