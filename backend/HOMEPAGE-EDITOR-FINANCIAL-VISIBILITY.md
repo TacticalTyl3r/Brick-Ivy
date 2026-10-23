@@ -25,7 +25,7 @@ Editable content includes:
 - About section header, text, image and visibility
 - Bottom contact CTA heading, description, button label and visibility
 
-Images use **HTTPS URLs** (copy the address of an image you host). Image uploads from the editor itself are not included in this initial implementation.
+Images may be uploaded directly or selected from the reusable media library; manually supplied HTTPS URLs also remain supported.
 
 ### Draft workflow
 
@@ -39,6 +39,23 @@ Images use **HTTPS URLs** (copy the address of an image you host). Image uploads
 Existing live homepage content is the default until the Owner chooses to publish; the migration creates one record with empty private/published overrides and leaves the site's existing HTML fallback intact.
 
 Changes show on the public site on the next page load. The public JS fetches `brickivy-homepage` with no browser cache and updates only text nodes, safe HTTPS image URLs and pre-existing section visibility. It does not render arbitrary HTML from stored content.
+
+### Advanced homepage customization and media library
+
+The Owner Studio now also includes:
+
+- **Upload image** beside each hero/neighborhood/About image field, or upload to the shared **Image Library**. Only JPEG/PNG/WebP files up to **5 MB** are allowed, with file signatures checked by the Edge Function.
+- **Choose from library** to reuse a previously uploaded photo without creating duplicate uploads. Choose a target image field first, then **Use image**. Existing secure HTTPS image URL editing is retained.
+- **Delete** an unused image from the media library. Images referenced by either the saved draft or live published homepage cannot be deleted until replaced in both. The current unsaved editor also blocks deletion when an image is selected.
+- **Section ordering**, using accessible Up/Down buttons for Featured Properties, Neighborhoods, About and Contact. Quick Search stays below the hero to keep core search easy to find; hidden sections retain their position when enabled again.
+- **Color settings:** editable primary and accent colors with server-side six-digit hex validation.
+- **Design themes:** Original, Deep Forest, Coastal, Modern Slate and Warm Ivory.
+- **Layouts:** split/stacked/full-image hero; 3-card, 2-column or 6-card featured collections; normal/compact neighborhood cards; and left/right/text-first About layouts.
+- These settings participate in the same **Save Draft → Publish Homepage** workflow with optimistic version checks, previews and restoration.
+
+Images are stored in the separate publicly readable `brickivy-homepage-media` storage bucket, created with a 5 MB file size limit and JPEG/PNG/WebP allowlist. Public-read does **not** permit public uploads. A new private `brickivy_homepage_media` RLS-protected registry tracks every file. All listing/upload/deletion requests run through `brickivy-homepage-media`, which verifies a Supabase JWT, the original Discord identity, and the live Owner role. The Edge Function holds the service-role key; the browser does not. Previously uploaded URLs may remain externally cached for a period even after deletion.
+
+Storage migrations: `backend/migrations/20261022_homepage_media_library.sql` and `backend/migrations/20261022_homepage_media_key_constraint_fix.sql`.
 
 ### Security / consistency
 
