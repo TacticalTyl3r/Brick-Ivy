@@ -301,10 +301,22 @@ Deno.serve(async request => {
       const ids=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||REALTOR_ROLE_ID)
         .split(",").map(x=>x.trim()).filter(x=>/^\d{17,20}$/.test(x)).slice(0,5);
       const payload={
-        content:"**[TEST] Brick & Ivy App · Property Inquiry Notifications**\n"+
-          ids.map(x=>"<@&"+x+">").join(" ")+"\n"+
-          "This notification was sent by the Brick & Ivy Discord bot. No customer inquiry was created.",
-        allowed_mentions:{parse:[],roles:ids}
+        // Only the Realtor role ping stays outside the embed, so it actually notifies.
+        content:ids.map(x=>"<@&"+x+">").join(" ")||undefined,
+        allowed_mentions:{parse:[],roles:ids},
+        embeds:[{
+          author:{name:"BRICK & IVY  ·  REAL ESTATE"},
+          title:"🏡 Notification Test",
+          description:"**The Brick & Ivy App is ready to deliver property inquiries.**\n\nThis is a test notification sent by the Discord bot. No customer inquiry has been created.",
+          color:0x285640,
+          fields:[
+            {name:"Notification",value:"Property inquiries",inline:true},
+            {name:"Delivery",value:"Brick & Ivy Discord App",inline:true},
+            {name:"Status",value:"✅ Test message",inline:true}
+          ],
+          footer:{text:"BRICK & IVY  •  Staff Notifications  •  Test Only"},
+          timestamp:new Date().toISOString()
+        }]
       };
       const result=await sendInquiryAsBot(payload);
       if(!result.sent)return json({error:result.reason},result.configured?502:503,cors);
