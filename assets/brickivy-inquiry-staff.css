@@ -1,0 +1,28 @@
+/* Brick & Ivy private inquiry dashboard */
+.bi-inbox-discord{font-size:13px;color:var(--muted,#687b70);margin:10px 0 20px}
+.bi-inbox-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:24px 0}
+.bi-inbox-summary>div{border:1px solid var(--line,#cfd7cc);background:var(--cream,#fcfaf5);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bi-inbox-summary strong{font:600 32px Georgia,serif;color:var(--forest,#234938)}
+.bi-inbox-summary span{font-size:12px;font-weight:700;color:var(--muted,#687b70)}
+.bi-inbox-toolbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:20px 0 25px}
+.bi-inbox-toolbar label{flex:1;min-width:185px}
+.bi-inbox-toolbar label,.bi-inbox-actions label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.bi-inbox-toolbar input,.bi-inbox-toolbar select,.bi-inbox-actions select,.bi-inbox-actions textarea{width:100%;padding:12px 13px;border:1px solid var(--line,#cbd4cb);color:var(--ink,#263d32);background:var(--cream,#fdfcf7);font:inherit}
+.bi-inbox-list{display:grid;gap:22px;padding-bottom:55px}
+.bi-inbox-card{padding:clamp(20px,3vw,32px);border:1px solid var(--line,#d4dbd3);background:var(--cream,#fdfcf7)}
+.bi-inbox-top{display:flex;justify-content:space-between;gap:18px;align-items:start}
+.bi-inbox-top h2{font-size:26px;margin:12px 0 6px}
+.bi-inbox-top a{font-size:12px;font-weight:700;text-decoration:underline}
+.bi-inbox-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;border:1px solid #a3b6aa;padding:8px 11px}
+.bi-inbox-tag[data-status="new"]{border-color:#d6a455}
+.bi-inbox-tag[data-status="closed"]{border-color:#8ca7a0}
+.bi-inbox-contacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0}
+.bi-inbox-contacts p{margin:0;padding:11px;background:rgba(123,146,128,.07);overflow-wrap:anywhere}
+.bi-inbox-contacts strong,.bi-inbox-message strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.bi-inbox-message p{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.bi-inbox-actions{display:grid;grid-template-columns:1fr 1fr;gap:15px;padding-top:24px;margin-top:20px;border-top:1px solid var(--line,#cbd4cb)}
+.bi-inbox-note{grid-column:1/-1}
+.bi-inbox-actions button{justify-self:start}
+.bi-inbox-actions small{align-self:center;color:var(--muted,#687b70)}
+.bi-inbox-empty{padding:30px;border:1px solid var(--line,#cbd4cb);text-align:center}
+@media(max-width:680px){.bi-inbox-summary{grid-template-columns:1fr}.bi-inbox-contacts{grid-template-columns:1fr}.bi-inbox-actions{grid-template-columns:1fr}.bi-inbox-top{flex-direction:column}.bi-inbox-note{grid-column:auto}}
