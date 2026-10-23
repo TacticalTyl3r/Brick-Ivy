@@ -1,0 +1,255 @@
+/* Brick & Ivy / global dark appearance
+   Loaded after styles.css on every public and private page. Scoped to the
+   explicit user preference; default light appearance is unchanged.
+*/
+.theme-toggle{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ border:1px solid var(--line);min-height:41px;min-width:86px;
+ padding:7px 12px;background:var(--paper);color:var(--forest);
+ font-size:11px;font-weight:800;letter-spacing:.04em;line-height:1.2;
+ cursor:pointer;flex-shrink:0;transition:background .2s,border-color .2s,color .2s;
+}
+.theme-toggle:hover{background:var(--sand);border-color:var(--sage)}
+.theme-toggle:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.theme-toggle-symbol{font-size:21px;line-height:1}
+@media(max-width:800px){.theme-toggle{min-width:44px;width:44px;padding:6px}.theme-toggle-label{display:none}.header-actions{margin-left:auto;gap:9px}}
+@media(max-width:380px){.header-inner{gap:8px}.theme-toggle{width:40px;min-width:40px}}
+:root[data-ui-theme="dark"]{
+ --ink:#e4eee8;--forest:#a4d1b3;--forest-dark:#121f1a;
+ --sage:#93b49d;--gold:#d5b889;--cream:#0f1916;
+ --sand:#24342c;--paper:#17241e;--muted:#aebfb3;
+ --line:#34473d;--shadow:0 20px 60px rgba(0,0,0,.38);
+ color-scheme:dark;
+}
+html[data-ui-theme="dark"] body{background:#0f1916;color:#e4eee8}
+html[data-ui-theme="dark"] ::selection{background:#576a50;color:#fff}
+html[data-ui-theme="dark"] .site-header{background:#15241e;border-color:#32463c}
+html[data-ui-theme="dark"] .logo-type small,
+html[data-ui-theme="dark"] .primary-nav>a{color:#b8cdc0}
+html[data-ui-theme="dark"] .primary-nav>a:hover,
+html[data-ui-theme="dark"] .primary-nav>a[aria-current=page]{color:#efcea0}
+html[data-ui-theme="dark"] .site-header .link-button,
+html[data-ui-theme="dark"] .menu-toggle,
+html[data-ui-theme="dark"] .theme-toggle{
+ background:#1b2e25;border-color:#425f4d;color:#f0f5ef
+}
+html[data-ui-theme="dark"] .theme-toggle:hover{background:#2c4938;border-color:#7d9e84}
+html[data-ui-theme="dark"] .menu-toggle span{background:#d6eadd;box-shadow:0 6px 0 #d6eadd,0 -6px 0 #d6eadd}
+html[data-ui-theme="dark"] .site-footer{background:#0b1411;border-color:#324438}
+html[data-ui-theme="dark"] .site-footer .footer-text,
+html[data-ui-theme="dark"] .site-footer .footer-links{color:#b0c3b5}
+html[data-ui-theme="dark"] .footer-bottom{border-color:#37483b}
+html[data-ui-theme="dark"] .page-header,
+html[data-ui-theme="dark"] .team-hero{background:linear-gradient(120deg,#182f24,#10231c 62%,#244234)}
+html[data-ui-theme="dark"] .page-header p,
+html[data-ui-theme="dark"] .team-hero p{color:#d0e0d6}
+html[data-ui-theme="dark"] .eyebrow{color:#9cbea8}
+html[data-ui-theme="dark"] .section-heading,
+html[data-ui-theme="dark"] .serif{color:#f0f3eb}
+html[data-ui-theme="dark"] .section-copy,
+html[data-ui-theme="dark"] .back-link,
+html[data-ui-theme="dark"] .detail-copy{color:#afc1b4}
+html[data-ui-theme="dark"] .button.dark{background:#467559;color:#fff;border-color:#659576}
+html[data-ui-theme="dark"] .button.dark:hover{background:#538968}
+html[data-ui-theme="dark"] .button.outline{border-color:#5b7764;color:#ddeddf;background:#213228}
+html[data-ui-theme="dark"] .button.outline:hover{background:#2a4635}
+html[data-ui-theme="dark"] .button.light{background:#d8e4d9;color:#173326}
+html[data-ui-theme="dark"] .link-button{border-color:#5b7764;color:#dcf0e2}
+html[data-ui-theme="dark"] .quick-search,
+html[data-ui-theme="dark"] .filter-panel,
+html[data-ui-theme="dark"] .detail-shell,
+html[data-ui-theme="dark"] .detail-empty,
+html[data-ui-theme="dark"] .admin-note,
+html[data-ui-theme="dark"] .property-card,
+html[data-ui-theme="dark"] .realtor-card,
+html[data-ui-theme="dark"] .manage-panel{background:#17251e;border-color:#364b3e}
+html[data-ui-theme="dark"] .search-title strong,
+html[data-ui-theme="dark"] .filter-panel h2,
+html[data-ui-theme="dark"] .property-title,
+html[data-ui-theme="dark"] .detail-title,
+html[data-ui-theme="dark"] .detail-price,
+html[data-ui-theme="dark"] .realtor-name,
+html[data-ui-theme="dark"] .team-empty h3{color:#ecf5ef}
+html[data-ui-theme="dark"] .search-title small,
+html[data-ui-theme="dark"] .detail-meta,
+html[data-ui-theme="dark"] .property-address,
+html[data-ui-theme="dark"] .property-card-facts,
+html[data-ui-theme="dark"] .property-bottom,
+html[data-ui-theme="dark"] .property-topline,
+html[data-ui-theme="dark"] .realtor-bio,
+html[data-ui-theme="dark"] .realtor-subtitle,
+html[data-ui-theme="dark"] .realtor-contact-label{color:#abc3b3}
+html[data-ui-theme="dark"] .property-price,
+html[data-ui-theme="dark"] .realtor-contact-value,
+html[data-ui-theme="dark"] .text-link{color:#b1d8bb}
+html[data-ui-theme="dark"] .property-bottom,
+html[data-ui-theme="dark"] .realtor-details{border-color:#405247}
+html[data-ui-theme="dark"] .property-image,
+html[data-ui-theme="dark"] .detail-gallery>div,
+html[data-ui-theme="dark"] .property-photo-hero,
+html[data-ui-theme="dark"] .realtor-photo,
+html[data-ui-theme="dark"] .property-logo-placeholder{background:#243b2f}
+html[data-ui-theme="dark"] .property-logo-placeholder,
+html[data-ui-theme="dark"] .property-logo-placeholder small{color:#d2e1d4}
+html[data-ui-theme="dark"] .property-card-facts span{background:#263b2f;border-color:#49604e}
+html[data-ui-theme="dark"] .status-tag{background:#263e2e;color:#d5f0d5}
+html[data-ui-theme="dark"] .team-count,
+html[data-ui-theme="dark"] .realtor-avatar,
+html[data-ui-theme="dark"] .team-empty,
+html[data-ui-theme="dark"] .team-empty-mark,
+html[data-ui-theme="dark"] .manage-person-avatar{background:#24372b;border-color:#436147;color:#d0edda}
+html[data-ui-theme="dark"] .team-contact-note,
+html[data-ui-theme="dark"] .neighborhoods,
+html[data-ui-theme="dark"] .featured,
+html[data-ui-theme="dark"] #our-story{background:#14221b}
+html[data-ui-theme="dark"] .team-contact-note p,
+html[data-ui-theme="dark"] .team-empty p,
+html[data-ui-theme="dark"] .team-status-help,
+html[data-ui-theme="dark"] .team-contact-icon{color:#abc1ae}
+html[data-ui-theme="dark"] .realtor-copy,
+html[data-ui-theme="dark"] .team-contact-icon{border-color:#5b7860;color:#c6e5ce;background:#1f3328}
+html[data-ui-theme="dark"] .realtor-availability[data-status="available"],
+html[data-ui-theme="dark"] .manage-public-label.is-published,
+html[data-ui-theme="dark"] .property-private-rental-tag{background:#254832;color:#b9e7c1;border-color:#52735b}
+html[data-ui-theme="dark"] .realtor-availability[data-status="unavailable"]{background:#4b2729;color:#ffd1cd;border-color:#7b3b3a}
+html[data-ui-theme="dark"] .realtor-availability[data-status="unknown"]{background:#4c3e24;color:#ffe6a5;border-color:#816436}
+html[data-ui-theme="dark"] .property-featured-kicker{background:#493d29;border-color:#957f52;color:#ffe3ad}
+/* Forms, focus, editable fields */
+html[data-ui-theme="dark"] .field label,
+html[data-ui-theme="dark"] .field>span,
+html[data-ui-theme="dark"] .property-listing-controls label.field>span,
+html[data-ui-theme="dark"] .property-storage-type label.field>span{color:#bed5c3}
+html[data-ui-theme="dark"] :is(
+ .field input,.field select,.field textarea,
+ .manage-form .field input,.manage-form .field textarea,
+ .property-staff-toolbar input,.property-staff-toolbar select,
+ .property-private-editor input,.property-overview-editor textarea,
+ .property-storage-type input,.home-editor-field input,
+ .home-editor-field textarea,.home-editor-field select
+){background:#102019;color:#f0f7f1;border-color:#506a56;caret-color:#dfeddc}
+html[data-ui-theme="dark"] input::placeholder,
+html[data-ui-theme="dark"] textarea::placeholder{color:#92a89a}
+html[data-ui-theme="dark"] :is(input,textarea,select):focus-visible{
+ outline:2px solid #99c6a6;outline-offset:2px
+}
+html[data-ui-theme="dark"] input:disabled,
+html[data-ui-theme="dark"] select:disabled,
+html[data-ui-theme="dark"] textarea:disabled{color:#a0afa4;opacity:.72}
+html[data-ui-theme="dark"] input[type="checkbox"],
+html[data-ui-theme="dark"] input[type="radio"]{accent-color:#83b58a}
+/* Staff portals, private property management, data-rich editing cards */
+html[data-ui-theme="dark"] :is(
+ .admin-tool-card,.manage-export,.manage-position-section,.manage-switch,
+ .property-staff-toolbar,.property-private-card,.property-storage-type,
+ .property-private-cost-grid>div,.property-overview-editor,
+ .property-overview-readonly,.property-publishing-panel,
+ .perm-realtor-card,.perm-switch,.perm-switch:has(input:checked),
+ .home-editor-form,.home-editor-order-panel,.home-editor-library
+){background:#1a2b22;border-color:#405a48;color:#e9f3ea}
+html[data-ui-theme="dark"] .property-publishing-panel.is-hidden{background:#202a23;border-color:#46564a}
+html[data-ui-theme="dark"] :is(
+ .manage-count,.manage-public-label,.manage-position-name span,
+ .realtor-position-count,.manage-order-button,.property-card-facts span,
+ .home-order-row,.home-media-card,.home-preview-section,
+ .perm-role-label,.home-toggle
+){background:#253a2c;border-color:#4d6652;color:#d5e9d8}
+html[data-ui-theme="dark"] :is(.manage-person-details strong,.manage-position-name h3,
+ .realtor-position-heading h3,.property-private-card-head h3,
+ .property-private-cost-grid strong,.property-private-meta strong,
+ .property-private-rental-details h4,.property-management-label,
+ .property-overview-section h2,.property-overview-editor summary,
+ .property-overview-readonly p,.property-storage-type h3,
+ .property-publishing-info strong,.perm-realtor-header .serif,
+ .perm-topbar .serif,.perm-switch strong,.admin-tool-card strong,
+ .home-editor-top .serif,.home-editor-group summary strong,
+ .home-editor-field strong,.home-editor-order-intro h3,
+ .home-editor-library-head h3,.home-order-row strong,
+ .home-preview-section h3
+){color:#e3f1e5}
+html[data-ui-theme="dark"] :is(.manage-person-details span,.manage-form .field small,
+ .manage-help p,.manage-help ol,.manage-reorder-intro,.manage-count,
+ .property-private-card-head p,.property-private-cost-grid span,
+ .property-private-cost-grid small,.property-private-meta span,
+ .property-private-subtle,.property-private-editor small,
+ .property-overview-readonly span,.property-storage-type small,
+ .property-publishing-info small,.perm-realtor-header p,
+ .perm-switch small,.admin-tool-card span,.home-editor-top p,
+ .home-editor-group summary small,.home-editor-order-intro p,
+ .home-editor-library-head p,.home-media-card p
+){color:#a9bfac}
+html[data-ui-theme="dark"] .property-private-rental-tag.is-rented{background:#1e3848;color:#adddff}
+html[data-ui-theme="dark"] .property-private-rental-tag.is-unknown,
+html[data-ui-theme="dark"] .property-private-warning,
+html[data-ui-theme="dark"] .perm-warning,
+html[data-ui-theme="dark"] .manage-notice{background:#443720;border-color:#71603c;color:#ffe7b4}
+html[data-ui-theme="dark"] .manage-notice p,
+html[data-ui-theme="dark"] .perm-warning a{color:#f0ddb4}
+html[data-ui-theme="dark"] .manage-info-symbol{color:#eed298}
+html[data-ui-theme="dark"] .manage-message{color:#9ce3af}
+html[data-ui-theme="dark"] .manage-message[data-error="true"]{color:#ffaaaa}
+html[data-ui-theme="dark"] .property-private-meta strong.property-private-income.is-positive,
+html[data-ui-theme="dark"] .finance-net.is-positive{color:#92e6a5}
+html[data-ui-theme="dark"] .property-private-meta strong.property-private-income.is-negative,
+html[data-ui-theme="dark"] .finance-net.is-negative{color:#ffadab}
+html[data-ui-theme="dark"] .property-private-editor,
+html[data-ui-theme="dark"] .property-private-rental-details,
+html[data-ui-theme="dark"] .manage-position-header,
+html[data-ui-theme="dark"] .realtor-position-heading{border-color:#425949}
+html[data-ui-theme="dark"] .manage-order-button,
+html[data-ui-theme="dark"] .home-order-row button{background:#2a4534;border-color:#54735c;color:#d6edda}
+html[data-ui-theme="dark"] .property-photo-thumb{background:#1b2d24;border-color:#47674c}
+html[data-ui-theme="dark"] .property-photo-thumb.is-active{border-color:#abd6a9}
+/* Financial dashboard: preserve revenue vs maintenance emphasis */
+html[data-ui-theme="dark"] .owner-finance-section{background:linear-gradient(145deg,#183125,#274b35);border-color:#53755c}
+html[data-ui-theme="dark"] .owner-finance-bottom>div{background:#1c3225;color:#e1efe3}
+html[data-ui-theme="dark"] .owner-finance-bottom>div>span small{color:#b5ceb9}
+html[data-ui-theme="dark"] .owner-finance-bottom .owner-finance-total{background:#254531;border-color:#5c9b6d}
+/* Homepage editor panels, image library and previews */
+html[data-ui-theme="dark"] .home-editor-group{border-color:#3c5544}
+html[data-ui-theme="dark"] .home-editor-group[open] summary{background:#23382a}
+html[data-ui-theme="dark"] .home-editor-group summary{color:#d9eadc}
+html[data-ui-theme="dark"] .home-editor-field strong{color:#d4e7d9}
+html[data-ui-theme="dark"] .home-editor-savebar,
+html[data-ui-theme="dark"] .home-editor-secondary-actions{background:#203529;border-color:#415a48}
+html[data-ui-theme="dark"] .home-editor-savebar>span,
+html[data-ui-theme="dark"] .home-editor-preview-title small,
+html[data-ui-theme="dark"] .home-editor-preview-hint,
+html[data-ui-theme="dark"] .home-editor-secondary-actions span{color:#aec4b2}
+html[data-ui-theme="dark"] .home-editor-preview-panel{background:#17281f;border-color:#425e4b}
+html[data-ui-theme="dark"] .home-preview-section{background:#22362a;border-color:#465f4c}
+html[data-ui-theme="dark"] .home-preview-section small,
+html[data-ui-theme="dark"] .home-preview-section p{color:#bbd0c1}
+html[data-ui-theme="dark"] .home-preview-section h3{color:#e8f4e9}
+html[data-ui-theme="dark"] .home-preview-buttons span:last-child{color:#e8f4e9;border-color:#bdd1bf}
+html[data-ui-theme="dark"] .home-preview-announcement{background:#324c35;color:#ddf4df}
+html[data-ui-theme="dark"] .home-media-status{color:#b2d9b8}
+html[data-ui-theme="dark"] .home-media-empty{color:#bad0bd}
+html[data-ui-theme="dark"] .home-media-buttons button{background:#294833;color:#dcf0dc;border-color:#64876b}
+html[data-ui-theme="dark"] .home-media-buttons button.home-media-remove{background:#492c30;color:#ffc6c2;border-color:#946063}
+/* Site-wide fallback for cards and structured blocks added by the JS apps */
+html[data-ui-theme="dark"] :is(
+ .property-gallery-shell,.property-overview-readonly,.property-private-form,
+ .admin-management-card,.manage-directory-card,.manage-person,
+ .manage-panel-header,.property-storage-list
+){border-color:#3b5545}
+html[data-ui-theme="dark"] .manage-position-header,.manage-panel-header{color:#d5e8d8}
+/* Owner-customized homepage maintains its chosen palette without reverting to white */
+html[data-ui-theme="dark"] body[data-page="home"]{--home-surface:#14231b;--home-tint:#1b2d23}
+html[data-ui-theme="dark"] body[data-page="home"] .hero,
+html[data-ui-theme="dark"] body[data-page="home"] .cta-band{
+ background:color-mix(in srgb,var(--home-primary,#244436) 45%,#102019)
+}
+html[data-ui-theme="dark"] body[data-page="home"] .featured,
+html[data-ui-theme="dark"] body[data-page="home"] #our-story{background:#14231b}
+html[data-ui-theme="dark"] body[data-page="home"] .neighborhoods{background:#1b2d23}
+html[data-ui-theme="dark"] body[data-page="home"] .featured .section-heading,
+html[data-ui-theme="dark"] body[data-page="home"] .neighborhoods .section-heading,
+html[data-ui-theme="dark"] body[data-page="home"] #our-story .section-heading{color:#eef4e9}
+html[data-ui-theme="dark"] body[data-page="home"] .featured .section-heading em,
+html[data-ui-theme="dark"] body[data-page="home"] .neighborhoods .section-heading em,
+html[data-ui-theme="dark"] body[data-page="home"] #our-story .section-heading em{color:#bbd8bf}
+html[data-ui-theme="dark"] body[data-page="home"] .featured .text-link{color:#bedcbf}
+@media(max-width:800px){
+ html[data-ui-theme="dark"] .primary-nav{background:#172a20;border-color:#47604d;box-shadow:0 17px 30px rgba(0,0,0,.38)}
+}
+@media(prefers-reduced-motion:reduce){.theme-toggle{transition:none}}
