@@ -732,3 +732,54 @@ body[data-page="home"][data-home-about-layout="text-first"] .about-visual .logo-
 .home-editor-preview-panel[data-home-neighborhood-layout="compact"] .home-preview-location-images img{height:56px}
 .home-editor-preview-panel[data-home-about-layout="image-right"] .home-preview-about-image{width:70%;margin-left:auto}
 .home-editor-preview-panel[data-home-about-layout="text-first"] .home-preview-about-image{height:78px}
+
+
+/* Owner & authorized Realtor: property-by-property financial analysis */
+.owner-finance-report{margin-top:22px;background:#f9fbf5;color:#244232;padding:20px 21px;border:1px solid #bfd4bc}
+.owner-finance-report-head{display:flex;align-items:start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.owner-finance-report-head .eyebrow{color:#587b5e}
+.owner-finance-report-head h3{font-size:27px;color:#294d36;margin:7px 0}
+.owner-finance-report-head p{max-width:620px;font-size:11px;color:#697b69;line-height:1.65;margin:0 0 17px}
+.owner-finance-report-head .button{font-size:10px;min-height:41px}
+.owner-finance-filters{display:grid;grid-template-columns:1.3fr .75fr 1fr;gap:12px;margin:11px 0 17px}
+.owner-finance-filters label{display:grid;gap:7px;font-size:10px;color:#49654f;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.owner-finance-filters input,.owner-finance-filters select{width:100%;min-width:0;min-height:42px;padding:10px 12px;color:#274a31;background:#fff;border:1px solid #ccddc9;font-size:12px;font-weight:400;text-transform:none;letter-spacing:normal}
+.owner-finance-table-scroll{width:100%;overflow-x:auto;border:1px solid #d0e0c9;background:#fff}
+.owner-finance-table{width:100%;border-collapse:collapse;min-width:650px;line-height:1.55}
+.owner-finance-table thead{background:#e8f1e5}
+.owner-finance-table th,.owner-finance-table td{padding:12px 13px;text-align:left;border-bottom:1px solid #e4ece1;font-size:11px;color:#37533e}
+.owner-finance-table thead th{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5a7760}
+.owner-finance-table tbody th strong{font-size:12px;display:block;color:#294832}
+.owner-finance-table tbody th small{display:block;color:#7a887a;font-weight:400;line-height:1.5}
+.owner-finance-table .finance-number{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
+.owner-finance-table .finance-profit{color:#226c42}
+.owner-finance-table .finance-loss{color:#ab3c34}
+.owner-finance-table tbody tr:hover{background:#f8fbf5}
+.owner-finance-report-note{font-size:11px;color:#628067;margin:14px 0 0}
+/* Owner-only private audit timeline */
+.audit-topbar{display:flex;justify-content:space-between;gap:15px;align-items:center;margin:29px 0 19px}
+.audit-topbar .serif{font-size:30px;color:#2a4b36;margin:5px 0 8px}
+.audit-topbar p{margin:0;color:#69806b;font-size:12px;line-height:1.7}
+.audit-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(190px,1fr);gap:15px}
+.audit-filters label{font-size:10px;color:#4e6853;text-transform:uppercase;letter-spacing:.08em;font-weight:800;display:grid;gap:8px}
+.audit-filters input,.audit-filters select{border:1px solid #cbdccc;padding:12px;font-size:12px;background:#fff;color:#294533;min-height:47px;text-transform:none;letter-spacing:normal;font-weight:400;width:100%}
+.audit-overview{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:11px;color:#6f8272;padding:15px 0;border-bottom:1px solid #dce6d8;margin-bottom:15px}
+.audit-overview a{font-weight:800;color:#356447;text-decoration:underline;text-underline-offset:4px}
+.audit-event-list{display:grid;gap:12px;margin:20px 0 75px}
+.audit-event{background:#fffefa;border:1px solid #dbe5d7;padding:22px 25px}
+.audit-event-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:#778578}
+.audit-category{display:inline-block;background:#e4f0e1;border:1px solid #cce0c8;color:#326143;padding:5px 11px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
+.audit-category-pricing{background:#f9eee0;border-color:#ebd8b9;color:#845a27}
+.audit-category-permissions{background:#e7e9f3;border-color:#d0d5ea;color:#545e8b}
+.audit-category-homepage{background:#edf0e5;border-color:#dae1ce;color:#4f6740}
+.audit-event h3{font-size:17px;margin:12px 0 4px;color:#294a34}
+.audit-event-subject{color:#708270;margin:0 0 13px;font-size:12px;overflow-wrap:anywhere}
+.audit-event-details{border-top:1px solid #e4e9e1;padding-top:12px}
+.audit-event-details summary{cursor:pointer;color:#41664a;font-size:11px;font-weight:800;list-style-position:outside}
+.audit-detail-list{padding:6px 0 0 17px;margin:0;display:grid;gap:10px}
+.audit-detail-list li{font-size:11px;color:#607062;line-height:1.5;overflow-wrap:anywhere}
+.audit-detail-list li strong{display:block;color:#2e5139}
+.audit-detail-list li span{color:#718373}
+.audit-restore{margin-top:15px;font-size:10px;min-height:39px}
+.audit-empty{color:#748275;font-size:12px}
+@media(max-width:750px){.owner-finance-filters{grid-template-columns:1fr}.audit-filters{grid-template-columns:1fr}.audit-topbar{flex-wrap:wrap}.owner-finance-report{padding:15px}.audit-event{padding:16px}}
