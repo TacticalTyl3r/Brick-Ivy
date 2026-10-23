@@ -80,12 +80,12 @@ function inputMarkup([key,label,type,max]){
 function buildForm(){
  const target=$('homeEditorGroups');if(!target)return;
  target.innerHTML=groups.map((group,i)=>
-  '<details class="home-editor-group" '+(i===1?'open':'')+'>'+
+  '<details class="home-editor-group" '+(i===0||i===2?'open':'')+'>'+
    '<summary><span><strong>'+safe(group.title)+'</strong><small>'+safe(group.summary)+'</small></span><span aria-hidden="true">＋</span></summary>'+
    '<div class="home-editor-fields">'+group.fields.map(inputMarkup).join('')+'</div></details>'
  ).join('');
  target.addEventListener('input',()=>{dirty=true;updatePreview();updateButtons()});
- target.addEventListener('change',()=>{dirty=true;updatePreview();updateButtons()});
+ target.addEventListener('change',event=>{if(event.target.matches('[data-image-upload]'))return;dirty=true;updatePreview();updateButtons()});
 }
 function fillForm(values){
  sectionOrder=Array.isArray(values?.sectionOrder)&&values.sectionOrder.length===4&&sectionKeys.every(x=>values.sectionOrder.includes(x))?[...values.sectionOrder]:[...sectionKeys];
