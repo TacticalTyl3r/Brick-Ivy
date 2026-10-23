@@ -56,7 +56,8 @@ function inputMarkup([key,label,type,max]){
    '<textarea id="'+id+'" data-home-editor="'+key+'" maxlength="'+max+'" rows="3"></textarea></label>';
  return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong>'+
    '<input id="'+id+'" data-home-editor="'+key+'" type="'+(type==='image'?'url':'text')+
-   '" maxlength="'+max+'" '+(type==='image'?'placeholder="https://…"':'')+' required></label>';
+   '" maxlength="'+max+'" '+(type==='image'?'placeholder="https://…"':'')+
+   (['announcementText','heroCaption'].includes(key)?'':' required')+'></label>';
 }
 function buildForm(){
  const target=$('homeEditorGroups');if(!target)return;
