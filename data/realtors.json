@@ -1,11 +1,11 @@
 [
   {
+    "profileId": "public-realtor-johnny-sausage",
     "published": true,
     "displayOrder": 1,
     "name": "Johnny Sausage",
     "role": "Owner",
     "title": "Owner",
-    "characterId": 8,
     "photo": "",
     "inGamePhone": "145-7459",
     "discordUsername": "TacticalTyl3r",
