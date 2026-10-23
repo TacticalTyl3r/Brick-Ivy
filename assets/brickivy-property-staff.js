@@ -272,6 +272,67 @@ function renderStorage(){
      (allowed('can_manage_storage')?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
  }).join(''):'<p>Unable to load the interior storage presets. Refresh the page and try again.</p>';
 }
+function financeReportRows(){
+ if(!allowed('can_view_financials')||!Array.isArray(finance?.propertyBreakdown))return [];
+ const search=String(byId('financePropertySearch')?.value||'').toLowerCase().trim();
+ const occupancy=String(byId('financeOccupancyFilter')?.value||'');
+ const sort=String(byId('financePropertySort')?.value||'block');
+ const data=finance.propertyBreakdown.filter(p=>{
+  const hay=[p.id,p.blockId,p.name,p.address,p.area,p.type].join(' ').toLowerCase();
+  const state=p.rented===true?'rented':p.rented===false?'vacant':'unknown';
+  return (!search||hay.includes(search))&&(!occupancy||occupancy===state);
+ });
+ const block=(a,b)=>String(a.blockId||a.id).localeCompare(String(b.blockId||b.id),undefined,{numeric:true});
+ const comparator=(field,descending)=>(a,b)=>{
+  const left=a[field],right=b[field];
+  if(left===null)return right===null?block(a,b):1;
+  if(right===null)return -1;
+  return (Number(left)-Number(right))*(descending?-1:1)||block(a,b);
+ };
+ data.sort(sort==='net-asc'?comparator('netWeeklyIncome',false):
+   sort==='net-desc'?comparator('netWeeklyIncome',true):
+   sort==='maintenance-desc'?comparator('weeklyMaintenance',true):
+   sort==='rent-desc'?comparator('weeklyRevenue',true):block);
+ return data;
+}
+function renderFinanceReport(){
+ const target=byId('financePropertyRows');if(!target||!allowed('can_view_financials'))return;
+ const rows=financeReportRows(),all=finance?.propertyBreakdown||[];
+ const amount=value=>value===null||value===undefined?'Unavailable':usd(value);
+ target.innerHTML=rows.length?rows.map(p=>{
+  const net=p.netWeeklyIncome;
+  return '<tr><th scope="row"><strong>'+safe(p.name||'Property')+'</strong>'+
+   '<small>Block '+safe(p.blockId||'—')+' · '+safe(p.address||'Unknown address')+'</small>'+
+   (!p.published?'<small>Unpublished</small>':'')+'</th>'+
+   '<td>'+safe(p.rented===true?'Rented':p.rented===false?'Vacant':'Unknown')+'</td>'+
+   '<td class="finance-number">'+safe(amount(p.weeklyRevenue))+'</td>'+
+   '<td class="finance-number">'+safe(amount(p.weeklyMaintenance))+'</td>'+
+   '<td class="finance-number '+(net===null?'':net<0?'finance-loss':net>0?'finance-profit':'')+'">'+
+    safe(net===null?'Unavailable':incomeDisplay(net))+'</td></tr>';
+ }).join(''):'<tr><td colspan="5">No properties match these filters.</td></tr>';
+ const count=byId('financeReportCount');if(count)count.textContent=rows.length+' of '+all.length+
+  ' properties · projected weekly income, not a payment ledger.';
+ const exportBtn=byId('financeExportCsv');if(exportBtn)exportBtn.disabled=!rows.length;
+}
+function exportFinanceCsv(){
+ if(!allowed('can_view_financials'))return;
+ const fields=['Property ID','Block','Name','Address','Area','Status','Published','Weekly rent revenue','Weekly maintenance','Net weekly income'];
+ const safeCell=value=>{
+  const v=String(value??'');
+  const cleaned=/^[=+@\t\r]/.test(v)||/^-([^0-9.]|$)/.test(v)?"'"+v:v;
+  return '"'+cleaned.replaceAll('"','""')+'"';
+ };
+ const lines=[fields.map(safeCell).join(',')];
+ for(const p of financeReportRows()){
+  lines.push([p.id,p.blockId,p.name,p.address,p.area,p.rented===true?'Rented':p.rented===false?'Vacant':'Unknown',
+   p.published?'Yes':'No',p.weeklyRevenue??'Unavailable',p.weeklyMaintenance??'Unavailable',
+   p.netWeeklyIncome??'Unavailable'].map(safeCell).join(','));
+ }
+ const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='brickivy-weekly-financial-report.csv';
+ document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+}
 function renderFinance(){
  const panel=byId('brickivyOwnerFinancials');
  if(!panel)return;
@@ -289,6 +350,7 @@ function renderFinance(){
  set('financeNet',f&&f.netWeeklyIncome!==null?incomeDisplay(f.netWeeklyIncome):'Unavailable');
  const net=byId('financeNet');
  if(net)net.className='finance-net '+(f&&f.netWeeklyIncome!==null?(f.netWeeklyIncome<0?'is-negative':'is-positive'):'');
+ renderFinanceReport();
  set('financeExplanation',!f?'Owner financial data is unavailable.':
   !f.complete?'Cannot calculate a reliable weekly net: '+(
     !rentalAvailable?'OPFW rental occupancy is unavailable.':
@@ -406,6 +468,10 @@ async function setup(){
    byId('propertyStaffSearch')?.addEventListener('input',render);
    byId('propertyStaffFilter')?.addEventListener('change',render);
    byId('propertyStaffVisibility')?.addEventListener('change',render);
+   byId('financePropertySearch')?.addEventListener('input',renderFinanceReport);
+   byId('financeOccupancyFilter')?.addEventListener('change',renderFinanceReport);
+   byId('financePropertySort')?.addEventListener('change',renderFinanceReport);
+   byId('financeExportCsv')?.addEventListener('click',exportFinanceCsv);
    byId('propertyStaffGrid')?.addEventListener('submit',async event=>{
      const overview=event.target.closest('[data-description-form]');
      if(overview){
