@@ -33,20 +33,15 @@ The Owner-only financial section appears at the top of `manage-properties.html` 
 
 Example: Two occupied properties at $1,200 and $900 rent generate $2,100 projected weekly rent. If the maintenance fees of **all** company properties total $1,000, net weekly income is $1,100. Vacant properties contribute $0 to rent **but still contribute their maintenance**.
 
-The calculations are done server-side in integer cents to avoid floating-point drift and returned only to the verified Owner as `financialSummary` from `brickivy-property-staff`; Realtor responses receive `null` for the financial summary.
+The calculations are done server-side in integer cents and returned as `financialSummary` only to the verified Owner or a Realtor with the explicit `can_view_financials` permission; other Realtor responses receive `null`.
 
 **Data validity:** If OPFW rental occupancy is unavailable or any maintenance amount or any occupied home's rent is missing, the dashboard reports **Unavailable** instead of pretending the unknown value is $0. This is an estimated *weekly run-rate*, not a payment or cash-collection ledger. OPFW `property_income` historical totals and last-payment data are not double counted.
 
-## Per-property weekly financial report (2026-10-22)
+## Company-only financial snapshot
 
-The financial snapshot includes a **Weekly income report** for verified Owners and Realtors with `can_view_financials=true`. Each property reports:
+The website shows weekly revenue from confirmed rented homes, maintenance expenses across **every** company property, and net weekly income as aggregate company figures. The previously offered property-by-property weekly income report (table, calculations, filters and CSV export) has been removed at the Owner's request. This does not remove property-specific price management, rental status, or change history.
 
-- **Weekly rental revenue**: its configured weekly rent when OPFW confirms it is rented; **$0** when confirmed vacant.
-- **Weekly maintenance expense**: original OPFW `property_cost` **for every owned property**, including vacant, reserved and unpublished.
-- **Weekly net**: rental revenue minus maintenance, computed in integer cents on the protected Edge Function.
-- If occupancy or any needed amount is unknown, the relevant property figure is **Unavailable** rather than an invented value. The entire-company summary stays marked incomplete when needed.
-
-The page supports property search, occupancy filtering, sorting by rent/maintenance/net, and a CSV export of the currently filtered rows. The CSV is generated in the browser only after the authenticated API has granted financial viewing permission; formulas in string fields are escaped. This remains a **projected weekly run-rate**, not a real payment ledger or historical cash flow.
+Realtors with `can_view_financials=true` may see the same private company snapshot as the Owner, without gaining any new editing permissions.
 
 ## Owner change history & restoration
 
