@@ -28,6 +28,14 @@ The Owner can also use [Realtor Permissions](https://brickandivyhomes.com/manage
 
 See [Homepage Editor and financial visibility guide](backend/HOMEPAGE-EDITOR-FINANCIAL-VISIBILITY.md).
 
+## Footer visitor counter
+
+Every public and staff page footer shows the same **Site visitors** total. Only the four public sections (Home, Properties, Property Details, and Realtor Directory) register visits. The protected staff pages display the total without increasing it.
+
+A browser creates and stores a random UUID in its own `localStorage`. The public `brickivy-visitors` Edge Function hashes that UUID with SHA-256 and inserts it into the private `brickivy_site_visitors` table with a uniqueness constraint. Refreshing or visiting multiple pages does not increase the count for the same browser. Neither raw UUID, IP addresses, names, page paths, nor user agents are stored in the application visitor table. The counter estimates **unique browsers/devices**, not individual people; private browsing, changed browsers, or cleared storage may count as a new visitor. Known crawler user agents are excluded where detectable; it is not intended as fraud-resistant analytics. The number starts counting with feature launch; historical website traffic is not available.
+
+The Edge Function has public GET for aggregate counts and first-party-origin POST for registration; DB RLS and revoked grants prevent anonymous/authenticated clients from directly accessing the underlying visitor table. The script is `assets/brickivy-visitors.js` and the protected endpoint is `backend/edge-functions/brickivy-visitors/index.ts`.
+
 ## Site-wide light and dark mode
 
 Every Brick & Ivy page—public homepage, listings, property details, Realtor directory, Staff Portal, Realtor Management, Property Management, Realtor Permissions and the Owner Homepage Editor—includes a shared **Light / Dark** appearance toggle in the header (the icon remains visible on mobile).
