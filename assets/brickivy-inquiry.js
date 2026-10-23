@@ -10,7 +10,7 @@
   if(!id)return;
   const section=document.createElement('section');section.className='bi-inquiry';section.id='biInquiry';
   section.innerHTML='<h2 class="serif">Ask about this property</h2><p>Send a private inquiry to the Brick &amp; Ivy team. Your details will be used to contact you in Legendary Roleplay.</p>'+
-  '<form id="biInquiryForm"><div class="bi-inquiry-fields">'+
+  '<form id="biInquiryForm"><input type="hidden" name="website" value="" autocomplete="off"><div class="bi-inquiry-fields">'+
   '<label>Character name <input name="characterName" maxlength="80" minlength="2" autocomplete="name" required></label>'+
   '<label>In-game phone <input name="phone" maxlength="35" minlength="3" required></label>'+
   '<label>Discord contact (optional) <input name="discordContact" maxlength="80"></label></div>'+
