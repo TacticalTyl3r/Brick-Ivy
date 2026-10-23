@@ -908,3 +908,35 @@ html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-photo:has(> img):
   filter:brightness(0) invert(1);
   opacity:.12;
 }
+
+
+/* Homepage Editor: direct owner photo uploads, previews, and optional image links */
+.home-image-editor{padding:16px;background:#f6f9f3;border:1px solid #d8e6d4;display:grid;gap:11px}
+.home-image-editor>strong{margin:0}
+.home-image-file{display:block;width:100%;max-width:100%;padding:11px;background:#fffefa;border:1px dashed #9cb69b;color:#2d4935;font:500 12px 'DM Sans',sans-serif;cursor:pointer}
+.home-image-file::file-selector-button{background:#285640;border:1px solid #285640;color:#fff;padding:9px 12px;font:700 11px 'DM Sans',sans-serif;cursor:pointer;margin-right:12px}
+.home-image-file:hover:not(:disabled){border-color:#52865a}
+.home-image-file:disabled{opacity:.6;cursor:not-allowed}
+.home-image-thumbnail{display:flex;justify-content:center;align-items:center;min-height:115px;background:#e9f0e6;border:1px solid #d7e2d5}
+.home-image-thumbnail img{display:block;width:100%;height:156px;object-fit:contain;object-position:center}
+.home-image-thumbnail img[hidden]{display:none}
+.home-image-thumbnail:has(img[hidden]){min-height:50px}
+.home-image-thumbnail:has(img[hidden])::after{content:'No current image';font-size:11px;color:#637c68}
+.home-image-status{margin:0;font-size:11px;line-height:1.6;color:#53715b;overflow-wrap:anywhere}
+.home-image-status[data-state="error"]{padding:10px;background:#f9e9e5;border-left:3px solid #bb6e62;color:#873e35;font-weight:700}
+.home-image-status[data-state="success"]{padding:10px;background:#e1f3e3;border-left:3px solid #5b9867;color:#2b6c40;font-weight:700}
+.home-image-advanced{border-top:1px solid #d8e4d5;padding-top:10px;font-size:11px;color:#516f56}
+.home-image-advanced summary{cursor:pointer;font-weight:700;padding:6px 0}
+.home-image-advanced label{display:block;margin:10px 0 5px;font-size:11px;font-weight:700}
+.home-image-advanced input{width:100%;min-height:43px;padding:10px;border:1px solid #b3c9b7;background:#fffefa;color:#294735}
+html[data-ui-theme="dark"] .home-image-editor{background:#1f3428;border-color:#507055}
+html[data-ui-theme="dark"] .home-image-file{background:#16291e;border-color:#749b7c;color:#e7f3e8}
+html[data-ui-theme="dark"] .home-image-file::file-selector-button{background:#42704d;color:#fff;border-color:#84ad8c}
+html[data-ui-theme="dark"] .home-image-thumbnail{background:#14291d;border-color:#45674b}
+html[data-ui-theme="dark"] .home-image-thumbnail:has(img[hidden])::after{color:#b9d1bd}
+html[data-ui-theme="dark"] .home-image-status{color:#c2ddc7}
+html[data-ui-theme="dark"] .home-image-status[data-state="error"]{background:#4e302c;color:#ffd2ca}
+html[data-ui-theme="dark"] .home-image-status[data-state="success"]{background:#284c35;color:#c3efca}
+html[data-ui-theme="dark"] .home-image-advanced{border-color:#48644c;color:#c6e4ce}
+html[data-ui-theme="dark"] .home-image-advanced input{background:#13281c;color:#eff8ef;border-color:#739a7b}
+@media(max-width:600px){.home-image-editor{padding:12px}.home-image-file::file-selector-button{margin-right:7px}}
