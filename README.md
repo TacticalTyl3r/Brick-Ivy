@@ -93,54 +93,26 @@ The public client accepts `published === true` and `status` of `available`, `res
 
 ## Public Realtor directory
 
-The new **Meet Our Realtors** page is linked from the site navigation and footer. It reads `data/realtors.json`, which currently includes Johnny Sausage's published Owner profile and the provided in-game contact details.
+The **Meet Our Realtors** page reads published, Owner-approved profiles from the live `brickivy-realtors` Supabase Edge Function. The current production site is configured for that backend; `data/realtors.json` is an unconfigured-development fallback, not the active roster. Owners manage profiles, positions, ordering, contact details and publishing in `manage-realtors.html`.
 
-Only explicitly approved and published profiles will display. Create entries in this format (example values below are **not** live profiles):
+- Public display fields include character name, position, in-game phone, approved Discord contact, optional email, biography and photo. An approved portrait takes priority over the backend-sanitized character mugshot; initials are the fallback.
+- `characterId` identifies a specific roleplay character for optional mugshot, in-game phone and live availability enrichment. The backend looks up only approved characters and never returns OPFW bearer tokens or unrelated player records.
+- Public-facing `role` / position labels do **not** grant permissions. Discord OAuth sessions and current Brick & Ivy guild roles are checked server-side before privileged changes.
+- Only published profiles are returned to visitors. Owners may reorder Realtors within position groups and move non-Owner position groups; the Owner section stays first.
+- The backend may return `onlineStatus: "unknown"` when the private OPFW server status source is unavailable. The public page must not interpret an unknown result as offline.
 
-```json
-[
-  {
-    "published": false,
-    "displayOrder": 10,
-    "name": "Character name",
-    "role": "Realtor",
-    "title": "Real Estate Agent",
-    "characterId": null,
-    "photo": "assets/realtors/portrait.webp",
-    "inGamePhone": "",
-    "discordUsername": "",
-    "discordId": "",
-    "email": "",
-    "bio": "A short approved introduction."
-  }
-]
-```
+See [the Realtor API guide](backend/REALTOR-API.md) and [the backend setup guide](backend/SETUP.md).
 
-- Set `published: true` after the individual has approved their **public** name, contact information and optional photo.
-- `role` may be `Owner` or `Realtor`; it is the **public display role**, not an authorization grant. The backend must verify actual Discord roles independently.
-- `inGamePhone` is a displayed in-game number with a convenient **Copy** button; the site does not dial phone numbers.
-- `discordUsername` appears as text. If `discordId` is provided as a valid 17–20 digit Discord user ID, a **View Discord** link appears. Do not publish IDs or handles without permission.
-- `email` is optional and creates a mailto contact button when present.
-- `photo` can be a public image URL or a file in the repository. A sanitized backend-supplied `mugshotUrl` is supported as a fallback. If both are empty, initials appear.
-- `displayOrder` lets owners control the team directory ordering. No Discord bot or third-party service is required for the public directory.
-- `characterId` is optional. The Owner will provide the exact character ID; do not infer it from a name. The public site never calls the token-protected OPFW API directly.
-- `bio` is optional; no description is displayed when blank.
-- Mugshot integration (not deployed): a secure backend requests `characters` from service `1973`, selecting only `character_id,mugshot_url`, filtered by the approved Character ID. It validates the response and outputs a public-safe photo URL. Neither the bearer token nor private character fields belong in the GitHub Pages feed.
-- Long term, the Owner dashboard should manage these profiles, photos and publishing status in a protected database; the static JSON format is an interim source until that backend is built.
+## Discord OAuth + dedicated Supabase backend (deployed)
 
-## Discord OAuth + dedicated Supabase backend (prepared, not deployed)
+The live dedicated Brick & Ivy Supabase project is `rcbbnzqmfvapwuqmpmhk`. Discord OAuth is enabled in `assets/brickivy-config.js`; the Staff Portal verifies membership and current roles in Brick & Ivy Discord guild `1001110667580932168`.
 
-The website now contains a secure Owner management UI on `admin.html` and `manage-realtors.html`; it stays locked and explains that setup is pending until the independent Brick & Ivy Supabase project is configured. See `backend/SETUP.md` for prerequisites and deployment instructions.
+- Owner role `1502871124378259526` has unrestricted website administrative access. Realtor role `1502870035176357968` receives only its explicitly allowed actions, with separate individual editing grants.
+- `brickivy-admin` handles protected Realtor profile management, and `brickivy-realtors` serves the public allowlisted directory.
+- `brickivy-property-staff`, `brickivy-property-photos`, `brickivy-homepage`, and `brickivy-history` enforce their own protected operations. Public functions `brickivy-properties` and `brickivy-realtors` are read-only; the homepage endpoint supports public reads with separately authorized writes.
+- Sensitive credentials remain in Supabase Edge Function secrets. Protected tables use RLS and do not grant direct anonymous or authenticated Data API access. Frontend controls are never the permission boundary.
 
-The protected API implementation is `backend/edge-functions/brickivy-admin/index.ts`:
-- Validates the signed-in user's Supabase Auth session and Discord OAuth identity.
-- Calls Discord's guild membership API on **every** request to check Owner role `1502871124378259526` (guild `1001110667580932168`).
-- Only the Owner role can create, edit, unpublish or delete Realtors. Realtor role `1502870035176357968` can authenticate but cannot change the directory.
-- Uses a private service-role key inside the Edge Function, never on the website. SQL `backend/schema.sql` enables RLS and denies public direct access.
-
-The public endpoint in `backend/edge-functions/brickivy-realtors/index.ts` returns only approved published profiles. The public Realtor website uses local `data/realtors.json` until `assets/brickivy-config.js` is filled with a new project's **public** URL and publishable API key. After that it uses the backend.
-
-**Current status:** The GitHub code is committed but has not been deployed to Supabase and Discord OAuth has not been configured. Do not claim that sign-in, secure saves or live synchronization currently work. Do not put a Discord OAuth secret or bot token in any GitHub file.
+**Deployment verification (October 23, 2026):** The Supabase project reported `ACTIVE_HEALTHY`, all eight Brick & Ivy Edge Functions reported active, and recent public requests to the properties, Realtors and homepage functions returned HTTP 200 in function logs. Those signals confirm deployment and successful API requests, **not** a complete end-to-end browser, Discord role, or upstream-content acceptance test.
 
 ## Public property overview details
 
@@ -186,19 +158,17 @@ The **Property Management** link in the Staff Portal opens `manage-properties.ht
 
 ## In-game availability on Realtor profiles
 
-The public Realtor directory now attempts a **live online status check every 60 seconds** for profiles with an approved `characterId`:
+The **public Realtor endpoint now performs enrichment server-side**, rather than having a GitHub Pages browser retrieve raw game-server player or connection records.
 
-1. Fetch `https://p323.fivem.opfw.me/op-framework/players.json?characterId=<comma-separated-realtor-cids>`, which exposes loaded characters and the connected player source/license.
-2. Fetch `https://p323.fivem.opfw.me/op-framework/connections.json`, which exposes connected sources/licenses and their `joined` flag.
-3. Mark a Realtor **Available** only when the exact loaded Character ID matches a player and a corresponding entry in `connections.json` has `joined: true`. Otherwise, after *both* successful checks, mark **Unavailable**.
-4. If either request fails, returns unexpected data, or is blocked by browser CORS, display **Status unavailable** rather than wrongly report offline.
-5. Refresh when the page becomes visible again. No authentication tokens are included in client requests and no raw identifiers or other player information are stored or displayed.
+- For published profiles with valid character IDs, `brickivy-realtors` optionally retrieves approved character mugshots and phone information through the private OPFW REST token.
+- It optionally queries the game server's `players.json` route with a **separate** private `OPFW_SERVER_TOKEN` and matches exact approved character IDs. That token is **not** interchangeable with `OPFW_REST_TOKEN`.
+- The public API emits only a sanitized photo/phone and `onlineStatus` of `available`, `unavailable` or `unknown`. Missing credentials, rejected upstream authorization and network failures result in `unknown`, not a false offline report.
+- The public page refreshes status from its own Supabase endpoint at 60-second intervals while visible and when the browser tab becomes visible again. It does not receive source/license identifiers.
+- The badge indicates whether a particular Realtor character appears in the game-server status source; it does not promise the person is free to serve an appointment.
 
-**Deployment caveat:** The public routes are documented by OPFW, but their reachability from GitHub Pages and cross-origin browser permissions have not yet been verified. This is a best-effort frontend integration, **not confirmed live on Legendary**. If CORS is blocked or endpoints require authorization, replace the browser calls with a secure server-side endpoint returning only `{characterId, available, checkedAt}` for published Realtors; never expose connected players' license identifiers in frontend output.
+**Operational check:** Earlier function logs showed upstream HTTP 401 errors and periods where `OPFW_SERVER_TOKEN` was unset. Verify the secret's authorization and a current returned status before calling live availability fully operational. Do not paste or commit either token.
 
-The badge reports whether the Realtor is logged in with that **specific character**. It does not measure whether they are free for appointments or whether their account is playing as a different character.
-
-## Property integration (deployed; private secret required)
+## Property integration (deployed; private token stored server-side)
 
 - **Function:** `backend/edge-functions/brickivy-properties/index.ts` deployed as `brickivy-properties` with JWT check OFF (public, read-only, sanitized data only).
 - **OPFW V3:** `https://opfw.gg/api/rest/1973/stocks_company_properties?select=company_id,property_id,property_name,property_type,property_address,property_cost&where=company_id%3D5`.
@@ -206,20 +176,14 @@ The badge reports whether the Realtor is logged in with that **specific characte
 - **Frontend:** live `index.html`, `properties.html`, `property.html`; no fake fallback when production backend is configured.
 - **Docs and verification:** [backend/OPFW-PROPERTIES.md](backend/OPFW-PROPERTIES.md).
 
-## Remaining backend integrations to build
+## Remaining work and acceptance tests
 
-- **Source:** OPFW readonly REST endpoint for Legendary service ID `1973`, table `stocks_company_properties`.
-- **Server-side company restriction:** `company_id = 5`.
-- **Security:** Never expose the OPFW bearer token, Discord OAuth client secret, service-role keys or private player/renter fields to GitHub Pages. The previously shared bearer token should be rotated.
-- **Discord server ID:** `1001110667580932168`
-- **Owner role ID:** `1502871124378259526`
-- **Realtor role ID:** `1502870035176357968`
-- **Authorization:** Owner always has full access. Realtors have individual backend-enforced permissions configured by Owners.
-- **Property publishing:** The server property table is the source of truth for real estate identity and base details; owners' curated descriptions, prices, published status, photos and featured flags live in a protected application database.
-- **Images:** Private write operations for authorized Owners/Realtors; public read URLs for photos associated with published listings.
-- **Backend hosting:** Choose secure backend hosting and storage before implementing any sign-in or protected write actions.
+- **Property inquiries / contact workflow:** Not yet implemented. A future contact or inquiry form and an Owner/Realtor response queue would require a new privacy-safe API, storage rules, spam controls, and dedicated individual `handle inquiries` permissions. Current property pages link visitors to the Realtor directory.
+- **Live availability QA:** Confirm the separate game-server token successfully reads authorized character status and that active Realtor badges match their precise character. Until verified, `unknown` is expected when upstream enrichment fails.
+- **End-to-end verification:** Test public inventory/occupancy status, publishing, galleries and homepage themes on desktop/mobile; test Owner and restricted Realtor accounts, including revoked permissions and direct API denial. The presence of active functions or HTTP 200 logs does not replace these checks.
+- **Documentation:** Some older backend guides still describe previous rollout stages. Refer to actual GitHub code, deployed function versions, database state and current logs before changing configuration.
 
-Do not deploy an OAuth button or a form that pretends to save data before the backend has been connected and tested.
+Security invariant: OPFW bearer tokens, Discord OAuth client secrets, service-role keys, renter identities and private player details must never enter GitHub Pages, public JSON, or chat messages.
 
 ## Development
 
