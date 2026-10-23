@@ -643,7 +643,8 @@ body[data-page="home"][data-home-hero-layout="stacked"] .hero p{max-width:880px;
 body[data-page="home"][data-home-hero-layout="stacked"] .hero-buttons{justify-content:center}
 body[data-page="home"][data-home-hero-layout="stacked"] .hero-image{min-height:0;height:390px;max-height:45vh}
 body[data-page="home"][data-home-hero-layout="image-focus"] .hero{display:grid;grid-template-columns:1fr;min-height:600px;position:relative;isolation:isolate}
-body[data-page="home"][data-home-hero-layout="image-focus"] .hero-image{position:absolute;inset:0;z-index:-1;min-height:600px}
+body[data-page="home"][data-home-hero-layout="image-focus"] .hero-image{position:absolute;inset:0;z-index:0;min-height:600px}
+body[data-page="home"][data-home-hero-layout="image-focus"] .hero-copy{position:relative;z-index:1}
 body[data-page="home"][data-home-hero-layout="image-focus"] .hero-image:before{background:linear-gradient(90deg,rgba(17,30,23,.87),rgba(17,30,23,.30) 83%);inset:0}
 body[data-page="home"][data-home-hero-layout="image-focus"] .hero-copy{width:100%;max-width:850px;padding-block:90px}
 body[data-page="home"][data-home-featured-layout="two"] #featured .property-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
