@@ -37,6 +37,32 @@ The calculations are done server-side in integer cents to avoid floating-point d
 
 **Data validity:** If OPFW rental occupancy is unavailable or any maintenance amount or any occupied home's rent is missing, the dashboard reports **Unavailable** instead of pretending the unknown value is $0. This is an estimated *weekly run-rate*, not a payment or cash-collection ledger. OPFW `property_income` historical totals and last-payment data are not double counted.
 
+## Per-property weekly financial report (2026-10-22)
+
+The financial snapshot includes a **Weekly income report** for verified Owners and Realtors with `can_view_financials=true`. Each property reports:
+
+- **Weekly rental revenue**: its configured weekly rent when OPFW confirms it is rented; **$0** when confirmed vacant.
+- **Weekly maintenance expense**: original OPFW `property_cost` **for every owned property**, including vacant, reserved and unpublished.
+- **Weekly net**: rental revenue minus maintenance, computed in integer cents on the protected Edge Function.
+- If occupancy or any needed amount is unknown, the relevant property figure is **Unavailable** rather than an invented value. The entire-company summary stays marked incomplete when needed.
+
+The page supports property search, occupancy filtering, sorting by rent/maintenance/net, and a CSV export of the currently filtered rows. The CSV is generated in the browser only after the authenticated API has granted financial viewing permission; formulas in string fields are escaped. This remains a **projected weekly run-rate**, not a real payment ledger or historical cash flow.
+
+## Owner change history & restoration
+
+[Owner Website Change History](https://brickandivyhomes.com/manage-history.html), linked in the Staff Portal, aggregates recent events from:
+
+- `brickivy_homepage_audit` (draft saves, publishes, reset and historical draft restoration)
+- `brickivy_property_listing_audit` (region, reservation, storage, descriptions, publishing and featured controls)
+- `brickivy_property_weekly_cost_audit` (weekly rent changes)
+- `brickivy_realtor_permission_audit` (individual grants and revocations)
+
+The server checks Supabase Auth, provider-verified Discord identity and **live Owner guild role** before querying any audits. History is private; the audit API returns a bounded collection of recent events, along with field-level before/after values and actor labels where available.
+
+**Restore a past homepage version**: click **Restore this version to draft** on a previous `publish` event, confirm, then open the Homepage Editor to preview. The protected `brickivy-homepage` function fetches that recorded published snapshot, validates its content and saves it as a **private draft only**, under the current optimistic revision check. It does *not* alter public published content or publish automatically. After inspection, select **Publish Homepage** explicitly.
+
+A matching database migration expands the homepage audit action constraint to include `restore_draft`. The view and restoration are Owner-only; financial viewer permissions never grant access to this history.
+
 ## Web polish
 The public property cards now use consistent card layouts, stronger hover/focus treatments, responsive spacing and clearer featured-listing badges. Finance and permission pages have responsive mobile layouts. Reduced-motion settings are respected on property cards.
 
