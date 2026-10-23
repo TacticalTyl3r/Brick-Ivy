@@ -78,7 +78,8 @@ function cardMarkup(p){
  '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
  '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
- '<div class="property-value-label">Weekly cost / property value</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
+ (p.featured===true?'<div class="property-featured-kicker"><span aria-hidden="true">★</span> Featured home</div>':'')+
+ '<div class="property-value-label">Weekly Rent</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
  '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
@@ -88,8 +89,10 @@ async function home(){const target=$('#featuredGrid');if(!target)return;
  try{
    const props=await getProperties();
    populatePropertyTypes($('#homeType'),props);
-   const featured=props.filter(p=>p.featured===true);
-   const show=(featured.length?featured:props).sort(availabilityOrder).slice(0,3);
+   // Featured listings always lead the homepage; fill remaining spaces with
+   // the normal public block-order collection if fewer than three are featured.
+   const show=[...props].sort((a,b)=>
+     Number(b.featured===true)-Number(a.featured===true)||availabilityOrder(a,b)).slice(0,3);
    target.innerHTML=show.length?show.map(cardMarkup).join(''):emptyMarkup('No properties listed yet.','Brick & Ivy has no company properties in the live feed right now.');
  }catch(error){
    console.warn('Property feed unavailable:',error);
