@@ -177,7 +177,7 @@ function propertyCard(p){
    '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' SU':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots).toLocaleString()+' objects (furniture pieces)':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
    (allowed('can_edit_area')?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
-   (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
+   (!allowed('can_manage_reservations')||(rented&&!p.reserved)?'disabled title="Permission required or property already rented"':'')+'>'+
    (p.reserved?'Remove reservation':'Mark Reserved')+'</button></div>';
  const publishTools='<section class="property-publishing-panel'+(isPublished?'':' is-hidden')+'">'+
    '<div class="property-publishing-info"><div><span class="property-management-label">Website visibility</span>'+
@@ -187,9 +187,9 @@ function propertyCard(p){
    '<strong>'+(isFeatured?'Featured':'Not featured')+'</strong>'+
    '<small>'+(isFeatured?'Prioritized in the homepage collection':'Not prioritized on the homepage')+'</small></div></div>'+
    (allowed('can_publish')||allowed('can_feature')?'<div class="property-publishing-actions">'+
-    '<button type="button" class="button '+(isPublished?'outline':'dark')+'" data-publish-property="'+safe(p.id)+'">'+(isPublished?'Unpublish property':'Publish property')+'</button>'+
-    '<button type="button" class="button '+(isFeatured?'outline':'dark')+'" data-feature-property="'+safe(p.id)+'" '+(!isPublished?'disabled title="Publish this property first"':'')+'>'+
-    (isFeatured?'Remove featured':'Feature on homepage')+'</button></div>':'')+
+    (allowed('can_publish')?'<button type="button" class="button '+(isPublished?'outline':'dark')+'" data-publish-property="'+safe(p.id)+'">'+(isPublished?'Unpublish property':'Publish property')+'</button>':'')+
+    (allowed('can_feature')?'<button type="button" class="button '+(isFeatured?'outline':'dark')+'" data-feature-property="'+safe(p.id)+'" '+(!isPublished?'disabled title="Publish this property first"':'')+'>'+
+    (isFeatured?'Remove featured':'Feature on homepage')+'</button>':'')+'</div>':'')+
    (isPublished?'<a class="property-public-preview" href="property.html?id='+encodeURIComponent(String(p.id))+'" target="_blank" rel="noopener noreferrer">View public listing ↗</a>':'')+
    '</section>';
  const currentDescription=String(p.description||'');
@@ -267,6 +267,31 @@ function renderStorage(){
      (allowed('can_manage_storage')?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
  }).join(''):'<p>No property types were returned from OPFW.</p>';
 }
+function renderFinance(){
+ const panel=byId('brickivyOwnerFinancials');
+ if(!panel)return;
+ panel.hidden=role!=='owner';
+ if(role!=='owner')return;
+ const f=finance;
+ const set=(id,value)=>{const node=byId(id);if(node)node.textContent=value;};
+ set('financeProperties',f?String(f.totalProperties):'—');
+ set('financeRented',f?(f.rented===null?'Unknown':String(f.rented)):'—');
+ set('financeVacant',f?(f.vacant===null?'Unknown':String(f.vacant)):'—');
+ set('financePublished',f?String(f.published):'—');
+ set('financeFeatured',f?String(f.featured):'—');
+ set('financeRevenue',f&&f.rentalRevenue!==null?usd(f.rentalRevenue):'Unavailable');
+ set('financeMaintenance',f&&f.maintenance!==null?usd(f.maintenance):'Unavailable');
+ set('financeNet',f&&f.netWeeklyIncome!==null?incomeDisplay(f.netWeeklyIncome):'Unavailable');
+ const net=byId('financeNet');
+ if(net)net.className='finance-net '+(f&&f.netWeeklyIncome!==null?(f.netWeeklyIncome<0?'is-negative':'is-positive'):'');
+ set('financeExplanation',!f?'Owner financial data is unavailable.':
+  !f.complete?'Cannot calculate a reliable weekly net: '+(
+    !rentalAvailable?'OPFW rental occupancy is unavailable.':
+    (f.missingMaintenance?'Missing maintenance for '+f.missingMaintenance+' properties. ':'')+
+    (f.missingRent?'Missing rent for '+f.missingRent+' rented properties.':'')
+  ):
+  'Projected weekly net = rent from '+f.rented+' rented properties − maintenance for all '+f.totalProperties+' company properties, including vacant and unpublished homes. Not an actual payment ledger.');
+}
 async function saveSetting(action,data){
  if(busy)return;
  busy=true;feedback('Saving property settings…');
@@ -288,6 +313,9 @@ async function saveSetting(action,data){
    }else{
      const current=roster.find(x=>x.id===data.propertyId);
      if(current){current.area=result.area;current.reserved=result.reserved;}
+   }
+   if(role==='owner'&&(action==='setPublished'||action==='setFeatured')){
+     const refreshed=await api('list');finance=refreshed.financialSummary||null;renderFinance();
    }
    feedback('Saved. Updated public listings should reflect this change within approximately 90 seconds.'+
     (result.auditRecorded===false?' Change history was not recorded; notify the Owner.':''));
@@ -341,6 +369,7 @@ async function saveCost(id,value){
    const result=await api('saveWeeklyCost',{propertyId:id,weeklyCost:value});
    const person=roster.find(x=>x.id===id);
    if(person){person.weeklyCostOverride=result.weeklyCostOverride;person.weeklyCost=result.weeklyCostOverride??person.sourceWeeklyCost;}
+   if(role==='owner'){const refreshed=await api('list');finance=refreshed.financialSummary||null;renderFinance();}
    feedback('Saved. '+(value===null?'Using the OPFW value again.':'The custom weekly value is now set.')+' Public pages can take up to 90 seconds to refresh.');
    render();
    if(result.auditRecorded===false)feedback('Value saved. However, the change history could not be written; notify an Owner.');
@@ -384,7 +413,7 @@ async function setup(){
      }
      const form=event.target.closest('[data-price-form]');if(!form)return;
      event.preventDefault();
-     if(!allowed('can_edit_description')||busy)return;
+     if(!allowed('can_set_prices')||busy)return;
      const id=form.dataset.priceForm;
      const input=form.querySelector('[data-cost-input]');
      if(!input||!input.value.trim()){feedback('Enter a value, or use the button to restore the original OPFW value.');return;}
