@@ -171,7 +171,7 @@ async function actionClick(event){
     assignedDiscordId:card.querySelector("[data-inquiry-assignee]").value,
     note:card.querySelector("[data-inquiry-note]").value};
    info("Saving inquiry…");const result=await api("updateInquiry",data);
-   successMessage="Inquiry saved."+(result.notification==="failed"?" The targeted Discord mention could not be delivered.":"");
+   successMessage="Inquiry saved."+(result.notification==="failed"?" The Realtor assignment notification could not be delivered.":"")+(result.statusNotification==="failed"?" The Discord status update could not be posted.":"");
   }
   await reload();
   info(successMessage);
@@ -203,7 +203,7 @@ async function init(){
    finally{button.disabled=false}
   });
   el("inquiryDiscordTest").addEventListener("click",async()=>{
-   if(!confirm("Send a marked test message from the Brick & Ivy App and ping the Realtor role?"))return;
+   if(!confirm("Send a marked test embed from the Brick & Ivy App? No roles or users will be pinged."))return;
    const button=el("inquiryDiscordTest");button.disabled=true;info("Sending Discord test…");
    try{const d=await api("testInquiryDiscord");info(d.message||"Test sent.")}
    catch(e){info(e.message||"Discord test failed.")}
