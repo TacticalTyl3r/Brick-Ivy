@@ -12,7 +12,6 @@ neighborhoodLayout:[["cards","Large images"],["compact","Compact images"]],
 aboutLayout:[["image-left","Image left"],["image-right","Image right"],["text-first","Text focused"]]};
 const sectionKeys=["featured","neighborhoods","about","contact"];
 const sectionNames={featured:"Featured properties",neighborhoods:"Neighborhoods",about:"About Brick & Ivy",contact:"Contact section"};
-const imageFields=["heroImage","lsImage","sandyImage","paletoImage","aboutImage"];
 const groups=[
  {title:'Colors & layout',summary:'Change the color palette and choose different section layouts.',fields:[
  ['homeTheme','Theme','select'],['primaryColor','Primary color','color'],['accentColor','Accent color','color'],
@@ -48,7 +47,7 @@ const groups=[
  {title:'Quick search labels',summary:'Keep the property search itself working; customize only its introductory copy.',fields:[
  ['searchTitle','Search headline','text',200],['searchSubtitle','Search subtitle','text',200]]}
 ];
-let client=null,revision=null,draft=null,published=null,busy=false,dirty=false,media=[],mediaTarget='heroImage',sectionOrder=[...sectionKeys];
+let client=null,revision=null,draft=null,published=null,busy=false,dirty=false,sectionOrder=[...sectionKeys];
 const endpoint=()=>cfg.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
 function say(message){const status=$('homeEditorStatus');if(status)status.textContent=message;}
 async function api(action,other={}){
@@ -73,9 +72,7 @@ function inputMarkup([key,label,type,max]){
    '<input id="'+id+'" data-home-editor="'+key+'" type="'+(type==='image'?'url':'text')+
    '" maxlength="'+max+'" '+(type==='image'?'placeholder="https://…"':'')+
    (['announcementText','heroCaption'].includes(key)?'':' required')+'></label>';
- return type==='image'?'<div class="home-editor-image-field">'+basic+
-  '<div class="home-image-actions"><label class="button outline">Upload image<input type="file" data-image-upload="'+key+'" accept="image/jpeg,image/png,image/webp" hidden></label>'+
-  '<button type="button" class="button outline" data-choose-image="'+key+'">Choose from library</button></div></div>':basic;
+ return basic;
 }
 function buildForm(){
  const target=$('homeEditorGroups');if(!target)return;
@@ -85,7 +82,7 @@ function buildForm(){
    '<div class="home-editor-fields">'+group.fields.map(inputMarkup).join('')+'</div></details>'
  ).join('');
  target.addEventListener('input',()=>{dirty=true;updatePreview();updateButtons()});
- target.addEventListener('change',event=>{if(event.target.matches('[data-image-upload]'))return;dirty=true;updatePreview();updateButtons()});
+ target.addEventListener('change',()=>{dirty=true;updatePreview();updateButtons()});
 }
 function fillForm(values){
  sectionOrder=Array.isArray(values?.sectionOrder)&&values.sectionOrder.length===4&&sectionKeys.every(x=>values.sectionOrder.includes(x))?[...values.sectionOrder]:[...sectionKeys];
@@ -111,63 +108,6 @@ function renderSectionOrder(){
  target.innerHTML=sectionOrder.map((id,i)=>'<div class="home-order-row"><span>'+(i+1)+'.</span><strong>'+safe(sectionNames[id])+'</strong><div>'+
  '<button type="button" data-order-index="'+i+'" data-order-step="-1" '+(i===0?'disabled':'')+' aria-label="Move section up">↑</button>'+
  '<button type="button" data-order-index="'+i+'" data-order-step="1" '+(i===3?'disabled':'')+' aria-label="Move section down">↓</button></div></div>').join('');
-}
-function setImageField(key,url){
- const node=document.querySelector('[data-home-editor="'+key+'"]');
- if(!node||!imageFields.includes(key))return;
- node.value=url;mediaTarget=key;dirty=true;updatePreview();updateButtons();
-}
-function showMediaStatus(message){const node=$('homeMediaStatus');if(node)node.textContent=message;}
-function safeMediaUrl(raw){
- try{const url=new URL(raw);return url.protocol==='https:'&&url.origin===new URL(cfg.supabaseUrl).origin&&
- url.pathname.startsWith('/storage/v1/object/public/brickivy-homepage-media/')?url.href:''}
- catch{return ''}
-}
-async function mediaApi(action,args={}){
- const {data:{session}}=await client.auth.getSession();
- if(!session?.access_token)throw Error('Your Owner session expired.');
- const uploading=action==='upload';
- const form=uploading?new FormData():null;
- if(form){form.append('action','upload');form.append('file',args.file)}
- const response=await fetch(cfg.supabaseUrl+'/functions/v1/brickivy-homepage-media',{
- method:'POST',credentials:'omit',
- headers:uploading?{apikey:cfg.publishableKey,Authorization:'Bearer '+session.access_token}:
- {apikey:cfg.publishableKey,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
- body:uploading?form:JSON.stringify({action,...args})
- });
- const data=await response.json().catch(()=>({}));
- if(!response.ok)throw Error(data.error||'Media request failed');
- return data;
-}
-function renderMedia(){
- const target=$('homeMediaLibrary');if(!target)return;
- target.innerHTML=media.length?media.map(item=>{
-  const url=safeMediaUrl(item.url);if(!url)return '';
-  return '<div class="home-media-card"><img src="'+safe(url)+'" alt="'+safe(item.filename)+'" loading="lazy">'+
-   '<p title="'+safe(item.filename)+'">'+safe(item.filename)+'</p>'+
-   '<div class="home-media-buttons"><button type="button" data-media-use="'+safe(item.objectKey)+'">Use image</button>'+
-   '<button type="button" class="home-media-remove" data-media-delete="'+safe(item.objectKey)+'">Delete</button></div></div>';
- }).join(''):'<p class="home-media-empty">No uploads yet. Add a JPEG, PNG or WebP to start your image library.</p>';
-}
-async function loadMedia(){
- try{const data=await mediaApi('list');media=data.images||[];renderMedia();
- showMediaStatus(media.length+' saved image(s). Choose an image field, then click Use image.');
- }catch(error){showMediaStatus(error.message||'Unable to list images');}
-}
-async function uploadMedia(file,targetField){
- if(!file)return;
- if(!['image/jpeg','image/png','image/webp'].includes(file.type)||!file.size||file.size>5*1024*1024){
-  showMediaStatus('Images must be JPEG, PNG, or WebP files no larger than 5 MB.');return;
- }
- if(busy)return;
- busy=true;updateButtons();showMediaStatus('Uploading '+file.name+'…');
- try{
-  const data=await mediaApi('upload',{file});
-  media.unshift(data.image);renderMedia();
-  if(targetField)setImageField(targetField,data.image.url);
-  showMediaStatus('Image uploaded'+(targetField?' and selected.':' to your library.')+' Save Draft when ready.');
- }catch(error){showMediaStatus(error.message||'Image upload failed');}
- finally{busy=false;updateButtons()}
 }
 function setPreviewText(id,value){const el=$(id);if(el)el.textContent=value||''}
 function updatePreview(){
@@ -257,7 +197,6 @@ async function load(){
   fillForm(draft);gate.hidden=false;
   say('Owner verified. Make changes, preview them, then Save Draft or Publish.');
   updateButtons();
-  await loadMedia();
  }catch(err){say(err.message||'Unable to open Homepage Editor');}
 }
 async function action(name){
@@ -307,42 +246,6 @@ async function init(){
    if(i<0||j<0||j>=sectionOrder.length)return;
    [sectionOrder[i],sectionOrder[j]]=[sectionOrder[j],sectionOrder[i]];
    dirty=true;renderSectionOrder();updatePreview();updateButtons();
-  });
-  $('homeEditorGroups')?.addEventListener('click',event=>{
-   const button=event.target.closest('[data-choose-image]');
-   if(!button)return;
-   mediaTarget=button.dataset.chooseImage;
-   showMediaStatus('Select Use image to assign a saved image to '+mediaTarget+'.');
-   $('homeMediaLibrary')?.scrollIntoView({block:'center',behavior:'smooth'});
-  });
-  $('homeEditorGroups')?.addEventListener('change',event=>{
-   const picker=event.target.closest('[data-image-upload]');if(!picker)return;
-   const file=picker.files?.[0];if(file)uploadMedia(file,picker.dataset.imageUpload);
-   picker.value='';
-  });
-  $('homeMediaUpload')?.addEventListener('change',event=>{
-   const file=event.target.files?.[0];if(file)uploadMedia(file,mediaTarget);
-   event.target.value='';
-  });
-  $('homeMediaLibrary')?.addEventListener('click',async event=>{
-   const select=event.target.closest('[data-media-use]');
-   if(select){
-    const item=media.find(x=>x.objectKey===select.dataset.mediaUse);
-    if(item){setImageField(mediaTarget,item.url);showMediaStatus('Selected for '+mediaTarget+'. Save Draft and Publish when ready.')}
-    return;
-   }
-   const remove=event.target.closest('[data-media-delete]');if(!remove||busy)return;
-   const item=media.find(x=>x.objectKey===remove.dataset.mediaDelete);if(!item)return;
-   const values=collect();
-   if(imageFields.some(key=>values[key]===item.url)){
-    showMediaStatus('That image is selected in the current editor. Replace it before deleting.');return;
-   }
-   if(!confirm('Permanently delete '+item.filename+' from your media library?'))return;
-   busy=true;updateButtons();
-   try{await mediaApi('delete',{objectKey:item.objectKey});media=media.filter(x=>x.objectKey!==item.objectKey);
-    renderMedia();showMediaStatus('Image removed.');
-   }catch(error){showMediaStatus(error.message||'Delete failed');}
-   finally{busy=false;updateButtons()}
   });
   $('homeEditorSave')?.addEventListener('click',()=>action('save'));
   $('homeEditorPublish')?.addEventListener('click',()=>action('publish'));
