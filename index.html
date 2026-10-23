@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://brickandivyhomes.com/">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css?v=20261022-dashboard-perms1"><script defer src="assets/brickivy-config.js"></script><script defer src="assets/site.js?v=20261022-publishing1"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=20261022-homeeditor1"><script defer src="assets/brickivy-config.js"></script><script defer src="assets/site.js?v=20261022-homeeditor1"></script>
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -29,25 +29,26 @@
       </div>
     </div>
   </header>
+  <div class="home-announcement" id="homeAnnouncement" role="status" hidden><div class="container" data-home-text="announcementText"></div></div>
   <main>
     <section class="hero" aria-labelledby="hero-heading">
       <div class="hero-copy">
-        <div class="eyebrow">Welcome to Brick &amp; Ivy Real Estate</div>
-        <h1 class="serif" id="hero-heading">Your next chapter <em>starts here.</em></h1>
-        <p>Thoughtfully selected spaces, personal guidance, and a place to belong. Discover real estate across San Andreas with the Brick &amp; Ivy team.</p>
+        <div class="eyebrow" data-home-text="heroEyebrow">Welcome to Brick &amp; Ivy Real Estate</div>
+        <h1 class="serif" id="hero-heading"><span data-home-text="heroLead">Your next chapter</span> <em data-home-text="heroHighlight">starts here.</em></h1>
+        <p data-home-text="heroDescription">Thoughtfully selected spaces, personal guidance, and a place to belong. Discover real estate across San Andreas with the Brick &amp; Ivy team.</p>
         <div class="hero-buttons">
-          <a class="button gold" href="properties.html">Explore properties <span class="arrow" aria-hidden="true">↗</span></a>
-          <a class="button outline" href="#our-story">Get to know us <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="button gold" href="properties.html"><span data-home-text="heroPrimaryText">Explore properties</span> <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="button outline" href="#our-story"><span data-home-text="heroSecondaryText">Get to know us</span> <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       </div>
       <div class="hero-image">
-        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&amp;fit=crop&amp;w=1800&amp;q=85" alt="Elegant contemporary home surrounded by greenery" fetchpriority="high">
-        <div class="image-caption">Imagery for illustration</div>
+        <img data-home-image="heroImage" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&amp;fit=crop&amp;w=1800&amp;q=85" data-home-alt="heroImageAlt" alt="Elegant contemporary home surrounded by greenery" fetchpriority="high">
+        <div class="image-caption" data-home-text="heroCaption">Imagery for illustration</div>
       </div>
     </section>
     <div class="quick-search" aria-label="Quick property search">
       <div class="container search-inner">
-        <div class="search-title"><strong>Find your place.</strong><small>Start your property search</small></div>
+        <div class="search-title"><strong data-home-text="searchTitle">Find your place.</strong><small data-home-text="searchSubtitle">Start your property search</small></div>
         <form class="search-form" action="properties.html" method="get">
           <div class="field"><label for="homeArea">Location</label><select id="homeArea" name="area"><option value="">All locations</option><option value="Los Santos">Los Santos</option><option value="Sandy Shores">Sandy Shores</option><option value="Paleto Bay">Paleto Bay</option></select></div>
           <div class="field"><label for="homeType">Property type</label><select id="homeType" name="type"><option value="">All property types</option></select></div>
@@ -56,48 +57,48 @@
         </form>
       </div>
     </div>
-    <section class="section featured" id="featured">
+    <section class="section featured" id="featured" data-home-section="showFeatured">
       <div class="container">
         <div class="section-top">
-          <div><div class="eyebrow">The property collection</div><h2 class="section-heading">A space to make <em>your own.</em></h2><p class="section-copy">Explore homes and properties offered by Brick &amp; Ivy. Every published listing will appear here with pricing and photos.</p></div>
+          <div><div class="eyebrow" data-home-text="collectionEyebrow">The property collection</div><h2 class="section-heading"><span data-home-text="collectionLead">A space to make</span> <em data-home-text="collectionHighlight">your own.</em></h2><p class="section-copy" data-home-text="collectionDescription">Explore homes and properties offered by Brick &amp; Ivy. Every published listing will appear here with pricing and photos.</p></div>
           <a href="properties.html" class="text-link">View all properties <span class="arrow" aria-hidden="true">↗</span></a>
         </div>
         <div class="property-grid" id="featuredGrid" aria-live="polite"><div class="empty-listings"><div><div class="eyebrow">Brick &amp; Ivy properties</div><h3>Preparing our property collection.</h3><p>Our listings will appear here once they are published.</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div></div>
       </div>
     </section>
-    <section class="section neighborhoods" id="neighborhoods">
+    <section class="section neighborhoods" id="neighborhoods" data-home-section="showNeighborhoods">
       <div class="container">
         <div class="section-top">
-          <div><div class="eyebrow">Explore San Andreas</div><h2 class="section-heading">Find your kind <em>of place.</em></h2></div>
-          <p class="section-copy">From the heart of the city to peaceful surroundings, there's a neighborhood for every way of life.</p>
+          <div><div class="eyebrow" data-home-text="neighborhoodsEyebrow">Explore San Andreas</div><h2 class="section-heading"><span data-home-text="neighborhoodsLead">Find your kind</span> <em data-home-text="neighborhoodsHighlight">of place.</em></h2></div>
+          <p class="section-copy" data-home-text="neighborhoodsDescription">From the heart of the city to peaceful surroundings, there's a neighborhood for every way of life.</p>
         </div>
         <div class="neighborhood-grid">
           <a href="properties.html?area=Los+Santos" class="neighborhood">
-            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Contemporary city home interior" loading="lazy">
+            <img data-home-image="lsImage" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Contemporary city home interior" loading="lazy">
             <div class="neighborhood-content"><div><small>City living</small><h3>Los Santos</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
           <a href="properties.html?area=Sandy+Shores" class="neighborhood">
-            <img src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Quiet home in a rustic landscape" loading="lazy">
+            <img data-home-image="sandyImage" src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Quiet home in a rustic landscape" loading="lazy">
             <div class="neighborhood-content"><div><small>Quiet escapes</small><h3>Sandy Shores</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
           <a href="properties.html?area=Paleto+Bay" class="neighborhood">
-            <img src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="House among trees and greenery" loading="lazy">
+            <img data-home-image="paletoImage" src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="House among trees and greenery" loading="lazy">
             <div class="neighborhood-content"><div><small>Coastal calm</small><h3>Paleto Bay</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
         </div>
         <p style="margin:14px 0 0;color:#758277;font-size:11px">Neighborhood photographs are illustrative; property photographs are provided for individual listings.</p>
       </div>
     </section>
-    <section class="section" id="our-story">
+    <section class="section" id="our-story" data-home-section="showAbout">
       <div class="container about">
         <div class="about-visual">
-          <img class="portrait" src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&amp;fit=crop&amp;w=1000&amp;q=85" alt="Comfortable, light-filled residential living space" loading="lazy">
+          <img class="portrait" data-home-image="aboutImage" src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&amp;fit=crop&amp;w=1000&amp;q=85" alt="Comfortable, light-filled residential living space" loading="lazy">
           <div class="logo-plaque"><img src="assets/brick-ivy-logo.svg" alt="Brick and Ivy Real Estate logo" loading="lazy"></div>
         </div>
         <div class="about-copy">
-          <div class="eyebrow">A more personal approach</div>
-          <h2 class="section-heading">More than a home. <em>A fresh start.</em></h2>
-          <p class="section-copy">At Brick &amp; Ivy, we believe finding a property should feel personal. Whether you're making your first move or searching for something new, our Realtors are here to help you find the right fit.</p>
+          <div class="eyebrow" data-home-text="aboutEyebrow">A more personal approach</div>
+          <h2 class="section-heading"><span data-home-text="aboutLead">More than a home.</span> <em data-home-text="aboutHighlight">A fresh start.</em></h2>
+          <p class="section-copy" data-home-text="aboutDescription">At Brick &amp; Ivy, we believe finding a property should feel personal. Whether you're making your first move or searching for something new, our Realtors are here to help you find the right fit.</p>
           <div class="values">
             <div class="value"><div class="value-num">01</div><div><strong>Discover what fits</strong><span>Browse listings with the details that matter most to you.</span></div></div>
             <div class="value"><div class="value-num">02</div><div><strong>Talk with a Realtor</strong><span>Get help exploring the options available across San Andreas.</span></div></div>
@@ -106,10 +107,10 @@
         </div>
       </div>
     </section>
-    <section class="cta-band" id="contact">
+    <section class="cta-band" id="contact" data-home-section="showCta">
       <div class="container cta-inner">
-        <div><div class="eyebrow">Brick &amp; Ivy Real Estate</div><h2 class="section-heading">The right place changes <em>everything.</em></h2><p>Ready to take a look? Explore our published properties or get in touch with a Brick &amp; Ivy Realtor in Legendary Roleplay.</p></div>
-        <a href="realtors.html" class="button light">Meet our Realtors <span class="arrow" aria-hidden="true">↗</span></a>
+        <div><div class="eyebrow" data-home-text="ctaEyebrow">Brick &amp; Ivy Real Estate</div><h2 class="section-heading"><span data-home-text="ctaLead">The right place changes</span> <em data-home-text="ctaHighlight">everything.</em></h2><p data-home-text="ctaDescription">Ready to take a look? Explore our published properties or get in touch with a Brick &amp; Ivy Realtor in Legendary Roleplay.</p></div>
+        <a href="realtors.html" class="button light"><span data-home-text="ctaButton">Meet our Realtors</span> <span class="arrow" aria-hidden="true">↗</span></a>
       </div>
     </section>
   </main>
