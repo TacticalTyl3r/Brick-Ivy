@@ -23,8 +23,11 @@ The inquiry is saved in Supabase **before** Discord delivery is attempted. A bot
 
 1. Visit [Property Inquiries](https://brickandivyhomes.com/manage-inquiries.html) and sign in with the Owner Discord account.
 2. Click **Test Brick & Ivy App notification** and confirm. This sends a clearly marked test under the bot's identity, not the webhook. It does **not** create an inquiry.
-3. Confirm the author displayed in the channel is the Brick & Ivy application's bot and that the intended Realtor role was pinged.
-4. If Discord reports HTTP 403, grant the bot access to that channel and the permissions above, then retest.
+3. If the app test fails, click **Check bot connection** first. This read-only Owner check identifies the bot account, tests webhook-to-channel discovery and verifies the bot can see the channel. It does not post a message or ping anyone.
+4. Confirm the author displayed in the channel is the Brick & Ivy application's bot and that the intended Realtor role was pinged.
+5. If Discord reports HTTP 403, grant the bot access to that channel and the permissions above, then retest.
+
+The bot displaying **Offline** does not prevent HTTP API message delivery. A green Online status requires a separately hosted, continuously connected Discord Gateway worker; request-based Supabase Edge Functions do not provide that. Since webhook metadata may omit `guild_id`, the integration now verifies the actual channel's guild via the bot API instead of rejecting the webhook prematurely.
 
 Do not paste or commit bot tokens, channel-webhook credentials, or Discord secrets.
 
