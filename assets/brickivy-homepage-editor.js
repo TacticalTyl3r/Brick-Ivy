@@ -196,6 +196,9 @@ function updatePreview(){
   if(/^#[a-fA-F0-9]{6}$/.test(d.primaryColor))panel.style.setProperty('--home-primary',d.primaryColor);
   if(/^#[a-fA-F0-9]{6}$/.test(d.accentColor))panel.style.setProperty('--home-accent',d.accentColor);
   panel.dataset.homeHeroLayout=d.heroLayout;
+  panel.dataset.homeFeaturedLayout=d.featuredLayout;
+  panel.dataset.homeNeighborhoodLayout=d.neighborhoodLayout;
+  panel.dataset.homeAboutLayout=d.aboutLayout;
  }
  const hero=document.querySelector('.home-preview-hero');
  if(hero)hero.dataset.layout=d.heroLayout;
