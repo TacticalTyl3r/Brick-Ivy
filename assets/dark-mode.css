@@ -446,6 +446,15 @@ html[data-ui-theme="dark"] .home-preview-hero-copy h3 em{color:#efd29d}
 html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme]{
  background:var(--dm-raised);border-color:var(--dm-border);
 }
+/* Keep the preview's selected color identity in dark appearance. */
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="midnight"]{background:#26364d}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="emerald"]{background:#1f3c30}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="burgundy"]{background:#3a2932}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="blush"]{background:#392c36}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="charcoal"]{background:#303a35}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="lavender"]{background:#342e45}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="autumn"]{background:#3b3025}
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme="winter"]{background:#263c46}
 html[data-ui-theme="dark"] .home-preview-section{background:#294332}
 html[data-ui-theme="dark"] .home-preview-section :is(small,p){color:#c9dfcf}
 html[data-ui-theme="dark"] .home-preview-section h3{color:var(--dm-text)}
