@@ -4,8 +4,26 @@
 const cfg=window.BRICK_IVY_CONFIG||{};
 const $=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Curated palettes power the theme selector and its matching primary/accent colors.
+// Saved manual color adjustments are respected when loading an existing draft.
+const themePalettes=Object.freeze([
+ {id:"classic",name:"Original Brick & Ivy",primary:"#244436",accent:"#b39a70",note:"Timeless olive and champagne"},
+ {id:"forest",name:"Deep Forest",primary:"#173e30",accent:"#b6d2a0",note:"Rich evergreen and sage"},
+ {id:"coastal",name:"Coastal Retreat",primary:"#234f60",accent:"#d3b48d",note:"Blue teal and soft sand"},
+ {id:"slate",name:"Modern Slate",primary:"#343d4f",accent:"#cbbf9d",note:"Slate and brushed gold"},
+ {id:"warm",name:"Warm Ivory",primary:"#61442f",accent:"#d7ae79",note:"Espresso and honey"},
+ {id:"midnight",name:"Midnight Luxury",primary:"#172b47",accent:"#edcb91",note:"Deep navy and champagne"},
+ {id:"emerald",name:"Emerald Estate",primary:"#075847",accent:"#dcc487",note:"Emerald and antique gold"},
+ {id:"burgundy",name:"Burgundy Manor",primary:"#612f40",accent:"#e5bbaa",note:"Wine and muted rose"},
+ {id:"blush",name:"Rosewood",primary:"#573d50",accent:"#e6bccb",note:"Plum and blush pink"},
+ {id:"charcoal",name:"Charcoal & Gold",primary:"#2c3333",accent:"#d7b78b",note:"Dark charcoal and gold"},
+ {id:"lavender",name:"Lavender Luxe",primary:"#463b66",accent:"#d1b8e3",note:"Royal violet and lilac"},
+ {id:"autumn",name:"Autumn Oak",primary:"#69442f",accent:"#ecc084",note:"Warm oak and amber"},
+ {id:"winter",name:"Winter Frost",primary:"#234759",accent:"#d2e4ed",note:"Winter blue and silver"}
+]);
+const themeById=new Map(themePalettes.map(theme=>[theme.id,theme]));
 const layoutOptions={
-homeTheme:[["classic","Original Brick & Ivy"],["forest","Deep forest"],["coastal","Coastal"],["slate","Modern slate"],["warm","Warm ivory"]],
+homeTheme:themePalettes.map(theme=>[theme.id,theme.name]),
 heroLayout:[["split","Split image + text"],["stacked","Stacked headline + image"],["image-focus","Full image background"]],
 featuredLayout:[["three","Three cards"],["two","Two columns / four cards"],["compact","Compact / six cards"]],
 neighborhoodLayout:[["cards","Large images"],["compact","Compact images"]],
@@ -64,7 +82,14 @@ function inputMarkup([key,label,type,max]){
  const id='home-edit-'+key;
  if(type==='toggle')return '<label class="home-toggle"><input type="checkbox" id="'+id+'" data-home-editor="'+key+'">'+
    '<span>'+safe(label)+'</span></label>';
- if(type==='select')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><select id="'+id+'" data-home-editor="'+key+'">'+(layoutOptions[key]||[]).map(([v,n])=>'<option value="'+safe(v)+'">'+safe(n)+'</option>').join('')+'</select></label>';
+ if(type==='select'){
+  const field='<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><select id="'+id+'" data-home-editor="'+key+'">'+
+   (layoutOptions[key]||[]).map(([v,n])=>'<option value="'+safe(v)+'">'+safe(n)+'</option>').join('')+'</select></label>';
+  return key==='homeTheme'?'<div class="home-theme-picker">'+field+
+   '<div id="homeThemePaletteGrid" class="home-theme-grid" role="group" aria-label="Choose a homepage color theme"></div>'+
+   '<div class="home-theme-hint"><small id="homeThemeColorStatus">Selecting a theme sets a matching primary and accent color automatically.</small>'+
+   '<button type="button" class="home-theme-reset" data-reset-theme-colors>Reset to theme colors</button></div></div>':field;
+ }
  if(type==='color')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><input type="color" id="'+id+'" data-home-editor="'+key+'"></label>';
  if(type==='long')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong>'+
    '<textarea id="'+id+'" data-home-editor="'+key+'" maxlength="'+max+'" rows="3"></textarea></label>';
@@ -81,8 +106,55 @@ function buildForm(){
    '<summary><span><strong>'+safe(group.title)+'</strong><small>'+safe(group.summary)+'</small></span><span aria-hidden="true">＋</span></summary>'+
    '<div class="home-editor-fields">'+group.fields.map(inputMarkup).join('')+'</div></details>'
  ).join('');
+ paintThemeTiles();
  target.addEventListener('input',()=>{dirty=true;updatePreview();updateButtons()});
- target.addEventListener('change',()=>{dirty=true;updatePreview();updateButtons()});
+ target.addEventListener('change',event=>{
+  if(event.target.matches('[data-home-editor="homeTheme"]')){
+   applyThemePalette(event.target.value);
+   return;
+  }
+  dirty=true;updatePreview();updateButtons();
+ });
+ target.addEventListener('click',event=>{
+  const tile=event.target.closest('[data-theme-choice]');
+  if(tile){applyThemePalette(tile.dataset.themeChoice);return;}
+  if(event.target.closest('[data-reset-theme-colors]')){
+   applyThemePalette($('home-edit-homeTheme')?.value);
+  }
+ });
+}
+function paintThemeTiles(){
+ const target=$('homeThemePaletteGrid');if(!target)return;
+ target.innerHTML=themePalettes.map(theme=>
+  '<button type="button" class="home-theme-tile" data-theme-choice="'+theme.id+'" aria-pressed="false" title="'+safe(theme.note)+'">'+
+  '<span class="home-theme-colors" aria-hidden="true">'+
+   '<i style="background:'+theme.primary+'"></i><i style="background:'+theme.accent+'"></i></span>'+
+  '<strong>'+safe(theme.name)+'</strong><small>'+safe(theme.note)+'</small></button>'
+ ).join('');
+}
+function updateThemeSelection(){
+ const id=$('home-edit-homeTheme')?.value,selected=themeById.get(id);
+ if(!selected)return;
+ const color=$('home-edit-primaryColor')?.value.toLowerCase();
+ const accent=$('home-edit-accentColor')?.value.toLowerCase();
+ const custom=color!==selected.primary||accent!==selected.accent;
+ const status=$('homeThemeColorStatus');
+ if(status)status.textContent=custom?
+  'Custom colors for '+selected.name+'. Reset to restore its coordinated palette.':
+  'Coordinated '+selected.name+' colors applied. You can fine-tune either color below.';
+ document.querySelectorAll('[data-theme-choice]').forEach(tile=>{
+  const active=tile.dataset.themeChoice===id;
+  tile.setAttribute('aria-pressed',String(active));
+  tile.classList.toggle('is-selected',active);
+ });
+}
+function applyThemePalette(id){
+ const preset=themeById.get(id);
+ if(!preset)return;
+ const theme=$('home-edit-homeTheme'),primary=$('home-edit-primaryColor'),accent=$('home-edit-accentColor');
+ if(!theme||!primary||!accent)return;
+ theme.value=preset.id;primary.value=preset.primary;accent.value=preset.accent;
+ dirty=true;updatePreview();updateButtons();
 }
 function fillForm(values){
  sectionOrder=Array.isArray(values?.sectionOrder)&&values.sectionOrder.length===4&&sectionKeys.every(x=>values.sectionOrder.includes(x))?[...values.sectionOrder]:[...sectionKeys];
@@ -112,6 +184,7 @@ function renderSectionOrder(){
 function setPreviewText(id,value){const el=$(id);if(el)el.textContent=value||''}
 function updatePreview(){
  const d=collect();
+ updateThemeSelection();
  setPreviewText('homePreviewEyebrow',d.heroEyebrow);
  setPreviewText('homePreviewLead',d.heroLead);
  setPreviewText('homePreviewHighlight',d.heroHighlight);
