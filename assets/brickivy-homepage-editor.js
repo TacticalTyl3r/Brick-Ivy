@@ -4,7 +4,20 @@
 const cfg=window.BRICK_IVY_CONFIG||{};
 const $=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const layoutOptions={
+homeTheme:[["classic","Original Brick & Ivy"],["forest","Deep forest"],["coastal","Coastal"],["slate","Modern slate"],["warm","Warm ivory"]],
+heroLayout:[["split","Split image + text"],["stacked","Stacked headline + image"],["image-focus","Full image background"]],
+featuredLayout:[["three","Three cards"],["two","Two columns / four cards"],["compact","Compact / six cards"]],
+neighborhoodLayout:[["cards","Large images"],["compact","Compact images"]],
+aboutLayout:[["image-left","Image left"],["image-right","Image right"],["text-first","Text focused"]]};
+const sectionKeys=["featured","neighborhoods","about","contact"];
+const sectionNames={featured:"Featured properties",neighborhoods:"Neighborhoods",about:"About Brick & Ivy",contact:"Contact section"};
+const imageFields=["heroImage","lsImage","sandyImage","paletoImage","aboutImage"];
 const groups=[
+ {title:'Colors & layout',summary:'Change the color palette and choose different section layouts.',fields:[
+ ['homeTheme','Theme','select'],['primaryColor','Primary color','color'],['accentColor','Accent color','color'],
+ ['heroLayout','Hero layout','select'],['featuredLayout','Property card layout','select'],
+ ['neighborhoodLayout','Neighborhood layout','select'],['aboutLayout','About layout','select']]},
  {title:'Announcement bar',summary:'Optional message above the homepage, useful for events, special notices or promotions.',fields:[
  ['announcementEnabled','Show announcement','toggle'],
  ['announcementText','Announcement message','text',200]]},
@@ -35,7 +48,7 @@ const groups=[
  {title:'Quick search labels',summary:'Keep the property search itself working; customize only its introductory copy.',fields:[
  ['searchTitle','Search headline','text',200],['searchSubtitle','Search subtitle','text',200]]}
 ];
-let client=null,revision=null,draft=null,published=null,busy=false,dirty=false;
+let client=null,revision=null,draft=null,published=null,busy=false,dirty=false,media=[],mediaTarget='heroImage',sectionOrder=[...sectionKeys];
 const endpoint=()=>cfg.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
 function say(message){const status=$('homeEditorStatus');if(status)status.textContent=message;}
 async function api(action,other={}){
@@ -52,6 +65,8 @@ function inputMarkup([key,label,type,max]){
  const id='home-edit-'+key;
  if(type==='toggle')return '<label class="home-toggle"><input type="checkbox" id="'+id+'" data-home-editor="'+key+'">'+
    '<span>'+safe(label)+'</span></label>';
+ if(type==='select')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><select id="'+id+'" data-home-editor="'+key+'">'+(layoutOptions[key]||[]).map(([v,n])=>'<option value="'+safe(v)+'">'+safe(n)+'</option>').join('')+'</select></label>';
+ if(type==='color')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><input type="color" id="'+id+'" data-home-editor="'+key+'"></label>';
  if(type==='long')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong>'+
    '<textarea id="'+id+'" data-home-editor="'+key+'" maxlength="'+max+'" rows="3"></textarea></label>';
  return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong>'+
@@ -70,6 +85,8 @@ function buildForm(){
  target.addEventListener('change',()=>{dirty=true;updatePreview();updateButtons()});
 }
 function fillForm(values){
+ sectionOrder=Array.isArray(values?.sectionOrder)&&values.sectionOrder.length===4&&sectionKeys.every(x=>values.sectionOrder.includes(x))?[...values.sectionOrder]:[...sectionKeys];
+ renderSectionOrder();
  for(const [key,value]of Object.entries(values||{})){
   const field=document.querySelector('[data-home-editor="'+key+'"]');
   if(!field)continue;
@@ -83,7 +100,19 @@ function collect(){
  document.querySelectorAll('[data-home-editor]').forEach(node=>{
   values[node.dataset.homeEditor]=node.type==='checkbox'?node.checked:node.value.trim();
  });
+ values.sectionOrder=[...sectionOrder];
  return values;
+}
+function renderSectionOrder(){
+ const target=$('homeSectionOrder');if(!target)return;
+ target.innerHTML=sectionOrder.map((id,i)=>'<div class="home-order-row"><span>'+(i+1)+'.</span><strong>'+safe(sectionNames[id])+'</strong><div>'+
+ '<button type="button" data-order-index="'+i+'" data-order-step="-1" '+(i===0?'disabled':'')+' aria-label="Move section up">↑</button>'+
+ '<button type="button" data-order-index="'+i+'" data-order-step="1" '+(i===3?'disabled':'')+' aria-label="Move section down">↓</button></div></div>').join('');
+}
+function setImageField(key,url){
+ const node=document.querySelector('[data-home-editor="'+key+'"]');
+ if(!node||!imageFields.includes(key))return;
+ node.value=url;mediaTarget=key;dirty=true;updatePreview();updateButtons();
 }
 function setPreviewText(id,value){const el=$(id);if(el)el.textContent=value||''}
 function updatePreview(){
@@ -106,6 +135,18 @@ function updatePreview(){
  setPreviewText('homePreviewCtaDesc',d.ctaDescription);
  setPreviewText('homePreviewCtaButton',d.ctaButton);
  setPreviewText('homePreviewAnnouncement',d.announcementText);
+ const panel=document.querySelector('.home-editor-preview-panel');
+ if(panel){
+  panel.dataset.homeTheme=d.homeTheme;
+  if(/^#[a-fA-F0-9]{6}$/.test(d.primaryColor))panel.style.setProperty('--home-primary',d.primaryColor);
+  if(/^#[a-fA-F0-9]{6}$/.test(d.accentColor))panel.style.setProperty('--home-accent',d.accentColor);
+  panel.dataset.homeHeroLayout=d.heroLayout;
+ }
+ const hero=document.querySelector('.home-preview-hero');
+ if(hero)hero.dataset.layout=d.heroLayout;
+ const extras=document.querySelector('.home-preview-extra');
+ if(extras){const nodes={featured:$('homePreviewCollectionWrap'),neighborhoods:$('homePreviewNeighborhoodsWrap'),about:$('homePreviewAboutWrap'),contact:$('homePreviewCtaWrap')};
+ for(const key of sectionOrder)if(nodes[key])extras.appendChild(nodes[key]);}
  for(const [id,key] of [
    ['homePreviewImage','heroImage'],['homePreviewLsImage','lsImage'],
    ['homePreviewSandyImage','sandyImage'],['homePreviewPaletoImage','paletoImage'],
@@ -201,6 +242,13 @@ async function init(){
    if(error)say(error.message);
   });
   $('homeEditorSignOut')?.addEventListener('click',async()=>{await client.auth.signOut();draft=null;revision=null;await load()});
+  $('homeSectionOrder')?.addEventListener('click',event=>{
+   const button=event.target.closest('[data-order-index]');if(!button)return;
+   const i=Number(button.dataset.orderIndex),j=i+Number(button.dataset.orderStep);
+   if(i<0||j<0||j>=sectionOrder.length)return;
+   [sectionOrder[i],sectionOrder[j]]=[sectionOrder[j],sectionOrder[i]];
+   dirty=true;renderSectionOrder();updatePreview();updateButtons();
+  });
   $('homeEditorSave')?.addEventListener('click',()=>action('save'));
   $('homeEditorPublish')?.addEventListener('click',()=>action('publish'));
   $('homeEditorDiscard')?.addEventListener('click',()=>action('discard'));
