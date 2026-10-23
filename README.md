@@ -4,7 +4,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions and Owner-controlled publishing/featured listings are active; the private property inquiry pipeline and staff inbox are deployed (Discord delivery requires a configured webhook and an Owner test).
+**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions and Owner-controlled publishing/featured listings are active; the private property inquiry pipeline and staff inbox are deployed (Discord delivery now uses the Brick & Ivy App's bot token; an Owner test verifies channel permissions).
 
 ## Pages
 
@@ -179,7 +179,7 @@ The **public Realtor endpoint now performs enrichment server-side**, rather than
 
 ## Remaining work and acceptance tests
 
-- **Property inquiries:** Public listing detail pages now include an inquiry form. Requests are verified against current OPFW company stock, saved in a private RLS-protected table, and optionally posted to a private Discord webhook with controlled role mentions. Owner and individually authorized Realtors manage the inbox. See [inquiry setup and acceptance tests](backend/PROPERTY-INQUIRIES.md).
+- **Property inquiries:** Public listing detail pages now include an inquiry form. Requests are verified against current OPFW company stock, saved in a private RLS-protected table, and optionally delivered by the Brick & Ivy Discord bot to a private channel with controlled role mentions. Owner and individually authorized Realtors manage the inbox. See [inquiry setup and acceptance tests](backend/PROPERTY-INQUIRIES.md).
 - **Live availability QA:** Confirm the separate game-server token successfully reads authorized character status and that active Realtor badges match their precise character. Until verified, `unknown` is expected when upstream enrichment fails.
 - **End-to-end verification:** Test public inventory/occupancy status, publishing, galleries, homepage themes and a sample inquiry on desktop/mobile; verify the Discord Owner test button, delivered role ping and private inbox updates; test Owner and restricted Realtor accounts, including revoked permissions and direct API denial. The presence of active functions or HTTP 200 logs does not replace these checks.
 - **Documentation:** Some older backend guides still describe previous rollout stages. Refer to actual GitHub code, deployed function versions, database state and current logs before changing configuration.
