@@ -153,7 +153,7 @@ Deno.serve(async req=>{
    return reply({draft:merge(current.draft_content),published:merge(current.published_content),
     revision:Number(current.revision),publishedAt:current.published_at},200,origin,true);
   }
-  if(!["saveDraft","publish","resetDraft","restoreDefaults"].includes(String(action)))
+  if(!["saveDraft","publish","resetDraft","restoreDefaults","restoreVersion"].includes(String(action)))
    return reply({error:"Unknown homepage action"},400,origin);
   const revision=body.revision;
   if(!Number.isSafeInteger(revision)||Number(revision)<0)return reply({error:"Invalid revision"},400,origin);
@@ -170,8 +170,18 @@ Deno.serve(async req=>{
   }else if(action==="resetDraft"){
    nextDraft=merge(current.published_content);
    update.draft_content=nextDraft;
+  }else if(action==="restoreVersion"){
+   const versionId=body.versionId;
+   if(typeof versionId!=="number"||!Number.isSafeInteger(versionId)||versionId<1)
+    return reply({error:"Select a valid published homepage version"},400,origin);
+   const {data:historical,error:historyError}=await db.from("brickivy_homepage_audit")
+    .select("id,action,after_content").eq("id",versionId).eq("action","publish").maybeSingle();
+   if(historyError)throw Error("Could not read previous homepage version");
+   if(!historical)return reply({error:"That published homepage version no longer exists"},404,origin);
+   nextDraft=clean(merge(historical.after_content));
+   update.draft_content=nextDraft;
   }else{
-   nextDraft={...DEFAULTS};
+   nextDraft={...DEFAULTS,sectionOrder:[...DEFAULTS.sectionOrder]};
    update.draft_content=nextDraft;
   }
   const {data:changed,error:saveError}=await db.from("brickivy_homepage_content")
@@ -180,7 +190,7 @@ Deno.serve(async req=>{
   if(saveError)throw Error("Could not save homepage");
   if(!changed)return reply({error:"Homepage changed in another session. Reload before saving."},409,origin);
   const {error:auditError}=await db.from("brickivy_homepage_audit").insert({
-   actor:user.id,action:action==="saveDraft"?"save_draft":action==="publish"?"publish":"reset_draft",
+   actor:user.id,action:action==="saveDraft"?"save_draft":action==="publish"?"publish":action==="restoreVersion"?"restore_draft":"reset_draft",
    before_content:action==="publish"?current.published_content:current.draft_content,
    after_content:action==="publish"?nextPublished:nextDraft
   });
