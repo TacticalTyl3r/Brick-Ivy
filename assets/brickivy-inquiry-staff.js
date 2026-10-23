@@ -59,6 +59,8 @@ async function reload(){
   const result=await api("listInquiries");
   inquiries=result.inquiries||[];realtors=result.realtors||[];
   el("inquiryStaffContent").hidden=false;
+  el("inquiryDiscordTestArea").hidden=result.role!=="owner";
+  el("inquiryDiscordTest").disabled=result.discordConfigured!==true;
   el("inquiryDiscordState").textContent=result.discordConfigured===false?
    "Discord webhook is not configured. Inquiries are still saved privately.":
    result.discordConfigured===true?"Discord webhook configured.":"Notifications are managed by the Owner.";
@@ -76,6 +78,13 @@ async function init(){
   });
   el("inquiryStaffSignOut").addEventListener("click",async()=>{await client.auth.signOut();inquiries=[];await reload()});
   el("inquiryStaffRefresh").addEventListener("click",reload);
+  el("inquiryDiscordTest").addEventListener("click",async()=>{
+   if(!confirm("Send a clearly labeled test message and Realtor role mention to the configured Discord channel?"))return;
+   const button=el("inquiryDiscordTest");button.disabled=true;info("Sending Discord test…");
+   try{const data=await api("testInquiryDiscord");info(data.message||"Discord test sent.");}
+   catch(error){info(error.message||"Discord test could not be delivered.");}
+   finally{button.disabled=false}
+  });
   el("inquiryStaffSearch").addEventListener("input",render);
   el("inquiryStaffFilter").addEventListener("change",render);
   el("inquiryStaffList").addEventListener("click",async event=>{
