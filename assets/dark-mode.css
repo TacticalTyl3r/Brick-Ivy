@@ -253,3 +253,288 @@ html[data-ui-theme="dark"] body[data-page="home"] .featured .text-link{color:#be
  html[data-ui-theme="dark"] .primary-nav{background:#172a20;border-color:#47604d;box-shadow:0 17px 30px rgba(0,0,0,.38)}
 }
 @media(prefers-reduced-motion:reduce){.theme-toggle{transition:none}}
+
+
+/* Contrast pass: accessible forest-night surfaces and legible secondary text (October 2026) */
+/* Consistent color system across the public site and Owner/Realtor tools.
+   Dark selectors are scoped; the light appearance is left untouched. */
+:root[data-ui-theme="dark"]{
+ --ink:#edf5ef;--muted:#bdcfc1;--forest:#bddfc5;
+ --sage:#a7c7af;--gold:#e5c998;--cream:#101b16;
+ --sand:#253b2e;--paper:#1c3025;--line:#476151;
+ --dm-surface:#1c3025;--dm-raised:#243b2e;
+ --dm-field:#14271d;--dm-text:#edf5ef;--dm-secondary:#c1d4c5;
+ --dm-border:#496652;--dm-link:#c3e5c9;
+}
+html[data-ui-theme="dark"] body{background:#101b16;color:var(--dm-text)}
+html[data-ui-theme="dark"] :is(.section-copy,.results-toolbar small,.manage-empty,
+ .manage-order-status,.manage-help p,.manage-help ol,.manage-export p,
+ .property-value-label,.property-source-note,.property-photo-controls,
+ .property-private-meta small,.property-listing-controls small,
+ .property-gallery-heading small,.property-gallery-manager>small,
+ .realtor-contact-none,.audit-empty,.audit-overview,.audit-event-info,
+ .audit-event-subject,.audit-detail-list li,.audit-detail-list li span,
+ .home-theme-tile small,.home-theme-hint small,.perm-actions>span,
+ .property-overview-actions small,.property-overview-readonly span){
+ color:var(--dm-secondary);
+}
+html[data-ui-theme="dark"] :is(.back-link,.text-link,.property-public-preview,
+ .audit-overview a,.manage-help a,.audit-event-details summary){
+ color:var(--dm-link);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] :is(.back-link,.text-link,.property-public-preview,
+ .audit-overview a):hover{color:#f5d7a5}
+html[data-ui-theme="dark"] .eyebrow{color:#b6d9bf}
+html[data-ui-theme="dark"] :is(.property-price,.detail-price,
+ .realtor-contact-value,.property-title a,.realtor-name){color:var(--dm-text)}
+html[data-ui-theme="dark"] :is(.property-bottom,.property-address,
+ .property-topline,.realtor-bio,.realtor-subtitle,.realtor-contact-label){
+ color:var(--dm-secondary);
+}
+
+/* Public: unify background/text pairs without washing out image-based regions. */
+html[data-ui-theme="dark"] :is(.empty-listings,.property-source-note,
+ .property-detail-feature,.property-realtor-cta,.team-contact-note){
+ background:var(--dm-surface);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] .property-detail-feature.is-interior{
+ background:#264331;border-color:#64866a;
+}
+html[data-ui-theme="dark"] :is(.property-detail-feature span,.property-realtor-cta p){
+ color:var(--dm-secondary);
+}
+html[data-ui-theme="dark"] :is(.property-detail-feature strong,.property-realtor-cta strong,
+ .empty-listings h3){color:var(--dm-text)}
+html[data-ui-theme="dark"] .property-detail-storage{
+ background:#284430;color:#d5efda;border-color:#7ca886;
+}
+html[data-ui-theme="dark"] .property-reserved-message{
+ background:#3c3324;border-color:#c2a16b;color:#f0d6a5;
+}
+html[data-ui-theme="dark"] .property-reserved-message p{color:#e2c99e}
+html[data-ui-theme="dark"] .property-unavailable-message{
+ background:#412c30;border-color:#b97c82;color:#f7d7d9;
+}
+html[data-ui-theme="dark"] .property-unavailable-message p{color:#efc0c4}
+html[data-ui-theme="dark"] .detail-status-unavailable{color:#ffb9bf!important}
+html[data-ui-theme="dark"] :is(.property-featured-kicker,.status-tag.is-reserved){
+ background:#4a3b24;color:#f9dfaa;border-color:#9e8250;
+}
+html[data-ui-theme="dark"] .status-tag.is-unavailable{
+ background:#5a2f33;color:#ffe6e3;
+}
+html[data-ui-theme="dark"] .status-tag.is-available{
+ background:#225739;color:#edfff0;
+}
+
+/* Listing/management controls: labels and values belong to the same surface. */
+html[data-ui-theme="dark"] :is(.property-listing-controls,.property-gallery-manager,
+ .property-gallery-photo,.property-storage-type,.property-private-card,
+ .property-staff-toolbar,.property-publishing-panel){
+ background:var(--dm-surface);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] .property-listing-controls strong,
+html[data-ui-theme="dark"] .property-publishing-panel.is-hidden .property-publishing-info strong,
+html[data-ui-theme="dark"] :is(.property-gallery-heading h4,.property-gallery-photo-label,
+ .property-storage-type h3,.property-listing-controls strong){
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .property-publishing-panel.is-hidden .property-publishing-info small{
+ color:var(--dm-secondary);
+}
+html[data-ui-theme="dark"] .property-gallery-picker{
+ background:#264331;color:#e6f3e8;border-color:#91bd99;
+}
+html[data-ui-theme="dark"] .property-gallery-picker:hover{background:#32533d}
+html[data-ui-theme="dark"] .property-gallery-picker input[type="file"]{
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .property-gallery-picker input::file-selector-button{
+ background:#182c20;color:#e9f4eb;border:1px solid #719a78;
+ padding:7px 9px;margin-right:9px;cursor:pointer;
+}
+html[data-ui-theme="dark"] .property-gallery-picker input::file-selector-button:hover{
+ background:#345941;
+}
+html[data-ui-theme="dark"] .property-gallery-photo{
+ background:var(--dm-raised);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] .property-gallery-photo-actions button{
+ background:#31503a;color:#f0f7ef;border-color:#739679;
+}
+html[data-ui-theme="dark"] .property-gallery-photo-actions button:hover:not(:disabled){
+ background:#426b4d;
+}
+html[data-ui-theme="dark"] .property-gallery-photo-actions .is-delete{
+ background:#502f32;color:#ffdad8;border-color:#a87474;
+}
+html[data-ui-theme="dark"] .property-gallery-photo-actions .is-delete:hover:not(:disabled){
+ background:#674044;
+}
+html[data-ui-theme="dark"] :is(.property-overview-editor,.property-overview-readonly,
+ .property-gallery-upload-status[data-state="info"]){
+ background:var(--dm-raised);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] :is(.property-overview-editor label,
+ .property-overview-readonly p,.property-management-label){color:#dceee0}
+
+/* Consistent readable form fields: public filters, Owner settings, audit, inquiries. */
+html[data-ui-theme="dark"] :is(
+ input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+ select,textarea
+):not([type="button"]):not([type="submit"]):not([type="reset"]){
+ background:var(--dm-field);color:var(--dm-text);
+ border-color:#64816c;caret-color:#f2e3c0;
+}
+html[data-ui-theme="dark"] :is(input,select,textarea)::placeholder{color:#bacbbd;opacity:1}
+html[data-ui-theme="dark"] :is(input,select,textarea):focus-visible{
+ outline:2px solid #e0c389;outline-offset:2px;border-color:#b9d6bf;
+}
+html[data-ui-theme="dark"] :is(input,select,textarea):disabled{
+ background:#1f3026;color:#bdc8be;opacity:.8;
+}
+html[data-ui-theme="dark"] :is(.audit-filters label,.bi-inbox-toolbar label,
+ .bi-inbox-actions label,.field label,.home-editor-field strong){
+ color:#d9e8da;
+}
+
+/* Homepage: theme palettes must never turn body text nearly black on dark cards.
+   Editorial hero artwork keeps its selected brand colors. */
+html[data-ui-theme="dark"] body[data-page="home"] .featured .property-price,
+html[data-ui-theme="dark"] body[data-page="home"] .search-title strong,
+html[data-ui-theme="dark"] body[data-page="home"] .value-num{
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] body[data-page="home"] .featured .property-bottom{
+ color:var(--dm-secondary);
+}
+html[data-ui-theme="dark"] body[data-page="home"] .featured .property-featured-kicker,
+html[data-ui-theme="dark"] body[data-page="home"] .featured .property-featured-kicker span{
+ color:#f7daa5;background:#463925;border-color:#9f8452;
+}
+html[data-ui-theme="dark"] .home-announcement{
+ background:#294535;color:#e4f4e8;border-color:#527c5c;
+}
+/* Owner homepage editor: distinguish canvas chrome from theme swatch previews. */
+html[data-ui-theme="dark"] :is(.home-theme-tile,.home-theme-hint,
+ .home-theme-reset,.home-editor-preview-panel){
+ background:var(--dm-raised);border-color:var(--dm-border);color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .home-theme-tile:hover,
+html[data-ui-theme="dark"] .home-theme-reset:hover{
+ background:#31503c;border-color:#91b69a;
+}
+html[data-ui-theme="dark"] .home-theme-tile.is-selected{
+ background:#31533d;border-color:#bdc88b;
+ box-shadow:0 0 0 2px #36523f;
+}
+html[data-ui-theme="dark"] .home-theme-tile small,
+html[data-ui-theme="dark"] .home-theme-tile.is-selected small,
+html[data-ui-theme="dark"] .home-theme-hint small{
+ color:#cee1d0;
+}
+html[data-ui-theme="dark"] .home-editor-group summary strong,
+html[data-ui-theme="dark"] .home-editor-group summary small{
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .home-editor-group summary small{color:var(--dm-secondary)}
+html[data-ui-theme="dark"] .home-preview-hero-copy h3,
+html[data-ui-theme="dark"] .home-preview-hero-copy .eyebrow{color:#fff}
+html[data-ui-theme="dark"] .home-preview-hero-copy p{color:#dceade}
+html[data-ui-theme="dark"] .home-preview-hero-copy h3 em{color:#efd29d}
+/* The preview's selected palette is only a preview; its container is always legible. */
+html[data-ui-theme="dark"] .home-editor-preview-panel[data-home-theme]{
+ background:var(--dm-raised);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] .home-preview-section{background:#294332}
+html[data-ui-theme="dark"] .home-preview-section :is(small,p){color:#c9dfcf}
+html[data-ui-theme="dark"] .home-preview-section h3{color:var(--dm-text)}
+html[data-ui-theme="dark"] .home-preview-buttons span:last-child{
+ color:#f0f7ed;border-color:#b1cdb3;
+}
+
+/* Private finance/permissions/audit pages: give values real contrast. */
+html[data-ui-theme="dark"] .owner-finance-section{
+ background:linear-gradient(145deg,#1b3929,#28523b);color:#f1f7f1;
+}
+html[data-ui-theme="dark"] .owner-finance-bottom>div{
+ background:#223b2b;color:#e8f4eb;border:1px solid #4e7657;
+}
+html[data-ui-theme="dark"] .owner-finance-bottom .owner-finance-total{
+ background:#2c5135;border-color:#82ad8d;
+}
+html[data-ui-theme="dark"] .owner-finance-bottom strong{color:#f2f8f2}
+html[data-ui-theme="dark"] .owner-finance-bottom .finance-net.is-negative{color:#ffb8b8}
+html[data-ui-theme="dark"] .owner-finance-bottom .finance-net.is-positive{color:#a8f0b7}
+html[data-ui-theme="dark"] .perm-switch:hover{background:#2b4736;border-color:#80ab88}
+html[data-ui-theme="dark"] .perm-switch:has(input:checked){
+ background:#2b5039;border-color:#70a880;
+}
+html[data-ui-theme="dark"] .perm-actions>span{color:var(--dm-secondary)}
+html[data-ui-theme="dark"] .audit-event{
+ background:var(--dm-surface);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] .audit-event h3,
+html[data-ui-theme="dark"] .audit-detail-list li strong{
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .audit-event-details,
+html[data-ui-theme="dark"] .audit-overview{border-color:var(--dm-border)}
+html[data-ui-theme="dark"] .audit-category{
+ background:#294c34;border-color:#578164;color:#d6f2dc;
+}
+html[data-ui-theme="dark"] .audit-category-pricing{
+ background:#443721;border-color:#9d7b46;color:#f4dda8;
+}
+html[data-ui-theme="dark"] .audit-category-permissions{
+ background:#343950;border-color:#6879aa;color:#dbe4ff;
+}
+html[data-ui-theme="dark"] .audit-category-homepage{
+ background:#313f2d;border-color:#6b8964;color:#dbedcb;
+}
+
+/* Inquiry dashboard: cards, input labels, tables and statuses match dark palette.
+   The 6 separately colored Inquiry Pulse status tiles retain their own hues. */
+html[data-ui-theme="dark"] :is(.bi-inquiry,.bi-inbox-card,
+ .bi-inbox-summary>div,.bi-analytics-panel,.bi-inbox-diagnostic,
+ .bi-inbox-history,.bi-portal-pulse,.bi-inbox-empty){
+ background:var(--dm-surface);border-color:var(--dm-border);
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] .bi-inbox-contacts p,
+html[data-ui-theme="dark"] .bi-analytics-metric{
+ background:var(--dm-raised);border-color:var(--dm-border);
+}
+html[data-ui-theme="dark"] :is(.bi-inbox-tag,.bi-inbox-assigned,
+ .bi-portal-recent>a,.bi-inbox-actions,.bi-activity-list li,
+ .bi-analytics-table td,.bi-analytics-table th){
+ border-color:var(--dm-border);color:var(--dm-text);
+}
+html[data-ui-theme="dark"] :is(.bi-inbox-top h2,.bi-analytics-heading h2,
+ .bi-inbox-message p,.bi-analytics-metric strong,.bi-inbox-contacts p,
+ .bi-analytics-property>div:first-child,.bi-portal-recent>a){
+ color:var(--dm-text);
+}
+html[data-ui-theme="dark"] :is(.bi-analytics-table th,.bi-inbox-actions small,
+ .bi-activity-list span,.bi-analytics-heading p,.bi-inbox-summary span,
+ .bi-inbox-test small,.bi-inbox-discord,.bi-inquiry-privacy){
+ color:var(--dm-secondary);
+}
+html[data-ui-theme="dark"] .bi-inbox-summary strong{color:#e1f3e5}
+html[data-ui-theme="dark"] .bi-analytics-track{background:#35513d}
+html[data-ui-theme="dark"] .bi-analytics-track span{background:#91c49e}
+html[data-ui-theme="dark"] .bi-followup-explainer{
+ background:#3b3223;color:#f4dcae;border-color:#b79459;
+}
+html[data-ui-theme="dark"] :is(.bi-inbox-toolbar input,.bi-inbox-toolbar select,
+ .bi-inbox-actions select,.bi-inbox-actions textarea,
+ .bi-inquiry input,.bi-inquiry textarea){
+ background:var(--dm-field);color:var(--dm-text);border-color:#64816c;
+}
+
+/* Avoid invisible highlighted controls and improve tab/key navigation. */
+html[data-ui-theme="dark"] :is(.button,.realtor-copy,
+ .property-gallery-photo-actions button,.manage-order-button,
+ .home-order-row button,.home-theme-tile):focus-visible{
+ outline:3px solid #e5c998;outline-offset:3px;
+}
