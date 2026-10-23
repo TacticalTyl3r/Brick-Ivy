@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#182d25"><meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Private Owner homepage content editor.">
+<title>Homepage Editor | Brick &amp; Ivy</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/styles.css?v=20261022-homeeditor1">
+<script defer src="assets/site.js?v=20261022-homeeditor1"></script>
+<script>window.BRICK_IVY_CONFIG=Object.freeze({supabaseUrl:"https://rcbbnzqmfvapwuqmpmhk.supabase.co",publishableKey:"sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",discordAuthReady:true});</script>
+<script type="module" src="assets/brickivy-homepage-editor.js?v=20261022-homeeditor1"></script></head>
+<body data-page="staff-homepage">
+<header class="site-header"><div class="container header-inner">
+<a class="logo-lockup" href="index.html"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="admin.html">Staff portal</a></nav>
+<div class="header-actions"><a class="link-button" href="admin.html">Staff tools ↗</a><button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Toggle navigation"><span aria-hidden="true"></span></button></div></div></header>
+<main>
+<section class="page-header admin-management-hero"><div class="container"><div class="eyebrow">Brick &amp; Ivy / Owner studio</div>
+<h1 class="section-heading">Homepage <em>editor.</em></h1>
+<p>Update headlines, descriptions, hero photos, neighborhoods, and sections at any time. Work on a private draft, review your preview, and publish when you're ready—no GitHub edits required.</p></div></section>
+<div class="container manage-workspace">
+<div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span><div><strong>Owner-controlled publishing</strong>
+<p><strong>Save Draft</strong> keeps your changes private. <strong>Publish Homepage</strong> puts the saved design live. Property listings, search filters, prices and Realtor profiles continue using their normal live APIs.</p></div></div>
+<div class="manage-auth-gate"><p id="homeEditorStatus" class="staff-auth-message" role="status" aria-live="polite">Checking Owner access…</p>
+<div id="homeEditorLogin" hidden><button id="homeEditorSignIn" type="button" class="button dark">Sign in with Discord ↗</button></div>
+<div id="homeEditorSession" hidden><button id="homeEditorSignOut" type="button" class="button outline">Sign out</button></div></div>
+<div id="homeEditorGate" hidden>
+<div class="home-editor-top">
+<div><div class="eyebrow">Content studio</div><h2 class="serif">Build your homepage</h2><p>Edit any section on the left and see a quick preview on the right. Your public homepage remains unchanged until you publish.</p></div>
+<a class="button outline" href="index.html" target="_blank" rel="noopener noreferrer">View live homepage ↗</a>
+</div>
+<div class="home-editor-layout">
+<section class="home-editor-form" aria-label="Homepage settings">
+<div id="homeEditorGroups"></div>
+<div class="home-editor-savebar"><span id="homeEditorUnsaved">No unsaved changes</span>
+<div class="home-editor-save-actions">
+<button id="homeEditorSave" class="button outline" type="button">Save Draft</button>
+<button id="homeEditorPublish" class="button dark" type="button">Publish Homepage ↗</button>
+</div></div>
+<div class="home-editor-secondary-actions">
+<button id="homeEditorReload" class="button outline" type="button">Reload draft</button>
+<button id="homeEditorDiscard" class="button outline" type="button">Discard draft</button>
+<button id="homeEditorRestore" class="button outline" type="button">Restore original design</button>
+</div>
+</section>
+<aside class="home-editor-preview-panel" aria-label="Live draft preview">
+<div class="home-editor-preview-title"><span class="eyebrow">Live draft preview</span><small>Visual reference · does not publish</small></div>
+<div id="homePreviewAnnouncementWrap" class="home-preview-announcement" hidden><span id="homePreviewAnnouncement"></span></div>
+<div class="home-preview-hero">
+<div class="home-preview-image"><img id="homePreviewImage" src="assets/brick-ivy-mark.svg" alt="Preview of homepage hero image"></div>
+<div class="home-preview-hero-copy"><div class="eyebrow" id="homePreviewEyebrow"></div>
+<h3 class="serif"><span id="homePreviewLead"></span> <em id="homePreviewHighlight"></em></h3>
+<p id="homePreviewDescription"></p>
+<div class="home-preview-buttons"><span id="homePreviewPrimary"></span><span id="homePreviewSecondary"></span></div></div>
+</div>
+<div class="home-preview-extra">
+<div id="homePreviewCollectionWrap" class="home-preview-section"><small>Featured property collection</small><h3 id="homePreviewCollection"></h3><p>Live company properties and your featured listings appear here.</p></div>
+<div id="homePreviewAboutWrap" class="home-preview-section"><small>About Brick &amp; Ivy</small><h3 id="homePreviewAbout"></h3></div>
+<div id="homePreviewCtaWrap" class="home-preview-section"><small>Get in touch</small><h3 id="homePreviewCta"></h3></div>
+</div>
+</div>
+<p class="home-editor-preview-hint">This preview shows the key sections and headline changes. Open the live homepage to see the full responsive layout after publishing.</p>
+</aside>
+</div>
+</div></div>
+</main>
+<footer class="site-footer"><div class="container"><div class="footer-grid"><div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Your home for real estate in Legendary Roleplay.</p></div><div><div class="footer-title">Staff tools</div><div class="footer-links"><a href="admin.html">Staff portal</a><a href="manage-properties.html">Property Management</a><a href="manage-permissions.html">Realtor Permissions</a></div></div></div><div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate</span></div></div></footer>
+</body></html>
