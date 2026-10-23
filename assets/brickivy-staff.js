@@ -40,7 +40,7 @@ async function loadInquirySummary(){
   box.innerHTML='<div class="bi-portal-pulse-head"><div><span class="eyebrow">Brick & Ivy team</span>'+
    '<h2 class="serif">Inquiry pulse</h2></div><a class="button dark" href="manage-inquiries.html">Open inquiry inbox →</a></div>'+
    '<div class="bi-portal-pulse-grid">'+
-   [['New inquiries',m.new],['Unassigned',m.unassignedOpen],['Awaiting customer',m.awaitingCustomer],['Closed',m.closed]]
+   [['New inquiries',m.new],['Needs attention · 24h',m.needsAttention24h],['Urgent · 48h',m.urgent48h],['Unassigned',m.unassignedOpen],['Awaiting customer',m.awaitingCustomer],['Closed',m.closed]]
     .map(([label,value])=>'<div><strong>'+safe(Number(value||0).toLocaleString())+'</strong><span>'+safe(label)+'</span></div>').join('')+'</div>'+
    '<div class="bi-portal-recent"><strong>Recent inquiries</strong>'+
    (recent.length?recent.map(x=>'<a href="manage-inquiries.html">'+safe(x.property_name)+
