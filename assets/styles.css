@@ -862,3 +862,25 @@ html[data-ui-theme="dark"] .property-photo-count.no-photos{
 html[data-ui-theme="dark"] .property-photo-count.is-unknown{
  background:#303d34;color:#d1ddd1;border-color:#586b5e
 }
+
+/* Property gallery upload progress and actionable errors beside the picker */
+.property-gallery-upload-status{
+ margin:0;padding:10px 12px;font-size:12px;line-height:1.55;
+ background:#eaf1e9;border-left:3px solid #8ba58b;color:#34583d;
+ overflow-wrap:anywhere;
+}
+.property-gallery-upload-status[data-state="error"]{
+ background:#fbede8;border-color:#c47b69;color:#8c3e32;font-weight:700;
+}
+.property-gallery-upload-status[data-state="success"]{
+ background:#e5f3e6;border-color:#6b9c76;color:#245d36;font-weight:700;
+}
+html[data-ui-theme="dark"] .property-gallery-upload-status{
+ background:#2b4033;border-color:#759b7c;color:#d4ead5;
+}
+html[data-ui-theme="dark"] .property-gallery-upload-status[data-state="error"]{
+ background:#48302d;border-color:#c47b69;color:#ffd4c6;
+}
+html[data-ui-theme="dark"] .property-gallery-upload-status[data-state="success"]{
+ background:#294a32;border-color:#6b9c76;color:#c7eccc;
+}
