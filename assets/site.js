@@ -131,21 +131,26 @@ function storageText(p){
 function emptyMarkup(title='New listings are on the way.',body='Our team is preparing the latest Brick & Ivy properties. Check back soon, or reach out to a Realtor in Legendary Roleplay.'){return '<div class="empty-listings"><div><div class="eyebrow">Brick & Ivy properties</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div>'}
 function cardMarkup(p){
  const id=encodeURIComponent(safeText(p.id));
+ const detailUrl='property.html?id='+id;
+ const inquiryUrl=detailUrl+'#biInquiry';
  const image=safeImage(p.coverImage||p.images?.[0]);
  const price=p.price===null||p.price===undefined||p.price===''?NaN:Number(p.price);
  const cost=Number.isFinite(price)?money.format(price):'Value on request';
  const label=normalStatus(p);
  const neighborhood=safeText(p.area||p.neighborhood||interiorName(p.type)||'San Andreas');
  const block=safeText(p.blockId),storage=storageText(p);
- return '<a class="property-card" href="property.html?id='+id+'" aria-label="View '+esc(p.name||'property')+'">'+
- '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
- '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div><div class="property-body">'+
- '<div class="property-topline"><span>'+esc(neighborhood)+'</span><span>View home ↗</span></div>'+
+ const name=esc(p.name||'Property');
+ return '<article class="property-card">'+
+ '<a class="property-card-photo-link" href="'+detailUrl+'" aria-label="View '+name+' listing">'+
+ '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy" decoding="async">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy" decoding="async"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
+ '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div></a><div class="property-body">'+
+ '<div class="property-topline"><span>'+esc(neighborhood)+'</span><a href="'+detailUrl+'">View home ↗</a></div>'+
  (p.featured===true?'<div class="property-featured-kicker"><span aria-hidden="true">★</span> Featured home</div>':'')+
- '<div class="property-value-label">Weekly Rent</div><div class="property-price">'+cost+'</div><h3 class="property-title">'+esc(p.name||'Property')+'</h3>'+
+ '<div class="property-value-label">Weekly Rent</div><div class="property-price">'+cost+'</div><h3 class="property-title"><a href="'+detailUrl+'">'+name+'</a></h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
- '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><span>See details <span aria-hidden="true">→</span></span></div></div></a>'
+ '<a class="property-inquiry-cta" href="'+inquiryUrl+'" aria-label="Inquire about '+name+'">Inquire About This Property <span aria-hidden="true">→</span></a>'+
+ '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><a href="'+detailUrl+'">See details <span aria-hidden="true">→</span></a></div></div></article>';
 }
 function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(toggle&&nav){toggle.addEventListener('click',()=>{const opened=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));});$$('a',nav).forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false')}))}$$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear())}
 async function home(){const target=$('#featuredGrid');if(!target)return;
