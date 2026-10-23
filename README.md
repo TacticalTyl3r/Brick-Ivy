@@ -37,6 +37,14 @@ Every Brick & Ivy page—public homepage, listings, property details, Realtor di
 - The script `assets/theme.js` runs in the document head before stylesheets to prevent a light-mode flash. `assets/dark-mode.css` loads after `assets/styles.css` and only applies dark styles when the document is marked dark.
 - No service keys, database writes, third-party libraries or sign-in privileges are involved.
 
+## Detailed financial reports and change history
+
+Owner and explicitly financial-authorized Realtors can review per-property weekly rental revenue, **all-property maintenance**, and net income using the filters and CSV export in [Property Management](https://brickandivyhomes.com/manage-properties.html). Occupied homes contribute rental revenue; vacant homes contribute only maintenance costs. Figures are projected weekly values, not payment receipts.
+
+Owners can review a private [Website Change History](https://brickandivyhomes.com/manage-history.html), covering homepage edits, property settings, rental prices and Realtor permissions. A previous published homepage revision can be restored to a **draft**, reviewed and then explicitly published. Restoring does not change the live homepage until a separate Publish action.
+
+Full implementation: [Realtor permissions, financial reports and change history](backend/REALTOR-PERMISSIONS-OWNER-DASHBOARD.md).
+
 ## Publishing and featured homes
 
 Each Brick & Ivy property is published by default. Verified Owners can unpublish a property (removes its public record and detail URL without deleting staff data) or mark published homes as Featured from Property Management. The homepage prioritizes featured homes, then fills up to three slots with other published properties. Realtors can see publication status but cannot change it. Details: [Property publishing setup and tests](backend/PROPERTY-PUBLISHING.md).
