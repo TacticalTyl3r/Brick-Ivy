@@ -44,6 +44,50 @@ let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy
 let permissions={};
 const allowed=key=>role==='owner'||permissions[key]===true;
 const galleries=new Map(),openedGalleries=new Set(),loadedGalleries=new Set();
+
+const uploadMessages=new Map();
+const IMAGE_LIMIT=6*1024*1024;
+const PHOTO_MIMES=Object.freeze({jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp"});
+function uploadNotice(id,message,kind="info"){
+ uploadMessages.set(String(id),{message,kind});
+ const output=[...document.querySelectorAll("[data-gallery-upload-status]")]
+   .find(node=>node.dataset.galleryUploadStatus===String(id));
+ if(output){output.textContent=message;output.dataset.state=kind}
+}
+// Native photo uploads cap at 6 MiB. Optimize large GTA screenshots in the
+// browser so the Supabase bucket never sees an oversized upload.
+async function uploadReadyFile(file){
+ const ext=(file.name.split(".").pop()||"").toLowerCase();
+ const format=PHOTO_MIMES[ext];
+ if(!format)throw Error("Unsupported file: "+file.name+". Choose JPG, PNG or WebP.");
+ const normalized=new File([file],file.name,{type:format,lastModified:file.lastModified});
+ if(normalized.size<=IMAGE_LIMIT)return normalized;
+ if(normalized.size>30*1024*1024)throw Error(file.name+" is larger than 30 MB. Resize it before uploading.");
+ if(typeof createImageBitmap!=="function")throw Error(file.name+" is over 6 MB. Please resize it before uploading.");
+ let bitmap;
+ try{bitmap=await createImageBitmap(normalized)}catch{
+  throw Error("Could not read "+file.name+". Please convert it to JPG or PNG.");
+ }
+ try{
+  const blobFromCanvas=(canvas,type,quality)=>new Promise(resolve=>canvas.toBlob(resolve,type,quality));
+  let limit=3200;
+  for(const quality of [0.88,0.74,0.60,0.48]){
+   const scale=Math.min(1,limit/Math.max(bitmap.width,bitmap.height));
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+   canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+   const context=canvas.getContext("2d");
+   if(!context)throw Error("Image optimization is unavailable in this browser.");
+   context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+   const compressed=await blobFromCanvas(canvas,"image/webp",quality);
+   if(compressed?.type==="image/webp"&&compressed.size>0&&compressed.size<=IMAGE_LIMIT)
+     return new File([compressed],file.name.replace(/\.[^.]+$/,"")+".webp",{type:"image/webp"});
+   limit=Math.min(limit,2600);
+  }
+  throw Error(file.name+" is too large to optimize. Please resize it before uploading.");
+ }finally{bitmap.close?.()}
+}
+
 function syncPhotoCount(propertyId,photos){
  const property=roster.find(p=>String(p.id)===String(propertyId));
  if(property&&Array.isArray(photos))property.photoCount=photos.length;
@@ -111,9 +155,11 @@ function galleryMarkup(propertyId){
  let markup='<section class="property-gallery-manager"><div class="property-gallery-heading"><h4>Property photos <small>'+
    (loaded?photos.length+'/24':'Loading…')+'</small></h4><button class="button outline" type="button" data-gallery-toggle="'+safe(propertyId)+'">Close</button></div>';
  if(isOwner){
+  const uploadState=uploadMessages.get(String(propertyId))||{message:"Select JPG, PNG or WebP files. Images over 6 MB are optimized automatically.",kind:"info"};
   markup+='<label class="property-gallery-picker">+ Add photos (JPEG, PNG or WebP)'+
-   '<input type="file" data-gallery-upload="'+safe(propertyId)+'" accept="image/jpeg,image/png,image/webp" multiple>'+
-   '</label><small>Up to 24 photos per property; 6 MB each. Select several images at once.</small>';
+   '<input type="file" data-gallery-upload="'+safe(propertyId)+'" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>'+
+   '</label><small>Up to 24 photos per property. Large screenshots are optimized automatically before upload.</small>'+
+   '<p class="property-gallery-upload-status" data-gallery-upload-status="'+safe(propertyId)+'" data-state="'+safe(uploadState.kind)+'" role="status" aria-live="polite">'+safe(uploadState.message)+'</p>';
  }
  if(loaded&&!photos.length)markup+='<p class="property-private-subtle">No property photos yet. Upload pictures to build the public gallery.</p>';
  if(loaded&&photos.length){
@@ -371,7 +417,7 @@ async function load(){
    finance=allowed('can_view_financials')?result.financialSummary:null;
    rentalAvailable=result.rentalAvailable===true;
    roster=Array.isArray(result.properties)?result.properties:[];
-   galleries.clear();loadedGalleries.clear();openedGalleries.clear();
+   galleries.clear();loadedGalleries.clear();openedGalleries.clear();uploadMessages.clear();
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
    toggle('propertyStaffContent',true);
    toggle('propertyStaffRentalWarning',!rentalAvailable);
@@ -498,28 +544,54 @@ async function setup(){
    });
    byId('propertyStaffGrid')?.addEventListener('change',async event=>{
      const uploader=event.target.closest('[data-gallery-upload]');
-     if(uploader&&allowed('can_manage_photos')&&!busy){
-       const propertyId=uploader.dataset.galleryUpload,files=[...uploader.files||[]];
+     if(uploader){
+       const propertyId=uploader.dataset.galleryUpload;
+       const files=Array.from(uploader.files||[]);
+       // Allow picking the same filename again after any failed attempt.
+       uploader.value='';
        if(!files.length)return;
-       if(files.some(file=>file.size>6*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))){
-         feedback('Each file must be a JPEG, PNG or WebP of 6 MB or less.');return;
+       if(!allowed('can_manage_photos')){
+         uploadNotice(propertyId,"Photo uploads require Owner approval.","error");return;
        }
-       const existing=(galleries.get(propertyId)||[]).length;
-       if(existing+files.length>24){feedback('A property can have up to 24 photos.');return;}
+       if(busy){
+         uploadNotice(propertyId,"Another save is running. Try adding your photos again in a moment.","error");return;
+       }
+       const existing=Number(roster.find(p=>String(p.id)===propertyId)?.photoCount??(galleries.get(propertyId)||[]).length);
+       if(existing+files.length>24){
+         uploadNotice(propertyId,"This property holds up to 24 photos. You can add "+Math.max(0,24-existing)+" more.","error");return;
+       }
        busy=true;byId('propertyStaffGrid')?.setAttribute('aria-busy','true');
        let added=0;
        try{
          for(const file of files){
-           feedback('Uploading photo '+(added+1)+' of '+files.length+'…');
+           const number=added+1;
+           uploadNotice(propertyId,"Preparing photo "+number+" of "+files.length+": "+file.name+"…");
+           const prepared=await uploadReadyFile(file);
+           const optimized=prepared.size!==file.size||prepared.name!==file.name;
+           uploadNotice(propertyId,"Uploading photo "+number+" of "+files.length+
+             (optimized?" (optimized for faster loading)":"")+": "+file.name+"…");
            const form=new FormData();
-           form.append('action','upload');form.append('propertyId',propertyId);form.append('file',file);
+           form.append('action','upload');
+           form.append('propertyId',propertyId);
+           form.append('file',prepared,prepared.name);
            const data=await photosApi('upload',propertyId,form);
-           galleries.set(propertyId,data.photos||[]);loadedGalleries.add(propertyId);
-           syncPhotoCount(propertyId,data.photos||[]);added++;
+           galleries.set(propertyId,data.photos||[]);
+           loadedGalleries.add(propertyId);
+           syncPhotoCount(propertyId,data.photos||[]);
+           added++;
          }
-         feedback(added+' photo'+(added===1?'':'s')+' uploaded. The public property gallery may take up to 90 seconds to refresh.');
-       }catch(e){feedback(added+' uploaded; '+(e.message||'some photos could not be uploaded'));}
-       finally{busy=false;byId('propertyStaffGrid')?.setAttribute('aria-busy','false');render();}
+         const msg=added+" photo"+(added===1?"":"s")+" added successfully. The public gallery may take up to 90 seconds to refresh.";
+         uploadNotice(propertyId,msg,"success");
+         feedback(msg);
+       }catch(error){
+         const msg=added+" of "+files.length+" uploaded. "+(error.message||"Upload failed. Please try again.");
+         uploadNotice(propertyId,msg,"error");
+         feedback(msg);
+       }finally{
+         busy=false;
+         byId('propertyStaffGrid')?.setAttribute('aria-busy','false');
+         render();
+       }
        return;
      }
      const area=event.target.closest('[data-property-area]');
