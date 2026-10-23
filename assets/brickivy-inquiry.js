@@ -18,6 +18,15 @@
   '<p class="bi-inquiry-privacy">Your inquiry is stored privately for authorized Brick &amp; Ivy staff and may also be delivered to their private Discord channel.</p>'+
   '<button type="submit" class="button dark">Send inquiry →</button> <span id="biInquiryStatus" role="status" aria-live="polite"></span></form>';
   root.querySelector('.detail-shell').appendChild(section);
+  // The card CTA can deep-link here even though this form is inserted after
+  // asynchronous property rendering. Respect reduced-motion preferences.
+  const openInquiry=()=>{
+   if(location.hash!=='#biInquiry')return;
+   section.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  };
+  if(location.hash==='#biInquiry')requestAnimationFrame(()=>requestAnimationFrame(openInquiry));
+  window.addEventListener('hashchange',openInquiry);
+  observer.disconnect();
   section.querySelector('form').addEventListener('submit',async event=>{
    event.preventDefault();const form=event.currentTarget,button=form.querySelector('button'),status=section.querySelector('#biInquiryStatus');
    if(!form.reportValidity())return;
