@@ -14,9 +14,10 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
 - `admin.html` — Discord authenticated staff portal with live verification of guild roles.
 - `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
-- `manage-properties.html` — authenticated staff property management with a private Owner-only financial dashboard showing rented-home weekly rent minus maintenance on every company property; property editing tools follow per-Realtor grants.
+- `manage-properties.html` — authenticated property management with a financial report (Owner or specifically permitted Realtors) showing rent minus maintenance for all company-owned properties, expandable property calculations and CSV export.
 - `manage-permissions.html` — Owner-only per-Realtor permission toggles for property descriptions, weekly rent, regions, storage, reservation changes, publishing, featured homes and photo management.
 - `manage-homepage.html` — Owner-only homepage editing studio with private drafts, live preview, publish and restore controls.
+- `manage-history.html` — Owner-only, searchable website audit timeline with the option to restore prior homepage publications into a private draft.
 
 ## Live Owner Homepage Editor and financial visibility
 
@@ -54,6 +55,13 @@ Each Brick & Ivy property is published by default. Verified Owners can unpublish
 The Owner can assign individual Realtor editing permissions at [Realtor Permissions](https://brickandivyhomes.com/manage-permissions.html). Grants are verified server-side against Supabase Discord authentication and live guild roles. Photo changes have an independent server-side permission check. New Realtors retain reservation access, but no other edit grants until the Owner enables them.
 
 The Owner dashboard calculates **net weekly income = rent from currently rented properties − original OPFW maintenance cost for every company property (including empty homes)**. Estimates are omitted if occupancy or costs are incomplete. See the [implementation, security rules and verification guide](backend/REALTOR-PERMISSIONS-OWNER-DASHBOARD.md).
+
+## Property financial reports and change history
+
+- [Property Management](https://brickandivyhomes.com/manage-properties.html): financial viewers can search, sort, inspect and export per-property weekly revenue, maintenance and net contribution. Vacant homes still incur maintenance, and the entire company stock contributes to operating expenses.
+- [Website Change History](https://brickandivyhomes.com/manage-history.html): Owner-only searchable audit timeline for homepage edits, properties, price overrides and Realtor permission changes, with before/after comparisons and safe restoration of a previously published homepage version **to a draft**.
+
+Details, privacy restrictions and financial formula: [Financial Reports and Change History guide](backend/FINANCIAL-REPORTS-CHANGE-HISTORY.md).
 
 ## Public data contract
 
