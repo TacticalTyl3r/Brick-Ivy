@@ -114,33 +114,33 @@ html[data-ui-theme="dark"] .bi-followup-tag.is-urgent{background:#5b3834;color:#
 .bi-portal-pulse-grid>div{
   background:var(--pulse-bg,#f1f3ef);
   border-color:var(--pulse-border,#dce3dd);
-  border-left:3px solid var(--pulse-accent,#7c9684);
+  border-left:4px solid var(--pulse-accent,#7c9684);
 }
 .bi-portal-pulse-grid>div strong{color:var(--pulse-number,#31533e)}
 .bi-portal-pulse-grid>div span{color:var(--pulse-label,#63746b)}
 /* Blue · new inquiries */
 .bi-portal-pulse-grid>div:nth-child(1){
-  --pulse-bg:#eef4f7;--pulse-border:#d6e3e9;--pulse-accent:#83a9bb;--pulse-number:#365b6d
+  --pulse-bg:#d9e8f0;--pulse-border:#afcad9;--pulse-accent:#5589a3;--pulse-number:#284f63
 }
 /* Champagne gold · needs attention */
 .bi-portal-pulse-grid>div:nth-child(2){
-  --pulse-bg:#faf5e9;--pulse-border:#e9ddbf;--pulse-accent:#c4a86d;--pulse-number:#806333
+  --pulse-bg:#f1e4c6;--pulse-border:#dac391;--pulse-accent:#ac873e;--pulse-number:#6a4e21
 }
 /* Muted rose · urgent */
 .bi-portal-pulse-grid>div:nth-child(3){
-  --pulse-bg:#faf0ef;--pulse-border:#efd9d7;--pulse-accent:#c99697;--pulse-number:#894c51
+  --pulse-bg:#f0dcdb;--pulse-border:#ddaeb0;--pulse-accent:#b96d74;--pulse-number:#79383e
 }
 /* Soft slate · unassigned */
 .bi-portal-pulse-grid>div:nth-child(4){
-  --pulse-bg:#f0f3f1;--pulse-border:#dce3df;--pulse-accent:#9aaba2;--pulse-number:#52685e
+  --pulse-bg:#dfe7e2;--pulse-border:#b9c9bf;--pulse-accent:#769788;--pulse-number:#3c5c4d
 }
 /* Lavender gray · awaiting customer */
 .bi-portal-pulse-grid>div:nth-child(5){
-  --pulse-bg:#f4f1f8;--pulse-border:#e3dceb;--pulse-accent:#a99abd;--pulse-number:#685a7e
+  --pulse-bg:#e5ddef;--pulse-border:#c8b8da;--pulse-accent:#947aaf;--pulse-number:#594272
 }
 /* Sage · closed */
 .bi-portal-pulse-grid>div:nth-child(6){
-  --pulse-bg:#eef5ed;--pulse-border:#d7e6d4;--pulse-accent:#8eaf8e;--pulse-number:#3e704a
+  --pulse-bg:#d9e9d9;--pulse-border:#b3d0b6;--pulse-accent:#659a75;--pulse-number:#30623f
 }
 /* The same status hues, softened against the dark appearance. */
 html[data-ui-theme="dark"] .bi-portal-pulse-grid>div{
