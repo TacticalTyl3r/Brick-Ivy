@@ -321,17 +321,24 @@ Deno.serve(async request => {
           old_assignee:null,new_assignee:assignee
         });
         if(auditError)console.warn("Claim activity could not be recorded");
-        const target=assignee;
+        // Claiming an inquiry may post an update, but never pings the claimant.
+        // Direct @mentions are reserved for a deliberate assignment to a Realtor.
         const delivery=await sendInquiryAsBot({
-          content:"<@"+target+">",
-          allowed_mentions:{parse:[],users:[target]},
-          embeds:[{title:"🏡 Property Inquiry Claimed",
-            description:"**"+String(before.property_name).replace(/[@<>]/g,"")+"** has been claimed by a Realtor.",
+          allowed_mentions:{parse:[]},
+          embeds:[{
+            author:{name:"BRICK & IVY · REAL ESTATE"},
+            title:"🏡 Property Inquiry Claimed",
+            url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
+            description:"A member of the Brick & Ivy team has claimed this inquiry.",
             color:0x285640,
-            fields:[{name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80)},
-              {name:"Status",value:"In progress"}],
-            footer:{text:"BRICK & IVY • Staff workflow"},
-            timestamp:now}]
+            fields:[
+              {name:"Property",value:String(before.property_name).replace(/[@<>]/g,"").slice(0,160),inline:true},
+              {name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80),inline:true},
+              {name:"Claimed by",value:String(realtorNames.get(providerId)||"Brick & Ivy staff").replace(/[@<>]/g,"").slice(0,80)}
+            ],
+            footer:{text:"BRICK & IVY • Inquiry workflow • No pings"},
+            timestamp:now
+          }]
         });
         return json({success:true,auditRecorded:!auditError,notification:delivery.sent?"sent":"failed"},200,cors);
       }
@@ -390,8 +397,57 @@ Deno.serve(async request => {
             footer:{text:"BRICK & IVY • Staff workflow"},timestamp:now}]
         });
         notification=result.sent?"sent":"failed";
+        if(!result.sent)console.warn("Brick & Ivy inquiry assignment notification failed:",result.reason);
       }
-      return json({success:true,auditRecorded:!auditError,notification},200,cors);
+      // Lifecycle notifications are separate, embed-only and never ping anyone.
+      // Only transitions to these three statuses create lifecycle posts.
+      let statusNotification:"none"|"sent"|"failed"="none";
+      if(changedStatus&&["contacted","awaiting_customer","closed"].includes(status)){
+        const statusInfo={
+          contacted:{
+            title:"📞 Customer Contacted",
+            message:"A Realtor has contacted the customer about this property.",
+            color:0x3498DB,
+            label:"Contacted"
+          },
+          awaiting_customer:{
+            title:"⏳ Awaiting Customer",
+            message:"The team is now waiting for the customer to respond.",
+            color:0xF1C40F,
+            label:"Awaiting Customer"
+          },
+          closed:{
+            title:"✅ Inquiry Closed",
+            message:"This property inquiry has been marked as closed.",
+            color:0x2ECC71,
+            label:"Closed"
+          }
+        }[status]!;
+        const clean=(value:unknown,max:number)=>String(value??"")
+          .replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›").slice(0,max);
+        const outcome=await sendInquiryAsBot({
+          allowed_mentions:{parse:[]},
+          embeds:[{
+            author:{name:"BRICK & IVY · REAL ESTATE"},
+            title:statusInfo.title,
+            url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
+            description:statusInfo.message,
+            color:statusInfo.color,
+            fields:[
+              {name:"Property",value:clean(before.property_name,160),inline:true},
+              {name:"Customer",value:clean(before.character_name,80),inline:true},
+              {name:"Previous Status",value:clean(validStatuses.includes(before.status)?before.status.replaceAll("_"," "):"Unknown",70),inline:true},
+              {name:"Current Status",value:statusInfo.label,inline:true},
+              {name:"Updated by",value:clean(realtorNames.get(providerId)||"Brick & Ivy staff",80),inline:true}
+            ],
+            footer:{text:"BRICK & IVY • Inquiry status update • No pings"},
+            timestamp:now
+          }]
+        });
+        statusNotification=outcome.sent?"sent":"failed";
+        if(!outcome.sent)console.warn("Brick & Ivy inquiry status notification failed:",outcome.reason);
+      }
+      return json({success:true,auditRecorded:!auditError,notification,statusNotification},200,cors);
     }
     if (!isOwner) return json({error:"Owner role required"},403,cors);
     if (action === "diagnoseInquiryDiscord") {
