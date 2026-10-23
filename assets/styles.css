@@ -814,3 +814,23 @@ body[data-page="home"] .featured .property-featured-kicker span{color:var(--home
 .home-editor-preview-panel[data-home-theme="winter"]{background:#eaf5f8}
 @media(max-width:560px){.home-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.home-theme-tile{min-height:106px}}
 @media(prefers-reduced-motion:reduce){.home-theme-tile{transition:none}.home-theme-tile:hover{transform:none}}
+
+/* Listing card actions: distinct View Home and Inquiry destinations */
+.property-card{display:flex;flex-direction:column}
+.property-card-photo-link{display:block;color:inherit;text-decoration:none}
+.property-card-photo-link .property-image{display:block}
+.property-card .property-body{flex:1;min-width:0}
+.property-topline a,.property-title a,.property-bottom a{color:inherit;text-decoration:none}
+.property-topline a:hover,.property-title a:hover,.property-bottom a:hover{text-decoration:underline;text-underline-offset:3px}
+.property-inquiry-cta{display:flex;align-items:center;justify-content:space-between;gap:14px;
+ background:#285640;color:#fff!important;font-size:11px;letter-spacing:.08em;font-weight:800;
+ line-height:1.5;text-decoration:none;padding:14px 16px;margin:21px 0 14px;transition:background .2s}
+.property-inquiry-cta:hover{background:#367958}
+.property-inquiry-cta:focus-visible,.property-card-photo-link:focus-visible,
+.property-topline a:focus-visible,.property-title a:focus-visible,.property-bottom a:focus-visible{
+ outline:3px solid #ba9349;outline-offset:3px}
+.property-inquiry-cta span{font-size:16px;line-height:1}
+html[data-ui-theme="dark"] .property-inquiry-cta{background:#43795b;color:#fff!important}
+html[data-ui-theme="dark"] .property-inquiry-cta:hover{background:#55916f}
+@media(max-width:600px){.property-inquiry-cta{padding:13px 14px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){.property-inquiry-cta{transition:none}}
