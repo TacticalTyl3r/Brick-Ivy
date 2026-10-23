@@ -19,6 +19,9 @@ The bot must have **View Channel**, **Send Messages**, and **Embed Links** in th
 
 Both **new inquiry** notifications and the Owner's **test notification** now use matching Brick & Ivy Discord embeds (green border, branded heading, structured fields, and timestamp). Real inquiry embeds show the property, property ID, address, character name, in-game phone, optional Discord contact, message, and a clickable property listing link. The Realtor role mention stays in the message content outside the embed because Discord does not generate role notifications from embedded fields.
 
+New property inquiry embeds additionally show **Weekly Rent** and **Availability**, sourced from the public sanitized `brickivy-properties` endpoint. This reproduces the public listing's effective weekly price (including an Owner override) and occupancy-aware status. The availability labels are `Available`, `Reserved`, `Unavailable (rented)`, or `In portfolio — occupancy not verified`. If the public feed cannot be verified at notification time, the embed says `Check property listing` and `Not verified — check listing` instead of inventing a rent or vacancy status. The inquiry remains saved and the notification still goes out. The separate Owner-only notification test has no real property and therefore cannot display actual property rent/status.
+
+
 The inquiry is saved in Supabase **before** Discord delivery is attempted. A bot or channel failure is recorded as `failed` (or `not_configured` when no destination/bot credential is configured); it does not discard the inquiry.
 
 ### Owner test
