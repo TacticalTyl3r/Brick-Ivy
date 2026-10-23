@@ -26,6 +26,17 @@ The Owner can also use [Realtor Permissions](https://brickandivyhomes.com/manage
 
 See [Homepage Editor and financial visibility guide](backend/HOMEPAGE-EDITOR-FINANCIAL-VISIBILITY.md).
 
+## Site-wide light and dark mode
+
+Every Brick & Ivy page—public homepage, listings, property details, Realtor directory, Staff Portal, Realtor Management, Property Management, Realtor Permissions and the Owner Homepage Editor—includes a shared **Light / Dark** appearance toggle in the header (the icon remains visible on mobile).
+
+- Defaults to the visitor's device light/dark preference on first visit.
+- Clicking the header toggle explicitly selects the other mode and stores it under the `brickivy-color-mode` browser preference. The choice follows the visitor across all pages on the same origin and overrides system changes until toggled again.
+- Theme choice is **individual to the visitor**, not an Owner-global appearance setting. Clearing site storage returns to automatic system preference.
+- All management cards, forms, photo galleries, income snapshots, table-style controls and Owner preview panels use an accessible darker surface palette, with the homepage custom theme/palette still supported.
+- The script `assets/theme.js` runs in the document head before stylesheets to prevent a light-mode flash. `assets/dark-mode.css` loads after `assets/styles.css` and only applies dark styles when the document is marked dark.
+- No service keys, database writes, third-party libraries or sign-in privileges are involved.
+
 ## Publishing and featured homes
 
 Each Brick & Ivy property is published by default. Verified Owners can unpublish a property (removes its public record and detail URL without deleting staff data) or mark published homes as Featured from Property Management. The homepage prioritizes featured homes, then fills up to three slots with other published properties. Realtors can see publication status but cannot change it. Details: [Property publishing setup and tests](backend/PROPERTY-PUBLISHING.md).
