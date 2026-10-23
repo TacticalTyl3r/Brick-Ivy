@@ -270,8 +270,8 @@ function renderStorage(){
 function renderFinance(){
  const panel=byId('brickivyOwnerFinancials');
  if(!panel)return;
- panel.hidden=role!=='owner';
- if(role!=='owner')return;
+ panel.hidden=!allowed('can_view_financials');
+ if(!allowed('can_view_financials'))return;
  const f=finance;
  const set=(id,value)=>{const node=byId(id);if(node)node.textContent=value;};
  set('financeProperties',f?String(f.totalProperties):'—');
@@ -314,7 +314,7 @@ async function saveSetting(action,data){
      const current=roster.find(x=>x.id===data.propertyId);
      if(current){current.area=result.area;current.reserved=result.reserved;}
    }
-   if(role==='owner'&&(action==='setPublished'||action==='setFeatured')){
+   if(allowed('can_view_financials')&&(action==='setPublished'||action==='setFeatured')){
      const refreshed=await api('list');finance=refreshed.financialSummary||null;renderFinance();
    }
    feedback('Saved. Updated public listings should reflect this change within approximately 90 seconds.'+
@@ -344,7 +344,7 @@ async function load(){
    const result=await api('list');
    role=result.role;
    permissions=result.permissions||{};
-   finance=role==='owner'?result.financialSummary:null;
+   finance=allowed('can_view_financials')?result.financialSummary:null;
    rentalAvailable=result.rentalAvailable===true;
    roster=Array.isArray(result.properties)?result.properties:[];
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
@@ -369,7 +369,7 @@ async function saveCost(id,value){
    const result=await api('saveWeeklyCost',{propertyId:id,weeklyCost:value});
    const person=roster.find(x=>x.id===id);
    if(person){person.weeklyCostOverride=result.weeklyCostOverride;person.weeklyCost=result.weeklyCostOverride??person.sourceWeeklyCost;}
-   if(role==='owner'){const refreshed=await api('list');finance=refreshed.financialSummary||null;renderFinance();}
+   if(allowed('can_view_financials')){const refreshed=await api('list');finance=refreshed.financialSummary||null;renderFinance();}
    feedback('Saved. '+(value===null?'Using the OPFW value again.':'The custom weekly value is now set.')+' Public pages can take up to 90 seconds to refresh.');
    render();
    if(result.auditRecorded===false)feedback('Value saved. However, the change history could not be written; notify an Owner.');
