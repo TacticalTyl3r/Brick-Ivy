@@ -52,6 +52,14 @@ Changes show on the public site on the next page load. The public JS fetches `br
 
 The retired `brickivy-homepage-media` upload endpoint returns HTTP 410. Its previously created storage bucket and metadata table have been left intact to avoid deleting data, although no images were stored at the time the feature was retired.
 
+### Coordinated homepage theme palettes
+
+The Homepage Editor now offers **13 curated themes**: Original Brick & Ivy, Deep Forest, Coastal Retreat, Modern Slate, Warm Ivory, Midnight Luxury, Emerald Estate, Burgundy Manor, Rosewood, Charcoal & Gold, Lavender Luxe, Autumn Oak, and Winter Frost.
+
+Selecting any theme from the dropdown **or its visual swatch automatically changes BOTH the primary and accent color inputs** to a coordinated palette. The preview updates immediately. The Owner may adjust either color afterward and retain that custom pairing in a saved draft; reopening a saved draft does not overwrite custom colors. **Reset to theme colors** restores the selected theme's coordinated pair.
+
+Published theme IDs are server-allowlisted and applied only to the homepage. Section surfaces use a complementary tone for the selected theme, while accent details, buttons and headings use the published colors. The normal Save Draft → Publish Homepage workflow still applies. Existing content, selected theme, and other published settings remain unchanged until the Owner actively publishes.
+
 ### Security / consistency
 
 The public `GET /functions/v1/brickivy-homepage` returns **published data only**. Authenticated `POST` requests must pass Supabase JWT validation plus a live Brick & Ivy Discord Owner role check. Only the Owner may load drafts, save, publish, reset or restore defaults; the URL is not a shortcut around that authorization.
