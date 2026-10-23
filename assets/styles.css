@@ -834,3 +834,7 @@ html[data-ui-theme="dark"] .property-inquiry-cta{background:#43795b;color:#fff!i
 html[data-ui-theme="dark"] .property-inquiry-cta:hover{background:#55916f}
 @media(max-width:600px){.property-inquiry-cta{padding:13px 14px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.property-inquiry-cta{transition:none}}
+
+.property-contact-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.property-contact-actions .button{white-space:normal;text-align:center}
+@media(max-width:600px){.property-contact-actions{width:100%}.property-contact-actions .button{flex:1 1 100%;justify-content:center}}
