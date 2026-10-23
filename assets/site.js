@@ -73,7 +73,7 @@ async function hydrateHomepageContent(){
   });
   // The server only accepts approved values; keep a client allowlist as well.
   const designFields=[
-   ['homeTheme','homeTheme',['classic','forest','coastal','slate','warm']],
+   ['homeTheme','homeTheme',['classic','forest','coastal','slate','warm','midnight','emerald','burgundy','blush','charcoal','lavender','autumn','winter']],
    ['heroLayout','homeHeroLayout',['split','stacked','image-focus']],
    ['featuredLayout','homeFeaturedLayout',['three','two','compact']],
    ['neighborhoodLayout','homeNeighborhoodLayout',['cards','compact']],
