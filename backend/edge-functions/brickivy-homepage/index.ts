@@ -35,7 +35,7 @@ const textKeys=Object.keys(DEFAULTS).filter(key=>typeof DEFAULTS[key as Field]==
 const imageKeys=new Set(["heroImage","lsImage","sandyImage","paletoImage","aboutImage"]);
 const toggleKeys=Object.keys(DEFAULTS).filter(key=>typeof DEFAULTS[key as Field]==="boolean");
 const enumFields:Record<string,string[]>={
- homeTheme:["classic","forest","coastal","slate","warm"],
+ homeTheme:["classic","forest","coastal","slate","warm","midnight","emerald","burgundy","blush","charcoal","lavender","autumn","winter"],
  heroLayout:["split","stacked","image-focus"],
  featuredLayout:["three","two","compact"],
  neighborhoodLayout:["cards","compact"],
