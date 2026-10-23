@@ -4,7 +4,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions and Owner-controlled publishing/featured listings are active; public inquiries remain future work.
+**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions and Owner-controlled publishing/featured listings are active; the private property inquiry pipeline and staff inbox are deployed (Discord delivery requires a configured webhook and an Owner test).
 
 ## Pages
 
@@ -18,6 +18,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `manage-permissions.html` — Owner-only per-Realtor permission toggles for property descriptions, weekly rent, regions, storage, reservation changes, publishing, featured homes and photo management.
 - `manage-homepage.html` — Owner-only homepage editing studio with private drafts, live preview, publish and restore controls.
 - `manage-history.html` — Owner-only, searchable website audit timeline with the option to restore prior homepage publications into a private draft.
+- `manage-inquiries.html` — private property inquiry inbox for Owners and Realtors granted individual inquiry permissions; includes an Owner-only Discord test.
 
 ## Live Owner Homepage Editor and financial visibility
 
@@ -178,9 +179,9 @@ The **public Realtor endpoint now performs enrichment server-side**, rather than
 
 ## Remaining work and acceptance tests
 
-- **Property inquiries / contact workflow:** Not yet implemented. A future contact or inquiry form and an Owner/Realtor response queue would require a new privacy-safe API, storage rules, spam controls, and dedicated individual `handle inquiries` permissions. Current property pages link visitors to the Realtor directory.
+- **Property inquiries:** Public listing detail pages now include an inquiry form. Requests are verified against current OPFW company stock, saved in a private RLS-protected table, and optionally posted to a private Discord webhook with controlled role mentions. Owner and individually authorized Realtors manage the inbox. See [inquiry setup and acceptance tests](backend/PROPERTY-INQUIRIES.md).
 - **Live availability QA:** Confirm the separate game-server token successfully reads authorized character status and that active Realtor badges match their precise character. Until verified, `unknown` is expected when upstream enrichment fails.
-- **End-to-end verification:** Test public inventory/occupancy status, publishing, galleries and homepage themes on desktop/mobile; test Owner and restricted Realtor accounts, including revoked permissions and direct API denial. The presence of active functions or HTTP 200 logs does not replace these checks.
+- **End-to-end verification:** Test public inventory/occupancy status, publishing, galleries, homepage themes and a sample inquiry on desktop/mobile; verify the Discord Owner test button, delivered role ping and private inbox updates; test Owner and restricted Realtor accounts, including revoked permissions and direct API denial. The presence of active functions or HTTP 200 logs does not replace these checks.
 - **Documentation:** Some older backend guides still describe previous rollout stages. Refer to actual GitHub code, deployed function versions, database state and current logs before changing configuration.
 
 Security invariant: OPFW bearer tokens, Discord OAuth client secrets, service-role keys, renter identities and private player details must never enter GitHub Pages, public JSON, or chat messages.
