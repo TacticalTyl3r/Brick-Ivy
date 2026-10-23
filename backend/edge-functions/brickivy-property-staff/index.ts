@@ -130,12 +130,48 @@ Deno.serve(async(req:Request)=>{
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
     const action=(input as Record<string,unknown>).action;
-    if(!["list","saveWeeklyCost","setArea","setReservation","setStorage","setDescription"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
-    if(["saveWeeklyCost","setArea","setStorage","setDescription"].includes(String(action))&&!owner)return response({error:"Owner role required for this action"},403,cors);
+    if(!["list","saveWeeklyCost","setArea","setReservation","setStorage","setDescription","setPublished","setFeatured"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
+    if(["saveWeeklyCost","setArea","setStorage","setDescription","setPublished","setFeatured"].includes(String(action))&&!owner)return response({error:"Owner role required for this action"},403,cors);
     // Each staff request fetches an up-to-date OPFW company snapshot.
     const {rows,rentalAvailable}=await stock(opfwToken);
     const properties=rows.filter(r=>pid(r.property_id)!=="");
     const inputData=input as Record<string,unknown>;
+    if(action==="setPublished"||action==="setFeatured"){
+      const propertyId=pid(inputData.propertyId);
+      if(!propertyId||!properties.some(row=>pid(row.property_id)===propertyId)){
+        return response({error:"This property is not currently in Brick & Ivy's company stock"},404,cors);
+      }
+      const targetValue=action==="setPublished"?inputData.published:inputData.featured;
+      if(typeof targetValue!=="boolean"){
+        return response({error:"Choose a valid publishing or featured setting"},400,cors);
+      }
+      const {data:before,error:readError}=await db.from("brickivy_property_listing_settings")
+        .select("area,reserved,description,published,featured").eq("property_id",propertyId).maybeSingle();
+      if(readError)throw new Error("Unable to load current publishing settings");
+      const previous={published:before?.published!==false,featured:before?.featured===true};
+      let published=previous.published,featured=previous.featured;
+      if(action==="setPublished"){
+        published=targetValue;
+        if(!published)featured=false;
+      }else{
+        if(targetValue&&!published)return response({error:"Publish this property before featuring it"},409,cors);
+        featured=targetValue;
+      }
+      const {error:writeError}=await db.from("brickivy_property_listing_settings").upsert({
+        property_id:propertyId,area:before?.area||"",reserved:before?.reserved===true,
+        description:before?.description||"",published,featured,
+        updated_at:new Date().toISOString(),updated_by:user.id
+      },{onConflict:"property_id"});
+      if(writeError)throw new Error("Unable to save website publishing settings");
+      const {error:auditError}=await db.from("brickivy_property_listing_audit").insert({
+        actor:user.id,property_id:propertyId,
+        action:action==="setPublished"?"set_published":"set_featured",
+        previous,updated:{published,featured}
+      });
+      if(auditError)console.error("Brick & Ivy publishing audit failed");
+      return response({success:true,propertyId,published,featured,
+        auditRecorded:!auditError,publicFeedRefreshSeconds:120},200,cors);
+    }
     if(action==="setDescription"){
       const propertyId=pid(inputData.propertyId);
       if(!propertyId||!properties.some(row=>pid(row.property_id)===propertyId)){
@@ -145,12 +181,13 @@ Deno.serve(async(req:Request)=>{
       const description=inputData.description.trim().replace(/\r\n?/g,"\n");
       if(description.length>3000)return response({error:"Property overviews must be 3,000 characters or fewer"},400,cors);
       const {data:before,error:readError}=await db.from("brickivy_property_listing_settings")
-        .select("area,reserved,description").eq("property_id",propertyId).maybeSingle();
+        .select("area,reserved,description,published,featured").eq("property_id",propertyId).maybeSingle();
       if(readError)throw new Error("Unable to read property overview");
       const previousDescription=before?.description||"";
       const {error:writeError}=await db.from("brickivy_property_listing_settings").upsert({
         property_id:propertyId,area:before?.area||"",reserved:before?.reserved===true,
-        description,updated_at:new Date().toISOString(),updated_by:user.id
+        description,published:before?.published!==false,featured:before?.featured===true,
+        updated_at:new Date().toISOString(),updated_by:user.id
       },{onConflict:"property_id"});
       if(writeError)throw new Error("Unable to save property overview");
       const {error:auditError}=await db.from("brickivy_property_listing_audit").insert({
@@ -165,7 +202,7 @@ Deno.serve(async(req:Request)=>{
       const target=properties.find(row=>pid(row.property_id)===propertyId);
       if(!target)return response({error:"This property is not currently in Brick & Ivy's company stock"},404,cors);
       const {data:before,error:readError}=await db.from("brickivy_property_listing_settings")
-        .select("area,reserved,description").eq("property_id",propertyId).maybeSingle();
+        .select("area,reserved,description,published,featured").eq("property_id",propertyId).maybeSingle();
       if(readError)throw new Error("Unable to load listing settings");
       let area=before?.area||"", reserved=before?.reserved===true;
       const previous={area,reserved};
@@ -185,6 +222,7 @@ Deno.serve(async(req:Request)=>{
       }
       const {error:writeError}=await db.from("brickivy_property_listing_settings").upsert({
         property_id:propertyId,area,reserved,description:before?.description||"",
+        published:before?.published!==false,featured:before?.featured===true,
         updated_at:new Date().toISOString(),updated_by:user.id
       },{onConflict:"property_id"});
       if(writeError)throw new Error("Unable to save property setting");
@@ -264,7 +302,7 @@ Deno.serve(async(req:Request)=>{
     }
     const [listingMeta,storageMeta]=await Promise.all([
       ids.length?db.from("brickivy_property_listing_settings")
-        .select("property_id,area,reserved,description").in("property_id",ids):
+        .select("property_id,area,reserved,description,published,featured").in("property_id",ids):
         Promise.resolve({data:[],error:null}),
       db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
         .in("property_type",[...new Set(properties.map(x=>str(x.property_type,80)))])
@@ -291,6 +329,8 @@ Deno.serve(async(req:Request)=>{
         id:propertyId,blockId:str(r.block_id,80),name:str(r.property_name),address:str(r.property_address,200),
         type:str(r.property_type,80),area:settings.get(propertyId)?.area||"",
         description:str(settings.get(propertyId)?.description,3000),
+        published:settings.get(propertyId)?.published!==false,
+        featured:settings.get(propertyId)?.featured===true,
         reserved:settings.get(propertyId)?.reserved===true,
         storageKg:storedTypes.get(str(r.property_type,80))?.capacity_kg??null,
         storageSlots:storedTypes.get(str(r.property_type,80))?.capacity_slots??null,
