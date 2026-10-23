@@ -62,8 +62,8 @@ async function reload(){
   el("inquiryDiscordTestArea").hidden=result.role!=="owner";
   el("inquiryDiscordTest").disabled=result.discordConfigured!==true;
   el("inquiryDiscordState").textContent=result.discordConfigured===false?
-   "Discord webhook is not configured. Inquiries are still saved privately.":
-   result.discordConfigured===true?"Discord webhook configured.":"Notifications are managed by the Owner.";
+   "Discord App notification channel is not configured. Inquiries are still saved privately.":
+   result.discordConfigured===true?"Sending inquiry alerts through the Brick & Ivy Discord App (bot).":"Notifications are managed by the Owner.";
   info("Private inquiry inbox loaded. "+inquiries.length+" inquiries.");
   render();
  }catch(error){info(error.message||"Unable to open the inquiry inbox.")}
@@ -79,8 +79,8 @@ async function init(){
   el("inquiryStaffSignOut").addEventListener("click",async()=>{await client.auth.signOut();inquiries=[];await reload()});
   el("inquiryStaffRefresh").addEventListener("click",reload);
   el("inquiryDiscordTest").addEventListener("click",async()=>{
-   if(!confirm("Send a clearly labeled test message and Realtor role mention to the configured Discord channel?"))return;
-   const button=el("inquiryDiscordTest");button.disabled=true;info("Sending Discord test…");
+   if(!confirm("Send a labeled test message from the Brick & Ivy App, mentioning the Realtor role in the existing notification channel?"))return;
+   const button=el("inquiryDiscordTest");button.disabled=true;info("Sending test through Brick & Ivy App…");
    try{const data=await api("testInquiryDiscord");info(data.message||"Discord test sent.");}
    catch(error){info(error.message||"Discord test could not be delivered.");}
    finally{button.disabled=false}
