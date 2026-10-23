@@ -4,7 +4,7 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 
 **Website:** https://brickandivyhomes.com  
 **Hosting:** GitHub Pages (branch `main`, repository root)  
-**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions are active; advanced publishing controls remain future work.
+**Status:** Live OPFW property listings, Discord staff access, Owner-managed Realtor profiles, weekly rent adjustments, reservations, regions, storage presets, and secure multi-image property galleries are deployed. OPFW bearer credentials are stored in Supabase secrets. Owner-written property descriptions and Owner-controlled publishing/featured listings are active; public inquiries remain future work.
 
 ## Pages
 
@@ -14,7 +14,11 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
 - `admin.html` — Discord authenticated staff portal with live verification of guild roles.
 - `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
-- `manage-properties.html` — private rental dashboard: Owners manage region, weekly rent and storage-by-type; Owners and Realtors can reserve/unreserve homes.
+- `manage-properties.html` — private property management: Owners publish/unpublish listings, feature homes on the homepage, and manage public overviews, photos, region, weekly rent and storage-by-type; Owners and Realtors can reserve/unreserve homes.
+
+## Publishing and featured homes
+
+Each Brick & Ivy property is published by default. Verified Owners can unpublish a property (removes its public record and detail URL without deleting staff data) or mark published homes as Featured from Property Management. The homepage prioritizes featured homes, then fills up to three slots with other published properties. Realtors can see publication status but cannot change it. Details: [Property publishing setup and tests](backend/PROPERTY-PUBLISHING.md).
 
 ## Public data contract
 
