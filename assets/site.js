@@ -51,11 +51,11 @@ async function hydrateHomepageContent(){
   if(!response.ok)throw Error('Homepage content API HTTP '+response.status);
   const payload=await response.json(),fields=payload?.content;
   if(!fields||typeof fields!=='object'||Array.isArray(fields))throw Error('Unexpected homepage data');
-  $('[data-home-text]').forEach(element=>{
+  $$('[data-home-text]').forEach(element=>{
     const field=element.dataset.homeText;
     if(typeof fields[field]==='string')element.textContent=fields[field];
   });
-  $('[data-home-image]').forEach(element=>{
+  $$('[data-home-image]').forEach(element=>{
     const value=fields[element.dataset.homeImage];
     if(typeof value!=='string'||!value)return;
     try{
@@ -63,11 +63,11 @@ async function hydrateHomepageContent(){
       if(image.protocol==='https:'&&!image.username&&!image.password)element.src=image.href;
     }catch{}
   });
-  $('[data-home-alt]').forEach(element=>{
+  $$('[data-home-alt]').forEach(element=>{
     const value=fields[element.dataset.homeAlt];
     if(typeof value==='string')element.alt=value;
   });
-  $('[data-home-section]').forEach(element=>{
+  $$('[data-home-section]').forEach(element=>{
     const value=fields[element.dataset.homeSection];
     if(typeof value==='boolean')element.hidden=!value;
   });
