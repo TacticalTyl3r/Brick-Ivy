@@ -169,15 +169,12 @@ Deno.serve(async request=>{
  const {data:insert,error}=await db.from("brickivy_property_inquiries").insert({property_id:id,property_name:String(property.property_name||id).slice(0,160),property_address:String(property.property_address||"").slice(0,200),character_name:name,in_game_phone:phone,discord_contact:String(data.discordContact||"").slice(0,80),message,source_hash:sourceHash}).select("id").single();
  if(error||!insert)return reply({error:"Could not save inquiry"},503);
 
- const roles=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968")
-  .split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
  const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
  const {weeklyRent,availability}=await getInquiryListingDetails(url,id);
  const listingUrl="https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
  const inquiryPayload={
-  // Role mention must be in content; Discord does not ping roles from embeds.
-  content:roles.map(role=>"<@&"+role+">").join(" ")||undefined,
-  allowed_mentions:{parse:[],roles},
+  // New inquiries are notifications only. Only deliberate Realtor assignment pings.
+  allowed_mentions:{parse:[]},
   embeds:[{
    author:{name:"BRICK & IVY  ·  REAL ESTATE"},
    title:"🏡 New Property Inquiry",
