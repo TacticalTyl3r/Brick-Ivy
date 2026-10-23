@@ -165,13 +165,13 @@ async function actionClick(event){
  try{
   if(button.hasAttribute("data-inquiry-claim")){
    info("Claiming inquiry…");const result=await api("claimInquiry",{id:item.id});
-   successMessage="Inquiry claimed."+(result.notification==="failed"?" Discord mention could not be delivered.":"");
+   successMessage="Inquiry claimed."+(result.notification==="failed"?" The non-pinging Discord claim update could not be posted.":"");
   }else{
    const data={id:item.id,status:card.querySelector("[data-inquiry-status]").value,
     assignedDiscordId:card.querySelector("[data-inquiry-assignee]").value,
     note:card.querySelector("[data-inquiry-note]").value};
    info("Saving inquiry…");const result=await api("updateInquiry",data);
-   successMessage="Inquiry saved."+(result.notification==="failed"?" The Realtor assignment notification could not be delivered.":"")+(result.statusNotification==="failed"?" The Discord status update could not be posted.":"");
+   successMessage="Inquiry saved."+(result.notification==="failed"?" The Realtor assignment notification could not be delivered.":"")+(result.statusNotification==="sent"?" Discord status update posted.":result.statusNotification==="failed"?" The Discord status update could not be posted.":"");
   }
   await reload();
   info(successMessage);
