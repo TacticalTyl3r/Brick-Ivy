@@ -166,7 +166,7 @@ async function loadProperties(token:string):Promise<unknown[]> {
         .select("property_id,weekly_cost_override").in("property_id",listings.map(p=>p.id));
       if(error)throw new Error("Property pricing lookup failed");
       const [propertyMeta,storageMeta,photoMeta]=await Promise.all([
-        db.from("brickivy_property_listing_settings").select("property_id,area,reserved,description").in("property_id",listings.map(p=>p.id)),
+        db.from("brickivy_property_listing_settings").select("property_id,area,reserved,description,published,featured").in("property_id",listings.map(p=>p.id)),
         db.from("brickivy_property_type_storage").select("property_type,capacity_kg,capacity_slots")
           .in("property_type",[...new Set(listings.map(p=>p.type))]),
         db.from("brickivy_property_photos").select("property_id,object_key,is_cover,display_order,id")
@@ -195,6 +195,8 @@ async function loadProperties(token:string):Promise<unknown[]> {
         const detail=details.get(item.id);
         item.area=detail?.area || "";
         item.description=typeof detail?.description==="string"?detail.description.trim().slice(0,3000):"";
+        item.published=detail?.published!==false;
+        item.featured=item.published&&detail?.featured===true;
         const storage=capacities.get(item.type);
         item.storageKg=storage?.capacity_kg===null||storage?.capacity_kg===undefined?null:safePrice(storage.capacity_kg);
         const slots=Number(storage?.capacity_slots);
@@ -213,8 +215,11 @@ async function loadProperties(token:string):Promise<unknown[]> {
         // If OPFW rental data is unreadable, don't falsely call it available.
       }
     }
-    cached={items:listings,until:Date.now()+CACHE_TIME_MS};
-    return listings;
+    // Hide Owner-unpublished homes at the API boundary, including direct-detail lookups.
+    // Do not return their IDs, prices, photos or any other listing metadata publicly.
+    const visibleListings=listings.filter(item=>item.published===true);
+    cached={items:visibleListings,until:Date.now()+CACHE_TIME_MS};
+    return visibleListings;
   })();
   try{return await inflight}finally{inflight=null}
 }
