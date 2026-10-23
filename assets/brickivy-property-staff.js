@@ -260,12 +260,17 @@ function renderStorage(){
  }).map(entry=>{
    const su=entry.capacityKg===null||entry.capacityKg===undefined?'':String(entry.capacityKg);
    const objects=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
+   const owned=Number.isSafeInteger(Number(entry.propertyCount))?Number(entry.propertyCount):0;
+   const ownership=owned>0?owned+' '+(owned===1?'property':'properties')+' in inventory':'Not currently in inventory';
+   const configured=entry.capacityKg!==null&&entry.capacityKg!==undefined||entry.capacitySlots!==null&&entry.capacitySlots!==undefined;
    return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
-     '<div><h3>'+safe(interiorHeading(entry.type))+'</h3><small>Applies to every property using this OPFW interior code</small></div>'+
+     '<div><h3>'+safe(interiorHeading(entry.type))+'</h3>'+
+     '<small>'+safe(ownership)+' · '+(configured?'Preset configured':'Preset not set')+'</small>'+
+     '<small>Applies automatically to all properties with this interior, including future acquisitions.</small></div>'+
      '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(su)+'" placeholder="Not set" '+(allowed('can_manage_storage')?'':'disabled')+'></label>'+
      '<label class="field"><span>Objects (furniture pieces)</span><input type="number" min="0" step="1" max="1000000" name="objects" value="'+safe(objects)+'" placeholder="Not set" '+(allowed('can_manage_storage')?'':'disabled')+'></label>'+
      (allowed('can_manage_storage')?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
- }).join(''):'<p>No property types were returned from OPFW.</p>';
+ }).join(''):'<p>Unable to load the interior storage presets. Refresh the page and try again.</p>';
 }
 function renderFinance(){
  const panel=byId('brickivyOwnerFinancials');
