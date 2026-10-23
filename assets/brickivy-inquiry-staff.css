@@ -108,3 +108,59 @@ html[data-ui-theme="dark"] .bi-followup-tag.is-urgent{background:#5b3834;color:#
 @media(max-width:950px){.bi-inbox-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.bi-inbox-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
  .bi-inbox-retry{align-items:stretch;flex-direction:column}}
+
+
+/* Inquiry Pulse · subtle six-state palette */
+.bi-portal-pulse-grid>div{
+  background:var(--pulse-bg,#f1f3ef);
+  border-color:var(--pulse-border,#dce3dd);
+  border-left:3px solid var(--pulse-accent,#7c9684);
+}
+.bi-portal-pulse-grid>div strong{color:var(--pulse-number,#31533e)}
+.bi-portal-pulse-grid>div span{color:var(--pulse-label,#63746b)}
+/* Blue · new inquiries */
+.bi-portal-pulse-grid>div:nth-child(1){
+  --pulse-bg:#eef4f7;--pulse-border:#d6e3e9;--pulse-accent:#83a9bb;--pulse-number:#365b6d
+}
+/* Champagne gold · needs attention */
+.bi-portal-pulse-grid>div:nth-child(2){
+  --pulse-bg:#faf5e9;--pulse-border:#e9ddbf;--pulse-accent:#c4a86d;--pulse-number:#806333
+}
+/* Muted rose · urgent */
+.bi-portal-pulse-grid>div:nth-child(3){
+  --pulse-bg:#faf0ef;--pulse-border:#efd9d7;--pulse-accent:#c99697;--pulse-number:#894c51
+}
+/* Soft slate · unassigned */
+.bi-portal-pulse-grid>div:nth-child(4){
+  --pulse-bg:#f0f3f1;--pulse-border:#dce3df;--pulse-accent:#9aaba2;--pulse-number:#52685e
+}
+/* Lavender gray · awaiting customer */
+.bi-portal-pulse-grid>div:nth-child(5){
+  --pulse-bg:#f4f1f8;--pulse-border:#e3dceb;--pulse-accent:#a99abd;--pulse-number:#685a7e
+}
+/* Sage · closed */
+.bi-portal-pulse-grid>div:nth-child(6){
+  --pulse-bg:#eef5ed;--pulse-border:#d7e6d4;--pulse-accent:#8eaf8e;--pulse-number:#3e704a
+}
+/* The same status hues, softened against the dark appearance. */
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div{
+  --pulse-label:#c5d3c8
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(1){
+  --pulse-bg:#223640;--pulse-border:#3d5660;--pulse-accent:#83a9bb;--pulse-number:#c1deec
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(2){
+  --pulse-bg:#3a3327;--pulse-border:#61553c;--pulse-accent:#c4a86d;--pulse-number:#f0daa6
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(3){
+  --pulse-bg:#3e2c30;--pulse-border:#69484c;--pulse-accent:#d69a9a;--pulse-number:#f0bfc0
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(4){
+  --pulse-bg:#293630;--pulse-border:#485c50;--pulse-accent:#9aaba2;--pulse-number:#d2dfd7
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(5){
+  --pulse-bg:#342e3e;--pulse-border:#514760;--pulse-accent:#afa0c4;--pulse-number:#dbcced
+}
+html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(6){
+  --pulse-bg:#273b2d;--pulse-border:#49634c;--pulse-accent:#90b791;--pulse-number:#c3e4c4
+}
