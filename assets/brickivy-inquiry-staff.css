@@ -91,3 +91,20 @@
  .bi-portal-pulse{padding:16px}
  .bi-inbox-template{grid-column:auto}
 }
+
+/* Quiet staff follow-up reminders and safe Owner notification recovery */
+.bi-followup-explainer{font-size:12px;line-height:1.65;color:var(--muted,#667868);
+ margin:14px 0;padding:12px 15px;border-left:3px solid #a88745;background:rgba(170,129,53,.08)}
+.bi-followup-tag{display:inline-block;font-size:11px;line-height:1.5;font-weight:750;margin-top:12px;
+ padding:7px 10px;background:#f5e2ba;color:#644c1c;border:1px solid #dbb76d}
+.bi-followup-tag.is-urgent{background:#f8dbd4;color:#873e30;border-color:#d99589}
+.bi-inbox-retry{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:7px}
+.bi-inbox-retry small{font-size:11px}
+.bi-inbox-retry button{font-size:11px;padding:9px 12px;min-height:39px}
+.bi-inbox-retry button:disabled{cursor:not-allowed;opacity:.6}
+html[data-ui-theme="dark"] .bi-followup-tag{background:#57472f;color:#f9e1a5;border-color:#806139}
+html[data-ui-theme="dark"] .bi-followup-tag.is-urgent{background:#5b3834;color:#f5c7bd;border-color:#845047}
+.bi-inbox-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:950px){.bi-inbox-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.bi-inbox-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bi-inbox-retry{align-items:stretch;flex-direction:column}}
