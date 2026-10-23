@@ -40,7 +40,9 @@ function incomeDisplay(value){
  return usd(0);
 }
 
-let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy=false;
+let supabase=null,roster=[],storageTypes=[],role=null,rentalAvailable=false,busy=false,finance=null;
+let permissions={};
+const allowed=key=>role==='owner'||permissions[key]===true;
 const galleries=new Map(),openedGalleries=new Set(),loadedGalleries=new Set();
 function toggle(id,value){const el=byId(id);if(el)el.hidden=!value}
 function status(text){const el=byId('propertyStaffStatus');if(el)el.textContent=text}
@@ -92,7 +94,7 @@ async function photosApi(action,propertyId,payload={}){
  return data;
 }
 function galleryMarkup(propertyId){
- const isOwner=role==='owner',expanded=openedGalleries.has(propertyId);
+ const isOwner=allowed('can_manage_photos'),expanded=openedGalleries.has(propertyId);
  if(!expanded)return '<div class="property-gallery-disclosure"><button type="button" class="button outline" data-gallery-toggle="'+safe(propertyId)+'">Manage photos ▸</button></div>';
  const photos=galleries.get(propertyId)||[];
  const loaded=loadedGalleries.has(propertyId);
@@ -173,7 +175,7 @@ function propertyCard(p){
    '<strong>'+(rented?'Unavailable':p.reserved?'Reserved':unknown?'In portfolio':'Available')+'</strong></div>'+
    '<div><span class="property-management-label">Storage preset</span>'+
    '<strong>'+([p.storageKg!==null&&p.storageKg!==undefined?Number(p.storageKg)+' SU':'',p.storageSlots!==null&&p.storageSlots!==undefined?Number(p.storageSlots).toLocaleString()+' objects (furniture pieces)':''].filter(Boolean).join(' · ')||'Not configured')+'</strong></div>'+
-   (isOwner?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
+   (allowed('can_edit_area')?'<label class="field"><span>Region</span><select data-property-area="'+safe(p.id)+'">'+regionOptions+'</select></label>':'')+
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
    (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
    (p.reserved?'Remove reservation':'Mark Reserved')+'</button></div>';
@@ -184,14 +186,14 @@ function propertyCard(p){
    '<div><span class="property-management-label">Homepage feature</span>'+
    '<strong>'+(isFeatured?'Featured':'Not featured')+'</strong>'+
    '<small>'+(isFeatured?'Prioritized in the homepage collection':'Not prioritized on the homepage')+'</small></div></div>'+
-   (isOwner?'<div class="property-publishing-actions">'+
+   (allowed('can_publish')||allowed('can_feature')?'<div class="property-publishing-actions">'+
     '<button type="button" class="button '+(isPublished?'outline':'dark')+'" data-publish-property="'+safe(p.id)+'">'+(isPublished?'Unpublish property':'Publish property')+'</button>'+
     '<button type="button" class="button '+(isFeatured?'outline':'dark')+'" data-feature-property="'+safe(p.id)+'" '+(!isPublished?'disabled title="Publish this property first"':'')+'>'+
     (isFeatured?'Remove featured':'Feature on homepage')+'</button></div>':'')+
    (isPublished?'<a class="property-public-preview" href="property.html?id='+encodeURIComponent(String(p.id))+'" target="_blank" rel="noopener noreferrer">View public listing ↗</a>':'')+
    '</section>';
  const currentDescription=String(p.description||'');
- const overviewEditor=isOwner?
+ const overviewEditor=allowed('can_edit_description')?
    '<details class="property-overview-editor"><summary>Edit public property overview'+(currentDescription?' · Custom description saved':'')+'</summary>'+
    '<form data-description-form="'+safe(p.id)+'">'+
    '<label for="overview-'+safe(p.id)+'">Describe this property for visitors</label>'+
@@ -200,7 +202,7 @@ function propertyCard(p){
    '<button type="submit" class="button dark">Save overview</button></div>'+
    '</form></details>':
    (currentDescription?'<div class="property-overview-readonly"><span>Public property overview</span><p>'+safe(currentDescription)+'</p></div>':'');
- const ownerEditor=isOwner?
+ const ownerEditor=allowed('can_set_prices')?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
    '<div class="field"><label>Override weekly rent price ($)</label>'+
    '<input type="number" inputmode="decimal" min="0" max="9999999999.99" step="0.01" data-cost-input="'+safe(p.id)+'" '+
@@ -208,7 +210,7 @@ function propertyCard(p){
    '<div class="property-private-editor-actions"><button class="button dark" type="submit">Save value</button>'+
    '<button class="button outline" type="button" data-reset-price="'+safe(p.id)+'" '+(!hasOverride?'disabled':'')+'>Use OPFW value</button></div>'+
    '<small>Affects the Brick &amp; Ivy website only. This does not change the in-game weekly charge.</small>'+
-   '</form>':'<p class="property-private-subtle">Only an Owner can change website weekly values.</p>';
+   '</form>':'<p class="property-private-subtle">Weekly rent editing requires Owner permission.</p>';
  return '<article class="property-private-card">'+
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
@@ -260,9 +262,9 @@ function renderStorage(){
    const objects=entry.capacitySlots===null||entry.capacitySlots===undefined?'':String(entry.capacitySlots);
    return '<form class="property-storage-type" data-storage-type="'+safe(entry.type)+'">'+
      '<div><h3>'+safe(interiorHeading(entry.type))+'</h3><small>Applies to every property using this OPFW interior code</small></div>'+
-     '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(su)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
-     '<label class="field"><span>Objects (furniture pieces)</span><input type="number" min="0" step="1" max="1000000" name="objects" value="'+safe(objects)+'" placeholder="Not set" '+(role==='owner'?'':'disabled')+'></label>'+
-     (role==='owner'?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
+     '<label class="field"><span>Storage weight (SU)</span><input type="number" min="0" step="0.01" max="9999999999.99" name="weight" value="'+safe(su)+'" placeholder="Not set" '+(allowed('can_manage_storage')?'':'disabled')+'></label>'+
+     '<label class="field"><span>Objects (furniture pieces)</span><input type="number" min="0" step="1" max="1000000" name="objects" value="'+safe(objects)+'" placeholder="Not set" '+(allowed('can_manage_storage')?'':'disabled')+'></label>'+
+     (allowed('can_manage_storage')?'<button class="button dark" type="submit">Save storage</button>':'')+'</form>';
  }).join(''):'<p>No property types were returned from OPFW.</p>';
 }
 async function saveSetting(action,data){
@@ -313,6 +315,8 @@ async function load(){
  try{
    const result=await api('list');
    role=result.role;
+   permissions=result.permissions||{};
+   finance=role==='owner'?result.financialSummary:null;
    rentalAvailable=result.rentalAvailable===true;
    roster=Array.isArray(result.properties)?result.properties:[];
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
@@ -322,11 +326,12 @@ async function load(){
    feedback(roster.length+' company properties loaded. Website values may take up to 90 seconds to refresh after a save.');
    render();
    renderStorage();
+   renderFinance();
  }catch(error){feedback(error.message||'Unable to load property records');toggle('propertyStaffContent',false);status(error.message||'Access denied')}
  finally{busy=false;if(button)button.disabled=false}
 }
 async function saveCost(id,value){
- if(busy||role!=='owner')return;
+ if(busy||!allowed('can_set_prices'))return;
  busy=true;
  const panel=byId('propertyStaffGrid'),button=byId('propertyStaffRefresh');
  if(panel)panel.setAttribute('aria-busy','true');
@@ -347,7 +352,7 @@ async function account(){
  const {data:{session}}=await supabase.auth.getSession();
  toggle('propertyStaffLogin',!session);
  toggle('propertyStaffSession',Boolean(session));
- if(!session){role=null;status('Sign in with Discord to view private Brick & Ivy rental details.');return;}
+ if(!session){role=null;permissions={};finance=null;renderFinance();status('Sign in with Discord to view private Brick & Ivy rental details.');return;}
  await load();
 }
 async function setup(){
@@ -371,7 +376,7 @@ async function setup(){
      const overview=event.target.closest('[data-description-form]');
      if(overview){
        event.preventDefault();
-       if(role!=='owner'||busy)return;
+       if(!allowed('can_edit_description')||busy)return;
        const text=overview.querySelector('[data-description-input]');
        if(!text||!text.reportValidity())return;
        await saveSetting('setDescription',{propertyId:overview.dataset.descriptionForm,description:text.value});
@@ -379,7 +384,7 @@ async function setup(){
      }
      const form=event.target.closest('[data-price-form]');if(!form)return;
      event.preventDefault();
-     if(role!=='owner'||busy)return;
+     if(!allowed('can_edit_description')||busy)return;
      const id=form.dataset.priceForm;
      const input=form.querySelector('[data-cost-input]');
      if(!input||!input.value.trim()){feedback('Enter a value, or use the button to restore the original OPFW value.');return;}
@@ -388,7 +393,7 @@ async function setup(){
    });
    byId('propertyStaffGrid')?.addEventListener('click',async event=>{
      const publish=event.target.closest('[data-publish-property]');
-     if(publish&&role==='owner'&&!busy){
+     if(publish&&allowed('can_publish')&&!busy){
        const id=publish.dataset.publishProperty,p=roster.find(x=>x.id===id);
        if(p){
          const next=p.published===false;
@@ -399,7 +404,7 @@ async function setup(){
        return;
      }
      const feature=event.target.closest('[data-feature-property]');
-     if(feature&&role==='owner'&&!busy){
+     if(feature&&allowed('can_feature')&&!busy){
        const id=feature.dataset.featureProperty,p=roster.find(x=>x.id===id);
        if(p&&p.published!==false){
          await saveSetting('setFeatured',{propertyId:id,featured:!(p.featured===true)});
@@ -409,15 +414,15 @@ async function setup(){
      const gallery=event.target.closest('[data-gallery-toggle]');
      if(gallery){if(!busy)await toggleGallery(gallery.dataset.galleryToggle);return;}
      const cover=event.target.closest('[data-photo-cover]');
-     if(cover&&role==='owner'){await mutateGallery('cover',cover.dataset.photoProperty,{photoId:cover.dataset.photoCover});return;}
+     if(cover&&allowed('can_manage_photos')){await mutateGallery('cover',cover.dataset.photoProperty,{photoId:cover.dataset.photoCover});return;}
      const remove=event.target.closest('[data-photo-delete]');
-     if(remove&&role==='owner'){
+     if(remove&&allowed('can_manage_photos')){
        if(confirm('Remove this property photo? It will no longer appear publicly.'))
          await mutateGallery('delete',remove.dataset.photoProperty,{photoId:remove.dataset.photoDelete});
        return;
      }
      const move=event.target.closest('[data-photo-move]');
-     if(move&&role==='owner'&&!busy){
+     if(move&&allowed('can_manage_photos')&&!busy){
        const propertyId=move.dataset.photoProperty,arr=galleries.get(propertyId)||[];
        const index=arr.findIndex(p=>p.id===move.dataset.photoMove),next=index+Number(move.dataset.photoDirection);
        if(index>=0&&next>=0&&next<arr.length){
@@ -430,16 +435,16 @@ async function setup(){
      const reserve=event.target.closest('[data-toggle-reserve]');
      if(reserve&&!busy){
        const current=roster.find(p=>p.id===reserve.dataset.toggleReserve);
-       if(current && (role==='owner'||role==='realtor'))
+       if(current && allowed('can_manage_reservations'))
          await saveSetting('setReservation',{propertyId:current.id,reserved:!current.reserved});
        return;
      }
      const reset=event.target.closest('[data-reset-price]');
-     if(reset&&role==='owner'&&!busy)await saveCost(reset.dataset.resetPrice,null);
+     if(reset&&allowed('can_set_prices')&&!busy)await saveCost(reset.dataset.resetPrice,null);
    });
    byId('propertyStaffGrid')?.addEventListener('change',async event=>{
      const uploader=event.target.closest('[data-gallery-upload]');
-     if(uploader&&role==='owner'&&!busy){
+     if(uploader&&allowed('can_manage_photos')&&!busy){
        const propertyId=uploader.dataset.galleryUpload,files=[...uploader.files||[]];
        if(!files.length)return;
        if(files.some(file=>file.size>6*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))){
@@ -463,13 +468,13 @@ async function setup(){
        return;
      }
      const area=event.target.closest('[data-property-area]');
-     if(area&&role==='owner'&&!busy)await saveSetting('setArea',{propertyId:area.dataset.propertyArea,area:area.value});
+     if(area&&allowed('can_edit_area')&&!busy)await saveSetting('setArea',{propertyId:area.dataset.propertyArea,area:area.value});
    });
    byId('propertyTypeStorageList')?.addEventListener('submit',async event=>{
      const form=event.target.closest('[data-storage-type]');
      if(!form)return;
      event.preventDefault();
-     if(busy||role!=='owner'||!form.reportValidity())return;
+     if(busy||!allowed('can_manage_storage')||!form.reportValidity())return;
      const su=form.elements.namedItem('weight').value.trim();
      const objects=form.elements.namedItem('objects').value.trim();
      await saveSetting('setStorage',{propertyType:form.dataset.storageType,capacityKg:su||null,capacitySlots:objects||null});
