@@ -16,6 +16,15 @@ const ORIGINS = new Set([
   "https://www.brickandivyhomes.com"
 ]);
 const FIELDS = "id,character_id,name,role_label,title,in_game_phone,discord_username,discord_user_id,photo_url,email,bio,published,display_order,updated_at";
+const PERMISSION_FIELDS=[
+ "can_edit_area","can_manage_reservations","can_edit_description","can_set_prices",
+ "can_manage_storage","can_publish","can_feature","can_manage_photos"
+] as const;
+const DEFAULT_PERMISSIONS={
+ can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
+ can_set_prices:false,can_manage_storage:false,can_publish:false,
+ can_feature:false,can_manage_photos:false
+};
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const json = (data: unknown, status = 200, headers: HeadersInit = {}) =>
@@ -130,6 +139,49 @@ Deno.serve(async request => {
     const action = body.action;
     if (action === "me") return json({role:isOwner?"owner":"realtor",displayName:account.user.user_metadata?.full_name || "Team member"},200,cors);
     if (!isOwner) return json({error:"Owner role required"},403,cors);
+    if (action === "listPermissions") {
+      const [roster,grants]=await Promise.all([
+        admin.from("brickivy_realtors").select("id,name,title,role_label,character_id,discord_user_id").order("display_order",{ascending:true}),
+        admin.from("brickivy_realtor_permissions").select("discord_user_id,"+PERMISSION_FIELDS.join(","))
+      ]);
+      if(roster.error||grants.error)throw Error("Could not load Realtor permission settings");
+      const byDiscordId=new Map((grants.data||[]).map(g=>[g.discord_user_id,g]));
+      return json({realtors:(roster.data||[]).filter(r=>r.role_label!=="Owner").map(r=>({
+        id:r.id,name:r.name,title:r.title,characterId:r.character_id,discordId:r.discord_user_id,
+        permissions:{...DEFAULT_PERMISSIONS,...(byDiscordId.get(r.discord_user_id)||{})}
+      }))},200,cors);
+    }
+    if (action === "savePermissions") {
+      const discordId=string(body.discordId,20);
+      if(!/^\d{17,20}$/.test(discordId))return json({error:"This Realtor needs a valid Discord user ID on their profile"},400,cors);
+      const selected=body.permissions;
+      if(!selected||typeof selected!=="object"||Array.isArray(selected))return json({error:"Invalid permissions"},400,cors);
+      const fields=selected as Record<string,unknown>;
+      if(Object.keys(fields).length!==PERMISSION_FIELDS.length
+        || !PERMISSION_FIELDS.every(field=>typeof fields[field]==="boolean"))return json({error:"Choose every permission before saving"},400,cors);
+      const {data:matches,error:rosterError}=await admin.from("brickivy_realtors")
+        .select("id,role_label").eq("discord_user_id",discordId);
+      if(rosterError)throw Error("Could not verify Realtor roster");
+      if(!matches?.some(r=>r.role_label==="Realtor")||matches.some(r=>r.role_label==="Owner")){
+        return json({error:"This Discord account is not an assigned Brick & Ivy Realtor"},403,cors);
+      }
+      // Require the target to still hold the Realtor guild role before granting privileges.
+      const targetRoles=await membership(discordId,botToken);
+      if(!targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID)){
+        return json({error:"This account must have the Brick & Ivy Realtor Discord role"},403,cors);
+      }
+      const {data:old,error:oldError}=await admin.from("brickivy_realtor_permissions")
+        .select(PERMISSION_FIELDS.join(",")).eq("discord_user_id",discordId).maybeSingle();
+      if(oldError)throw Error("Unable to read current permissions");
+      const incoming=Object.fromEntries(PERMISSION_FIELDS.map(field=>[field,fields[field]]));
+      const {error:writeError}=await admin.from("brickivy_realtor_permissions")
+        .upsert({discord_user_id:discordId,...incoming,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"discord_user_id"});
+      if(writeError)throw Error("Unable to save Realtor permissions");
+      const {error:auditError}=await admin.from("brickivy_realtor_permission_audit")
+        .insert({discord_user_id:discordId,actor:user.id,previous:{...DEFAULT_PERMISSIONS,...old},updated:incoming});
+      if(auditError)console.error("Realtor permission audit insert failed");
+      return json({success:true,discordId,permissions:incoming,auditRecorded:!auditError},200,cors);
+    }
     if (action === "list") {
       const {data,error:e} = await admin.from("brickivy_realtors").select(FIELDS).order("display_order",{ascending:true});
       if (e) throw e;
@@ -193,7 +245,7 @@ Deno.serve(async request => {
       const id = entry.id;
       if (id) {
         if (!validId(id)) return json({error:"Invalid profile ID"},400,cors);
-        const {data:existing,error:fetchError} = await admin.from("brickivy_realtors").select("id,role_label").eq("id",id).single();
+        const {data:existing,error:fetchError} = await admin.from("brickivy_realtors").select("id,role_label,discord_user_id").eq("id",id).single();
         if (fetchError || !existing) return json({error:"Realtor profile not found"},404,cors);
         if (existing.role_label !== "Owner" && payload.title.toLowerCase() === "owner") {
           return json({error:"Owner is a reserved position"},400,cors);
@@ -202,6 +254,12 @@ Deno.serve(async request => {
           .update({...payload,updated_by:user.id,updated_at:new Date().toISOString()})
           .eq("id",id).select(FIELDS).single();
         if (e) return json({error:e.code==="23505"?"Character ID already in use":"Unable to update Realtor"},e.code==="23505"?409:500,cors);
+        // Reassigning a profile's Discord identity must not transfer privileges to another user.
+        if(existing.role_label!=="Owner" && existing.discord_user_id && existing.discord_user_id!==payload.discord_user_id){
+          const {error:clearError}=await admin.from("brickivy_realtor_permissions")
+            .delete().eq("discord_user_id",existing.discord_user_id);
+          if(clearError)console.error("Old Realtor permission cleanup failed");
+        }
         return json({realtor:toPublicShape(data)},200,cors);
       }
       if (payload.title.toLowerCase() === "owner") {
@@ -216,11 +274,16 @@ Deno.serve(async request => {
     if (action === "delete") {
       if (!validId(body.id)) return json({error:"Invalid profile ID"},400,cors);
       const {data:existing,error:fetchError} = await admin.from("brickivy_realtors")
-        .select("id,role_label").eq("id",body.id).single();
+        .select("id,role_label,discord_user_id").eq("id",body.id).single();
       if (fetchError || !existing) return json({error:"Realtor profile not found"},404,cors);
       if (existing.role_label === "Owner") return json({error:"Owner profile cannot be deleted here"},403,cors);
       const {error:e} = await admin.from("brickivy_realtors").delete().eq("id",body.id);
       if (e) throw e;
+      if(existing.discord_user_id){
+        const {error:removeError}=await admin.from("brickivy_realtor_permissions")
+          .delete().eq("discord_user_id",existing.discord_user_id);
+        if(removeError)console.error("Realtor permission cleanup failed");
+      }
       return json({success:true},200,cors);
     }
     return json({error:"Unsupported action"},400,cors);
