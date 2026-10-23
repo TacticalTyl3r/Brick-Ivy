@@ -61,9 +61,10 @@ async function reload(){
   el("inquiryStaffContent").hidden=false;
   el("inquiryDiscordTestArea").hidden=result.role!=="owner";
   el("inquiryDiscordTest").disabled=result.discordConfigured!==true;
+  el("inquiryDiscordCheck").disabled=false;
   el("inquiryDiscordState").textContent=result.discordConfigured===false?
    "Discord App notification channel is not configured. Inquiries are still saved privately.":
-   result.discordConfigured===true?"Sending inquiry alerts through the Brick & Ivy Discord App (bot).":"Notifications are managed by the Owner.";
+   result.discordConfigured===true?"Discord bot notification settings detected. Use Check bot connection to verify Discord access.":"Notifications are managed by the Owner.";
   info("Private inquiry inbox loaded. "+inquiries.length+" inquiries.");
   render();
  }catch(error){info(error.message||"Unable to open the inquiry inbox.")}
@@ -78,6 +79,17 @@ async function init(){
   });
   el("inquiryStaffSignOut").addEventListener("click",async()=>{await client.auth.signOut();inquiries=[];await reload()});
   el("inquiryStaffRefresh").addEventListener("click",reload);
+  el("inquiryDiscordCheck").addEventListener("click",async()=>{
+   const button=el("inquiryDiscordCheck"),output=el("inquiryDiscordDiagnostic");
+   button.disabled=true;output.hidden=false;output.textContent="Checking Discord bot identity and notification channel…";
+   try{
+    const result=await api("diagnoseInquiryDiscord");
+    output.textContent="Bot account: "+String(result.bot||"Unknown")+". "+String(result.detail||"No details returned")+
+      (result.status==="channel_accessible"?" The bot's Offline status does not prevent API messages.":"");
+   }catch(error){
+    output.textContent="Connection check failed: "+(error.message||"Unknown error");
+   }finally{button.disabled=false}
+  });
   el("inquiryDiscordTest").addEventListener("click",async()=>{
    if(!confirm("Send a labeled test message from the Brick & Ivy App, mentioning the Realtor role in the existing notification channel?"))return;
    const button=el("inquiryDiscordTest");button.disabled=true;info("Sending test through Brick & Ivy App…");
