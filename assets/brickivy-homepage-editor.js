@@ -41,7 +41,7 @@ const groups=[
  {title:'Hero section',summary:'The first thing visitors see when they open the homepage.',fields:[
  ['heroEyebrow','Top label','text',200],['heroLead','Main headline','text',200],['heroHighlight','Highlighted headline','text',200],
  ['heroDescription','Introduction','long',1500],['heroPrimaryText','Property button text','text',200],
- ['heroSecondaryText','About button text','text',200],['heroImage','Main image (HTTPS URL)','image',2048],
+ ['heroSecondaryText','About button text','text',200],['heroImage','Main homepage photo','image',2048],
  ['heroImageAlt','Main image description','text',200],['heroCaption','Image caption','text',200]]},
  {title:'Property collection',summary:'Customize the heading over your live featured listings. The property cards still come from OPFW.',fields:[
  ['showFeatured','Show featured listing section','toggle'],
@@ -51,13 +51,13 @@ const groups=[
  ['showNeighborhoods','Show neighborhoods','toggle'],['neighborhoodsEyebrow','Top label','text',200],
  ['neighborhoodsLead','Heading','text',200],['neighborhoodsHighlight','Highlighted words','text',200],
  ['neighborhoodsDescription','Description','long',1500],
- ['lsImage','Los Santos image (HTTPS URL)','image',2048],
- ['sandyImage','Sandy Shores image (HTTPS URL)','image',2048],
- ['paletoImage','Paleto Bay image (HTTPS URL)','image',2048]]},
+ ['lsImage','Los Santos photo','image',2048],
+ ['sandyImage','Sandy Shores photo','image',2048],
+ ['paletoImage','Paleto Bay photo','image',2048]]},
  {title:'About Brick & Ivy',summary:'Tell visitors what makes your real estate business different.',fields:[
  ['showAbout','Show About section','toggle'],['aboutEyebrow','Top label','text',200],
  ['aboutLead','Heading','text',200],['aboutHighlight','Highlighted words','text',200],
- ['aboutDescription','Description','long',1500],['aboutImage','About image (HTTPS URL)','image',2048]]},
+ ['aboutDescription','Description','long',1500],['aboutImage','About section photo','image',2048]]},
  {title:'Bottom call-to-action',summary:'Update the section encouraging visitors to reach your Realtors.',fields:[
  ['showCta','Show contact section','toggle'],['ctaEyebrow','Top label','text',200],
  ['ctaLead','Heading','text',200],['ctaHighlight','Highlighted words','text',200],
@@ -66,6 +66,78 @@ const groups=[
  ['searchTitle','Search headline','text',200],['searchSubtitle','Search subtitle','text',200]]}
 ];
 let client=null,revision=null,draft=null,published=null,busy=false,dirty=false,sectionOrder=[...sectionKeys];
+const HOME_MAX_BYTES=5*1024*1024;
+const HOME_FILE_TYPES=Object.freeze({jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp"});
+const HOME_IMAGE_KEYS=new Set(["heroImage","lsImage","sandyImage","paletoImage","aboutImage"]);
+function imageStatus(key,message,state="info"){
+ const el=$("home-image-status-"+key);
+ if(el){el.textContent=message;el.dataset.state=state;}
+}
+async function readyHomeImage(file){
+ const extension=(file.name.split(".").pop()||"").toLowerCase();
+ if(!HOME_FILE_TYPES[extension])throw Error("Choose a JPG, PNG or WebP image. Unsupported file: "+file.name);
+ const source=new File([file],file.name,{type:HOME_FILE_TYPES[extension],lastModified:file.lastModified});
+ if(source.size<=HOME_MAX_BYTES)return source;
+ if(source.size>30*1024*1024)throw Error("Image exceeds 30 MB. Resize it before uploading.");
+ if(typeof createImageBitmap!=="function")throw Error("Image is over 5 MB. Resize it before uploading.");
+ let bitmap;
+ try{bitmap=await createImageBitmap(source)}catch{throw Error("Could not read the image. Try a JPG or PNG file.");}
+ try{
+  let maxDimension=3200;
+  for(const quality of [0.86,0.72,0.58,0.46]){
+   const ratio=Math.min(1,maxDimension/Math.max(bitmap.width,bitmap.height));
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+   canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+   const context=canvas.getContext("2d");
+   if(!context)throw Error("Image compression is unavailable in this browser.");
+   context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+   const compressed=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",quality));
+   if(compressed?.type==="image/webp"&&compressed.size>0&&compressed.size<=HOME_MAX_BYTES)
+     return new File([compressed],file.name.replace(/\.[^.]+$/,"")+".webp",{type:"image/webp"});
+   maxDimension=Math.min(maxDimension,2600);
+  }
+  throw Error("Unable to compress this image below 5 MB. Resize it and try again.");
+ }finally{bitmap.close?.();}
+}
+async function uploadHomeImage(fileInput){
+ const key=fileInput.dataset.homeImageUpload;
+ const file=fileInput.files?.[0];
+ fileInput.value="";
+ if(!file||!HOME_IMAGE_KEYS.has(key))return;
+ if(revision===null){imageStatus(key,"Sign in as the Owner to upload an image.","error");return}
+ if(busy){imageStatus(key,"Another operation is running. Try again once it completes.","error");return}
+ busy=true;updateButtons();
+ try{
+  imageStatus(key,"Preparing "+file.name+"…");
+  const image=await readyHomeImage(file);
+  imageStatus(key,"Uploading "+file.name+"…");
+  const {data:{session}}=await client.auth.getSession();
+  if(!session?.access_token)throw Error("Sign in again before uploading.");
+  const form=new FormData();
+  form.append("imageKey",key);
+  form.append("file",image,image.name);
+  const response=await fetch(cfg.supabaseUrl.replace(/\/$/,"")+"/functions/v1/brickivy-homepage-media",{
+   method:"POST",credentials:"omit",
+   headers:{apikey:cfg.publishableKey,Authorization:"Bearer "+session.access_token},
+   body:form
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(result.error||"Upload failed. Try a JPG, PNG or WebP image.");
+  if(!result.success||result.imageKey!==key||!/^https:\/\//i.test(result.url||""))
+    throw Error("Unexpected upload response. Please try again.");
+  const urlField=$("home-edit-"+key);
+  if(!urlField)throw Error("The editor could not find this image field.");
+  urlField.value=result.url;
+  dirty=true;updatePreview();
+  imageStatus(key,"Photo uploaded successfully. Save Draft, then Publish Homepage to make it live.","success");
+  say("Photo uploaded to your private draft. Save Draft, then Publish Homepage when ready.");
+ }catch(error){
+  imageStatus(key,error.message||"Photo upload failed.","error");
+  say("Could not upload "+file.name+": "+(error.message||"Unknown error"));
+ }finally{busy=false;updateButtons()}
+}
+
 const endpoint=()=>cfg.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
 function say(message){const status=$('homeEditorStatus');if(status)status.textContent=message;}
 async function api(action,other={}){
@@ -90,6 +162,15 @@ function inputMarkup([key,label,type,max]){
    '<div class="home-theme-hint"><small id="homeThemeColorStatus">Selecting a theme sets a matching primary and accent color automatically.</small>'+
    '<button type="button" class="home-theme-reset" data-reset-theme-colors>Reset to theme colors</button></div></div>':field;
  }
+ if(type==='image')return '<div class="home-editor-field home-image-editor" data-image-editor="'+key+'">'+
+   '<strong id="home-image-label-'+key+'">'+safe(label)+'</strong>'+
+   '<input type="file" class="home-image-file" id="home-upload-'+key+'" data-home-image-upload="'+key+'"'+
+   ' aria-labelledby="home-image-label-'+key+'" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">'+
+   '<div class="home-image-thumbnail"><img data-home-image-thumb="'+key+'" alt="Selected '+safe(label)+'" hidden></div>'+
+   '<p id="home-image-status-'+key+'" class="home-image-status" data-state="info" aria-live="polite" role="status">'+
+   'Choose an image from your computer (JPG, PNG or WebP). Large images are optimized automatically.</p>'+
+   '<details class="home-image-advanced"><summary>Use an image link instead</summary>'+
+   '<label for="'+id+'">Image HTTPS URL</label><input id="'+id+'" data-home-editor="'+key+'" type="url" maxlength="'+max+'" required placeholder="https://…"></details></div>';
  if(type==='color')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong><input type="color" id="'+id+'" data-home-editor="'+key+'"></label>';
  if(type==='long')return '<label class="home-editor-field" for="'+id+'"><strong>'+safe(label)+'</strong>'+
    '<textarea id="'+id+'" data-home-editor="'+key+'" maxlength="'+max+'" rows="3"></textarea></label>';
@@ -107,8 +188,10 @@ function buildForm(){
    '<div class="home-editor-fields">'+group.fields.map(inputMarkup).join('')+'</div></details>'
  ).join('');
  paintThemeTiles();
- target.addEventListener('input',()=>{dirty=true;updatePreview();updateButtons()});
+ target.addEventListener('input',event=>{if(event.target.matches('[data-home-image-upload]'))return;dirty=true;updatePreview();updateButtons()});
  target.addEventListener('change',event=>{
+  if(event.target.matches('[data-home-image-upload]')){void uploadHomeImage(event.target);return;}
+
   if(event.target.matches('[data-home-editor="homeTheme"]')){
    applyThemePalette(event.target.value);
    return;
@@ -229,6 +312,15 @@ function updatePreview(){
      else el.hidden=true;
    }catch{el.hidden=true}
  }
+ for(const key of HOME_IMAGE_KEYS){
+  const image=document.querySelector('[data-home-image-thumb="'+key+'"]');
+  if(!image)continue;
+  try{
+   const url=new URL(d[key]);
+   if(url.protocol==='https:'&&!url.username&&!url.password){image.src=url.href;image.hidden=false;}
+   else {image.removeAttribute('src');image.hidden=true;}
+  }catch{image.removeAttribute('src');image.hidden=true;}
+ }
  if($('homePreviewAnnouncementWrap'))$('homePreviewAnnouncementWrap').hidden=!d.announcementEnabled||!d.announcementText;
  if($('homePreviewCollectionWrap'))$('homePreviewCollectionWrap').hidden=!d.showFeatured;
  if($('homePreviewNeighborhoodsWrap'))$('homePreviewNeighborhoodsWrap').hidden=!d.showNeighborhoods;
@@ -240,6 +332,9 @@ function updateButtons(){
  for(const id of ['homeEditorSave','homeEditorPublish','homeEditorDiscard','homeEditorRestore']){
   const el=$(id);if(el)el.disabled=busy||revision===null;
  }
+ document.querySelectorAll('[data-home-image-upload]').forEach(input=>{
+  input.disabled=busy||revision===null;
+ });
 }
 function validate(){
  for(const node of document.querySelectorAll('[data-home-editor]')){
@@ -267,7 +362,9 @@ async function load(){
  try{
   const state=await api('load');
   draft=state.draft;published=state.published;revision=state.revision;
-  fillForm(draft);gate.hidden=false;
+  fillForm(draft);
+  for(const key of HOME_IMAGE_KEYS)imageStatus(key,"Choose a new image to replace this photo, or keep the current one.");
+  gate.hidden=false;
   say('Owner verified. Make changes, preview them, then Save Draft or Publish.');
   updateButtons();
  }catch(err){say(err.message||'Unable to open Homepage Editor');}
