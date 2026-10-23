@@ -8,10 +8,10 @@
 <script src="assets/theme.js?v=20261022-dark1"></script>
 <link rel="stylesheet" href="assets/styles.css?v=20261023-themes13">
 <link rel="stylesheet" href="assets/dark-mode.css?v=20261022-dark1">
-<link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261023-inbox2">
+<link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261023-workflow1">
 <script defer src="assets/brickivy-config.js"></script>
 <script defer src="assets/site.js?v=20261023-themes13"></script>
-<script type="module" src="assets/brickivy-inquiry-staff.js?v=20261023-app-bot-diagnostic1"></script>
+<script type="module" src="assets/brickivy-inquiry-staff.js?v=20261023-workflow1"></script>
 </head><body data-page="staff-inquiries">
 <header class="site-header"><div class="container header-inner">
 <a class="logo-lockup" href="index.html" aria-label="Brick and Ivy homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
@@ -32,14 +32,25 @@
 <div id="inquiryStaffContent" hidden>
 <p id="inquiryDiscordState" class="bi-inbox-discord" role="status"></p>
 <div id="inquiryDiscordTestArea" class="bi-inbox-test" hidden><button class="button outline" id="inquiryDiscordCheck" type="button">Check bot connection</button><button class="button outline" id="inquiryDiscordTest" type="button">Send test from Brick &amp; Ivy App ↗</button><small>Owner only · tests use your existing Discord bot</small></div><p id="inquiryDiscordDiagnostic" class="bi-inbox-diagnostic" role="status" aria-live="polite" hidden></p>
-<div class="bi-inbox-summary" aria-label="Inquiry totals">
-<div><strong id="inquiryStatNew">0</strong><span>New</span></div><div><strong id="inquiryStatProgress">0</strong><span>In progress</span></div><div><strong id="inquiryStatClosed">0</strong><span>Closed</span></div>
+<div class="bi-inbox-summary" aria-label="Inquiry status totals">
+<div><strong id="inquiryStatNew">0</strong><span>New</span></div>
+<div><strong id="inquiryStatProgress">0</strong><span>In progress</span></div>
+<div><strong id="inquiryStatContacted">0</strong><span>Contacted</span></div>
+<div><strong id="inquiryStatAwaiting">0</strong><span>Awaiting customer</span></div>
+<div><strong id="inquiryStatClosed">0</strong><span>Closed</span></div>
+<div><strong id="inquiryStatUnassigned">0</strong><span>Unassigned (open)</span></div>
 </div>
 <div class="bi-inbox-toolbar">
 <label>Search inquiries<input id="inquiryStaffSearch" type="search" placeholder="Property, character, phone or message…"></label>
-<label>Status<select id="inquiryStaffFilter"><option value="">All statuses</option><option value="new">New</option><option value="in_progress">In progress</option><option value="closed">Closed</option></select></label>
+<label>Status<select id="inquiryStaffFilter"><option value="">All statuses</option><option value="new">New</option><option value="in_progress">In progress</option><option value="contacted">Contacted</option><option value="awaiting_customer">Awaiting customer</option><option value="closed">Closed</option></select></label>
+<label class="bi-inbox-filtercheck"><input type="checkbox" id="inquiryStaffMine"> Assigned to me</label><label class="bi-inbox-filtercheck"><input type="checkbox" id="inquiryStaffUnassigned"> Unassigned only</label>
 <button class="button outline" type="button" id="inquiryStaffRefresh">Refresh ↻</button>
 </div>
+<section class="bi-analytics-panel" id="inquiryAnalytics" aria-label="Inquiry analytics">
+<div class="bi-analytics-heading"><div><span class="eyebrow">Private reports</span><h2 class="serif">Inquiry performance</h2></div><p>Company-wide trends, most requested properties, and Realtor activity.</p></div>
+<div id="inquiryAnalyticsContent" aria-live="polite"></div>
+</section>
+<h2 class="bi-inbox-section-title serif">Inquiry inbox</h2>
 <div id="inquiryStaffList" class="bi-inbox-list" aria-live="polite"></div>
 </div>
 </div></main>
