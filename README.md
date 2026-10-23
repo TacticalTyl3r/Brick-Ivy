@@ -14,11 +14,18 @@ Public website for Brick & Ivy Real Estate in Legendary Roleplay.
 - `realtors.html` — public Realtor and Owner directory, grouped by position and loaded from the live Supabase public endpoint.
 - `admin.html` — Discord authenticated staff portal with live verification of guild roles.
 - `manage-realtors.html` — Owner-only Realtor management, public profile editing, position sections and persistent ordering.
-- `manage-properties.html` — private property management: Owners publish/unpublish listings, feature homes on the homepage, and manage public overviews, photos, region, weekly rent and storage-by-type; Owners and Realtors can reserve/unreserve homes.
+- `manage-properties.html` — authenticated staff property management with a private Owner-only financial dashboard showing rented-home weekly rent minus maintenance on every company property; property editing tools follow per-Realtor grants.
+- `manage-permissions.html` — Owner-only per-Realtor permission toggles for property descriptions, weekly rent, regions, storage, reservation changes, publishing, featured homes and photo management.
 
 ## Publishing and featured homes
 
 Each Brick & Ivy property is published by default. Verified Owners can unpublish a property (removes its public record and detail URL without deleting staff data) or mark published homes as Featured from Property Management. The homepage prioritizes featured homes, then fills up to three slots with other published properties. Realtors can see publication status but cannot change it. Details: [Property publishing setup and tests](backend/PROPERTY-PUBLISHING.md).
+
+## Secure Realtor permissions and Owner income reporting
+
+The Owner can assign individual Realtor editing permissions at [Realtor Permissions](https://brickandivyhomes.com/manage-permissions.html). Grants are verified server-side against Supabase Discord authentication and live guild roles. Photo changes have an independent server-side permission check. New Realtors retain reservation access, but no other edit grants until the Owner enables them.
+
+The Owner dashboard calculates **net weekly income = rent from currently rented properties − original OPFW maintenance cost for every company property (including empty homes)**. Estimates are omitted if occupancy or costs are incomplete. See the [implementation, security rules and verification guide](backend/REALTOR-PERMISSIONS-OWNER-DASHBOARD.md).
 
 ## Public data contract
 
