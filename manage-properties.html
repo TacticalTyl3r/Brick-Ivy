@@ -7,7 +7,7 @@
 <title>Property Management | Brick & Ivy Real Estate</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <script src="assets/theme.js?v=20261022-dark1"></script>
-<link rel="stylesheet" href="assets/styles.css?v=20261022-dashboard-perms1">
+<link rel="stylesheet" href="assets/styles.css?v=20261022-finreport1">
 <link rel="stylesheet" href="assets/dark-mode.css?v=20261022-dark1">
 <script defer src="assets/site.js?v=20261022-opfw2"></script>
 <script>
@@ -17,7 +17,7 @@ window.BRICK_IVY_CONFIG=Object.freeze({
   discordAuthReady:true
 });
 </script>
-<script type="module" src="assets/brickivy-property-staff.js?v=20261022-allinteriors1"></script>
+<script type="module" src="assets/brickivy-property-staff.js?v=20261022-finreport1"></script>
 </head>
 <body data-page="staff-properties">
 <header class="site-header"><div class="container header-inner">
@@ -56,6 +56,21 @@ window.BRICK_IVY_CONFIG=Object.freeze({
     <div class="owner-finance-total"><span>Net weekly income <small>Rent revenue − total maintenance</small></span><strong id="financeNet" class="finance-net">—</strong></div>
   </div>
   <p id="financeExplanation" class="owner-finance-footnote">Loading the owner financial snapshot…</p>
+  <div class="owner-finance-report">
+    <div class="owner-finance-report-head"><div><div class="eyebrow">Property-by-property analysis</div><h3 class="serif">Weekly income report</h3>
+    <p>Rented homes earn weekly rent. Every home incurs its maintenance fee, even if vacant, reserved or unpublished.</p></div>
+    <button class="button outline" id="financeExportCsv" type="button">Export CSV ↗</button></div>
+    <div class="owner-finance-filters">
+      <label>Search properties<input id="financePropertySearch" type="search" placeholder="Name, address, block or area"></label>
+      <label>Occupancy<select id="financeOccupancyFilter"><option value="">All properties</option><option value="rented">Rented</option><option value="vacant">Vacant</option><option value="unknown">Unknown</option></select></label>
+      <label>Sort by<select id="financePropertySort"><option value="block">Block / property ID</option><option value="net-asc">Lowest net income</option><option value="net-desc">Highest net income</option><option value="maintenance-desc">Highest maintenance</option><option value="rent-desc">Highest rental revenue</option></select></label>
+    </div>
+    <div class="owner-finance-table-scroll"><table class="owner-finance-table">
+      <thead><tr><th scope="col">Property</th><th scope="col">Occupancy</th><th scope="col">Weekly Rent In</th><th scope="col">Maintenance Out</th><th scope="col">Net Weekly</th></tr></thead>
+      <tbody id="financePropertyRows"><tr><td colspan="5">Loading property finance records…</td></tr></tbody>
+    </table></div>
+    <p class="owner-finance-report-note" id="financeReportCount" aria-live="polite">This is a projected weekly run-rate, not a record of collected payments.</p>
+  </div>
 </section>
 <div class="manage-panel-header property-manager-heading"><div><span class="eyebrow">Live company portfolio</span><h2 class="serif">Properties &amp; rentals</h2><p class="manage-reorder-intro">Weekly values saved here override the displayed website property value, not OPFW's original cost.</p></div><span id="propertyManagerCount" class="manage-count">Loading…</span></div>
 <div class="property-staff-toolbar">
