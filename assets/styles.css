@@ -884,3 +884,27 @@ html[data-ui-theme="dark"] .property-gallery-upload-status[data-state="error"]{
 html[data-ui-theme="dark"] .property-gallery-upload-status[data-state="success"]{
  background:#294a32;border-color:#6b9c76;color:#c7eccc;
 }
+
+/* Subtle Brick & Ivy watermark behind transparent Realtor portraits. */
+/* This adds a background layer only. The mugshot image itself is unchanged,
+   including its existing object-fit, dimensions, and transparency. */
+body[data-page="realtors"] .realtor-photo:has(> img)::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:url("brick-ivy-mark.svg") center 42% / auto 79% no-repeat;
+  opacity:.13;
+}
+body[data-page="realtors"] .realtor-photo>img{
+  position:relative;
+  z-index:1;
+}
+body[data-page="realtors"] .realtor-photo>.realtor-role-badge{
+  z-index:2;
+}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-photo:has(> img)::before{
+  filter:brightness(0) invert(1);
+  opacity:.12;
+}
