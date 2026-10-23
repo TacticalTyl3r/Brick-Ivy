@@ -136,24 +136,30 @@ Deno.serve(async request=>{
  const roles=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968")
   .split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
  const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
- const payload={
+ const listingUrl="https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
+ const inquiryPayload={
+  // Role mention must be in content; Discord does not ping roles from embeds.
   content:roles.map(role=>"<@&"+role+">").join(" ")||undefined,
   allowed_mentions:{parse:[],roles},
   embeds:[{
-   title:"New Brick & Ivy Property Inquiry",
-   description:safe(message),
-   color:2437942,
-   url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id),
+   author:{name:"BRICK & IVY  ·  REAL ESTATE"},
+   title:"🏡 New Property Inquiry",
+   url:listingUrl,
+   description:"**Inquiry Message**\n"+safe(message),
+   color:0x285640,
    fields:[
-    {name:"Property",value:safe(String(property.property_name||id)).slice(0,240)},
+    {name:"Property",value:safe(String(property.property_name||id)).slice(0,240),inline:true},
+    {name:"Property ID",value:safe(id),inline:true},
+    {name:"Address",value:safe(String(property.property_address||"Not provided")).slice(0,240)},
     {name:"Character",value:safe(name),inline:true},
     {name:"In-game phone",value:safe(phone),inline:true},
     {name:"Discord contact",value:safe(String(data.discordContact||"Not provided")).slice(0,80),inline:true}
    ],
-   footer:{text:"Private staff inquiry · follow up in the Brick & Ivy Staff Portal"}
+   footer:{text:"BRICK & IVY  •  Private staff inquiry  •  View & manage in the Staff Portal"},
+   timestamp:new Date().toISOString()
   }]
  };
- const delivery=await sendInquiryAsBot(payload);
+ const delivery=await sendInquiryAsBot(inquiryPayload);
  const notification=delivery.sent?"sent":delivery.configured?"failed":"not_configured";
  if(!delivery.sent)console.warn("Brick & Ivy inquiry bot:",delivery.reason);
  const {error:statusError}=await db.from("brickivy_property_inquiries").update({discord_notification:notification}).eq("id",insert.id);
