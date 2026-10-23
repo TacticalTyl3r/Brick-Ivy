@@ -1,18 +1,16 @@
 # Brick & Ivy: Financial Reports and Website Change History
 
-## Weekly property financial report
-Open [Property Management](https://brickandivyhomes.com/manage-properties.html), then the **Weekly financial snapshot** section. The report is available only to a verified Owner or a Realtor who has been explicitly granted `can_view_financials`.
+## Company-wide weekly financial snapshot
 
-The backend computes a private `financialSummary.propertyBreakdown` alongside the company totals. Every current OPFW company property is included, regardless of whether it is rented, reserved, vacant, published, or unpublished:
+[Property Management](https://brickandivyhomes.com/manage-properties.html) shows a private **Weekly financial snapshot** for the verified Owner and Realtors explicitly granted `can_view_financials`.
 
-- **Projected weekly rent earned:** `weeklyCostOverride ?? OPFW property_cost` if a property is confirmed rented; **0** if the property is confirmed vacant; **Unavailable** if occupancy is unknown.
-- **Weekly maintenance:** original OPFW `property_cost` for **every company property**, including vacant/unpublished properties.
-- **Net weekly income:** weekly rent earned **minus** weekly maintenance. Vacant properties therefore have a **negative** weekly contribution if maintenance is positive.
-- **Company total:** sum of earned rent for occupied properties minus maintenance for every owned property.
+- **Weekly rental revenue:** sum of website weekly rent for properties OPFW confirms are rented.
+- **Weekly maintenance:** original OPFW maintenance costs for **all current Brick & Ivy properties**, even vacant, reserved and unpublished homes.
+- **Net weekly income:** company rental revenue minus maintenance for the full company portfolio.
 
-All arithmetic is calculated in integer cents. If OPFW occupancy or a necessary monetary value is unavailable, the affected property calculation and company net are shown as **Unavailable** rather than fabricated. These figures represent a projected weekly run-rate, not actual cash collected.
+The total is calculated in integer cents and shown as **Unavailable** when occupancy or required monetary data cannot be verified. This is projected weekly operating income, not a cash-payment ledger.
 
-The private interface provides search by name/address/block/area, occupancy filtering, sorting by weekly income/rent/maintenance, expandable per-property calculations, and a CSV export of filtered rows. Financial permission does not grant permission to modify prices or property records.
+The former **Property-by-property analysis / Weekly income report**, associated search and sort filters, expandable rows and CSV export have been removed. Individual property rent settings and the separate Owner-only change history are unaffected. Financial visibility does not permit editing property records.
 
 ## Owner-only website change history
 Open [Website Change History](https://brickandivyhomes.com/manage-history.html) through the Owner Staff Portal.
@@ -30,9 +28,9 @@ Records are ordered by time and filtered in the UI by category or search. Where 
 Both private functions require Supabase Discord authentication, the verified identity from Supabase Auth, and a fresh live Brick & Ivy guild Owner role check. Supabase audit tables are RLS-protected, and their contents are not exposed in public listing endpoints.
 
 ## Acceptance checks
-1. Rented property: projected weekly rent $1,000, maintenance $200 → net +$800.
-2. Vacant property: projected weekly rent $0, maintenance $250 → net -$250.
-3. Together: rent revenue $1,000 minus **all-property** maintenance $450 → net +$550.
-4. Realtor without `can_view_financials` cannot see financial summary or property breakdown. A granted Realtor can view but cannot edit without separate permissions.
-5. Owner Change History includes the existing homepage, property, price and permission audit records with searchable event details.
+1. With occupied weekly rent of $1,000 and maintenance across all properties of $450, company net weekly income is $550.
+2. Vacant and unpublished company properties still contribute maintenance, but not rental revenue.
+3. Realtor without `can_view_financials` cannot see company financial totals; a granted Realtor can view the snapshot but cannot edit without separate permissions.
+4. Verify there is no per-property financial report table, filter or CSV download in Property Management or its API.
+5. Owner Change History continues showing homepage, property, price and permission audit records.
 6. Restoring a published homepage version changes only the private draft and is itself audited. The public homepage does not change until the Owner explicitly publishes it.
