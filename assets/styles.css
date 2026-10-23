@@ -478,3 +478,23 @@ h1,h2,h3,p{margin-top:0}
 .property-overview-readonly span{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#728976}
 .property-overview-readonly p{font-size:12px;white-space:pre-line;color:#405f46;line-height:1.7;margin:8px 0 0;overflow-wrap:anywhere}
 @media(max-width:760px){.property-detail-features{grid-template-columns:1fr;gap:8px}.property-detail-feature{padding:15px 18px}.property-realtor-cta{align-items:stretch;flex-direction:column}.property-realtor-cta .button{width:100%}.property-logo-placeholder.is-detail{min-height:280px}}
+
+
+/* Brick & Ivy Owner-controlled publishing and homepage featured listings */
+.property-publishing-panel{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#f2f8f0;border:1px solid #cddfca;border-left:4px solid #48734f;padding:15px 18px}
+.property-publishing-panel.is-hidden{background:#f7f6f3;border-color:#e0ddd8;border-left-color:#a1a5a0}
+.property-publishing-info{display:flex;flex:1 1 300px;gap:22px;flex-wrap:wrap}
+.property-publishing-info>div{min-width:130px;flex:1}
+.property-publishing-info strong{display:block;color:#264d31;font-weight:800;font-size:14px;line-height:1.4}
+.property-publishing-panel.is-hidden .property-publishing-info strong{color:#686b65}
+.property-publishing-info small{display:block;font-size:11px;line-height:1.55;color:#6e8273;margin-top:3px}
+.property-publishing-panel.is-hidden .property-publishing-info small{color:#828480}
+.property-publishing-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.property-publishing-actions .button{padding:9px 13px;min-height:39px;font-size:10px;white-space:nowrap}
+.property-publishing-actions .button:disabled{opacity:.4;cursor:not-allowed}
+.property-public-preview{font-size:11px;color:#376047;font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.property-public-preview:hover{color:#173c24}
+.property-featured-kicker{display:inline-flex;align-items:center;gap:6px;color:#745929;background:#f9f2e2;border:1px solid #e9d9b7;font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;padding:5px 9px;margin:3px 0 9px}
+.property-featured-kicker span{font-size:13px;line-height:1}
+.property-manager-heading .manage-count{max-width:360px;line-height:1.65;text-align:right;white-space:normal}
+@media(max-width:750px){.property-publishing-panel{align-items:stretch;flex-direction:column}.property-publishing-actions{width:100%}.property-publishing-actions .button{flex:1}.property-public-preview{align-self:flex-start}.property-manager-heading .manage-count{text-align:left}}
