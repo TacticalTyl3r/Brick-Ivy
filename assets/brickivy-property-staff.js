@@ -149,6 +149,7 @@ function propertyCard(p){
  const rented=p.rented===true,unknown=p.rented===null;
  const rentalClass=unknown?'is-unknown':rented?'is-rented':'is-vacant';
  const rentalLabel=unknown?'Rental details unavailable':rented?'Currently rented':p.reserved?'Reserved':'No renter on record';
+ const isPublished=p.published!==false, isFeatured=isPublished&&p.featured===true;
  const hasOverride=p.weeklyCostOverride!==null&&p.weeklyCostOverride!==undefined;
  const total=hasOverride?p.weeklyCostOverride:p.sourceWeeklyCost;
  const income=weeklyIncome(total,p.sourceWeeklyCost);
@@ -176,6 +177,19 @@ function propertyCard(p){
    '<button type="button" class="button outline property-reserve-button" data-toggle-reserve="'+safe(p.id)+'" '+
    (rented&&!p.reserved?'disabled title="This property is already rented"':'')+'>'+
    (p.reserved?'Remove reservation':'Mark Reserved')+'</button></div>';
+ const publishTools='<section class="property-publishing-panel'+(isPublished?'':' is-hidden')+'">'+
+   '<div class="property-publishing-info"><div><span class="property-management-label">Website visibility</span>'+
+   '<strong>'+(isPublished?'Published':'Unpublished')+'</strong>'+
+   '<small>'+(isPublished?'Visible in the public property directory':'Hidden from the homepage, directory and detail pages')+'</small></div>'+
+   '<div><span class="property-management-label">Homepage feature</span>'+
+   '<strong>'+(isFeatured?'Featured':'Not featured')+'</strong>'+
+   '<small>'+(isFeatured?'Prioritized in the homepage collection':'Not prioritized on the homepage')+'</small></div></div>'+
+   (isOwner?'<div class="property-publishing-actions">'+
+    '<button type="button" class="button '+(isPublished?'outline':'dark')+'" data-publish-property="'+safe(p.id)+'">'+(isPublished?'Unpublish property':'Publish property')+'</button>'+
+    '<button type="button" class="button '+(isFeatured?'outline':'dark')+'" data-feature-property="'+safe(p.id)+'" '+(!isPublished?'disabled title="Publish this property first"':'')+'>'+
+    (isFeatured?'Remove featured':'Feature on homepage')+'</button></div>':'')+
+   (isPublished?'<a class="property-public-preview" href="property.html?id='+encodeURIComponent(String(p.id))+'" target="_blank" rel="noopener noreferrer">View public listing ↗</a>':'')+
+   '</section>';
  const currentDescription=String(p.description||'');
  const overviewEditor=isOwner?
    '<details class="property-overview-editor"><summary>Edit public property overview'+(currentDescription?' · Custom description saved':'')+'</summary>'+
@@ -199,7 +213,7 @@ function propertyCard(p){
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
    '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></header>'+
-   occupancyTools+
+   publishTools+occupancyTools+
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
    (hasOverride?'<small>Owner override active</small>':'<small>Using OPFW value</small>')+'</div></div>'+
@@ -211,9 +225,12 @@ function render(){
  if(!target)return;
  const search=byId('propertyStaffSearch')?.value?.toLowerCase().trim()||'';
  const filter=byId('propertyStaffFilter')?.value||'';
+ const visibility=byId('propertyStaffVisibility')?.value||'';
  const matches=roster.filter(p=>{
    const hay=[p.name,p.address,p.id,p.type,interiorName(p.type),p.blockId,p.area].join(' ').toLowerCase();
-   return (!search||hay.includes(search))&&(!filter||(filter==='rented'&&p.rented===true)||(filter==='vacant'&&p.rented===false));
+   const published=p.published!==false;
+   const visibleMatch=!visibility||(visibility==='published'&&published)||(visibility==='unpublished'&&!published)||(visibility==='featured'&&published&&p.featured===true);
+   return visibleMatch&&(!search||hay.includes(search))&&(!filter||(filter==='rented'&&p.rented===true)||(filter==='vacant'&&p.rented===false));
  });
  if(!roster.length){
    target.innerHTML='<div class="manage-panel">No properties were returned for Brick &amp; Ivy company ID 5.</div>';
@@ -225,7 +242,11 @@ function render(){
     '<div class="manage-panel">No properties match your current filters.</div>';
  }
  const count=byId('propertyManagerCount');
- if(count)count.textContent=matches.length+' of '+roster.length+' properties';
+ if(count){
+   const published=roster.filter(p=>p.published!==false).length;
+   const featured=roster.filter(p=>p.published!==false&&p.featured===true).length;
+   count.textContent=matches.length+' of '+roster.length+' properties · '+published+' published · '+featured+' featured';
+ }
 }
 function renderStorage(){
  const panel=byId('propertyTypeStoragePanel'),el=byId('propertyTypeStorageList');
@@ -259,6 +280,9 @@ async function saveSetting(action,data){
    }else if(action==='setDescription'){
      const current=roster.find(x=>x.id===data.propertyId);
      if(current)current.description=result.description||'';
+   }else if(action==='setPublished'||action==='setFeatured'){
+     const current=roster.find(x=>x.id===data.propertyId);
+     if(current){current.published=result.published;current.featured=result.featured;}
    }else{
      const current=roster.find(x=>x.id===data.propertyId);
      if(current){current.area=result.area;current.reserved=result.reserved;}
@@ -342,6 +366,7 @@ async function setup(){
    byId('propertyStaffRefresh')?.addEventListener('click',load);
    byId('propertyStaffSearch')?.addEventListener('input',render);
    byId('propertyStaffFilter')?.addEventListener('change',render);
+   byId('propertyStaffVisibility')?.addEventListener('change',render);
    byId('propertyStaffGrid')?.addEventListener('submit',async event=>{
      const overview=event.target.closest('[data-description-form]');
      if(overview){
@@ -362,6 +387,25 @@ async function setup(){
      await saveCost(id,input.value.trim());
    });
    byId('propertyStaffGrid')?.addEventListener('click',async event=>{
+     const publish=event.target.closest('[data-publish-property]');
+     if(publish&&role==='owner'&&!busy){
+       const id=publish.dataset.publishProperty,p=roster.find(x=>x.id===id);
+       if(p){
+         const next=p.published===false;
+         if(next||confirm('Unpublish this property? It will disappear from the public website and any active property links will stop working.')){
+           await saveSetting('setPublished',{propertyId:id,published:next});
+         }
+       }
+       return;
+     }
+     const feature=event.target.closest('[data-feature-property]');
+     if(feature&&role==='owner'&&!busy){
+       const id=feature.dataset.featureProperty,p=roster.find(x=>x.id===id);
+       if(p&&p.published!==false){
+         await saveSetting('setFeatured',{propertyId:id,featured:!(p.featured===true)});
+       }
+       return;
+     }
      const gallery=event.target.closest('[data-gallery-toggle]');
      if(gallery){if(!busy)await toggleGallery(gallery.dataset.galleryToggle);return;}
      const cover=event.target.closest('[data-photo-cover]');
