@@ -344,6 +344,11 @@ Deno.serve(async request => {
       if(assignee&&!realtors.some(r=>r.discordId===assignee))
         return json({error:"Assigned Realtor must be a published team member"},400,cors);
       if(assignee!==before.assigned_discord_id&&assignee){
+        const {data:targetGrant,error:targetGrantError}=await admin.from("brickivy_realtor_permissions")
+          .select("can_manage_inquiries").eq("discord_user_id",assignee).maybeSingle();
+        if(targetGrantError)throw Error("Unable to verify assignee inquiry permission");
+        if(targetGrant?.can_manage_inquiries!==true)
+          return json({error:"Grant this Realtor Manage property inquiries permission before assigning them"},400,cors);
         const targetRoles=await membership(assignee,botToken);
         if(!targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID))
           return json({error:"Assigned Realtor is not currently in Brick & Ivy Discord"},400,cors);
