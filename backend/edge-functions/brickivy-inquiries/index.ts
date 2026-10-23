@@ -1,6 +1,50 @@
 import {createClient} from "npm:@supabase/supabase-js@2.84.0";
 const origins=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
 const send=(data:unknown,status=200,origin="")=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json","cache-control":"no-store",...(origins.has(origin)?{"access-control-allow-origin":origin}:{}),"access-control-allow-headers":"content-type,authorization,apikey","access-control-allow-methods":"POST,OPTIONS","vary":"Origin"}});
+
+/** Send as the existing Brick & Ivy Discord bot, never as the webhook identity.
+ * The saved webhook is used ONLY to discover its channel when no channel ID is configured.
+ */
+async function sendInquiryAsBot(payload:unknown):Promise<{sent:boolean;configured:boolean;reason:string}>{
+ const token=(Deno.env.get("DISCORD_BOT_TOKEN")||"").trim();
+ const configuredChannel=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID")||"").trim();
+ const webhook=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||"").trim();
+ if(!token||(!configuredChannel&&!webhook))return {sent:false,configured:false,reason:"Bot token or notification channel is not configured"};
+ let channelId="";
+ try{
+  if(configuredChannel){
+   if(!/^\d{17,20}$/.test(configuredChannel))
+    return {sent:false,configured:false,reason:"Invalid Discord channel ID configuration"};
+   const response=await fetch("https://discord.com/api/v10/channels/"+configuredChannel,{
+    headers:{Authorization:"Bot "+token,Accept:"application/json"},signal:AbortSignal.timeout(6500)
+   });
+   if(!response.ok)return {sent:false,configured:true,reason:"Bot cannot access notification channel (HTTP "+response.status+")"};
+   const channel=await response.json();
+   if(String(channel.guild_id)!=="1001110667580932168")
+    return {sent:false,configured:true,reason:"Notification channel is outside Brick & Ivy Discord"};
+   channelId=configuredChannel;
+  }else{
+   if(!/^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook))
+    return {sent:false,configured:false,reason:"Invalid saved webhook URL"};
+   // This GET reads metadata only; it does not create a webhook-authored message.
+   const response=await fetch(webhook,{headers:{Accept:"application/json"},signal:AbortSignal.timeout(6500)});
+   if(!response.ok)return {sent:false,configured:true,reason:"Cannot resolve saved webhook channel (HTTP "+response.status+")"};
+   const detail=await response.json();
+   if(String(detail.guild_id)!=="1001110667580932168"||! /^\d{17,20}$/.test(String(detail.channel_id||"")))
+    return {sent:false,configured:true,reason:"Saved webhook does not point to a Brick & Ivy server channel"};
+   channelId=String(detail.channel_id);
+  }
+  const sent=await fetch("https://discord.com/api/v10/channels/"+channelId+"/messages",{
+   method:"POST",headers:{Authorization:"Bot "+token,"Content-Type":"application/json"},
+   body:JSON.stringify(payload),signal:AbortSignal.timeout(6500)
+  });
+  if(!sent.ok)return {sent:false,configured:true,reason:"Discord bot message rejected (HTTP "+sent.status+")"};
+  return {sent:true,configured:true,reason:"Sent by the Brick & Ivy Discord bot"};
+ }catch{
+  return {sent:false,configured:true,reason:"Discord bot delivery could not be completed"};
+ }
+}
+
 Deno.serve(async request=>{
  const requestingOrigin=request.headers.get("origin")||"";
  const reply=(data:unknown,status=200)=>send(data,status,requestingOrigin);
@@ -30,38 +74,30 @@ Deno.serve(async request=>{
  if((count||0)>=4)return reply({error:"Please wait before sending another inquiry"},429);
  const {data:insert,error}=await db.from("brickivy_property_inquiries").insert({property_id:id,property_name:String(property.property_name||id).slice(0,160),property_address:String(property.property_address||"").slice(0,200),character_name:name,in_game_phone:phone,discord_contact:String(data.discordContact||"").slice(0,80),message,source_hash:sourceHash}).select("id").single();
  if(error||!insert)return reply({error:"Could not save inquiry"},503);
- const webhook=(Deno.env.get("BRICKIVY_INQUIRY_DISCORD_WEBHOOK")||"").trim();
- let notification="not_configured";
- if(webhook){
-  notification="failed";
-  if(/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/[A-Za-z0-9._-]+$/.test(webhook)){
-   const roleIds=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968").split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
-   const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
-   const payload={
-    content:roleIds.map(id=>"<@&"+id+">").join(" ")||undefined,
-    allowed_mentions:{parse:[],roles:roleIds},
-    embeds:[{
-      title:"New Brick & Ivy Property Inquiry",
-      description:safe(message),
-      color:2437942,
-      url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id),
-      fields:[
-        {name:"Property",value:safe(String(property.property_name||id)).slice(0,240)},
-        {name:"Character",value:safe(name),inline:true},
-        {name:"In-game phone",value:safe(phone),inline:true},
-        {name:"Discord contact",value:safe(String(data.discordContact||"Not provided")).slice(0,80),inline:true}
-      ],
-      footer:{text:"Private staff inquiry · follow up in the Brick & Ivy Staff Portal"}
-    }]
-   };
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
-   try{
-    const response=await fetch(webhook,{method:"POST",headers:{"content-type":"application/json"},
-      body:JSON.stringify(payload),signal:controller.signal});
-    notification=response.ok?"sent":"failed";
-   }catch{notification="failed"}finally{clearTimeout(timer)}
-  }
- }
+
+ const roles=(Deno.env.get("BRICKIVY_INQUIRY_PING_ROLE_IDS")||"1502870035176357968")
+  .split(",").map(id=>id.trim()).filter(id=>/^\d{17,20}$/.test(id)).slice(0,5);
+ const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
+ const payload={
+  content:roles.map(role=>"<@&"+role+">").join(" ")||undefined,
+  allowed_mentions:{parse:[],roles},
+  embeds:[{
+   title:"New Brick & Ivy Property Inquiry",
+   description:safe(message),
+   color:2437942,
+   url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id),
+   fields:[
+    {name:"Property",value:safe(String(property.property_name||id)).slice(0,240)},
+    {name:"Character",value:safe(name),inline:true},
+    {name:"In-game phone",value:safe(phone),inline:true},
+    {name:"Discord contact",value:safe(String(data.discordContact||"Not provided")).slice(0,80),inline:true}
+   ],
+   footer:{text:"Private staff inquiry · follow up in the Brick & Ivy Staff Portal"}
+  }]
+ };
+ const delivery=await sendInquiryAsBot(payload);
+ const notification=delivery.sent?"sent":delivery.configured?"failed":"not_configured";
+ if(!delivery.sent)console.warn("Brick & Ivy inquiry bot:",delivery.reason);
  const {error:statusError}=await db.from("brickivy_property_inquiries").update({discord_notification:notification}).eq("id",insert.id);
  if(statusError)console.warn("Inquiry notification status could not be recorded");
  return reply({success:true,reference:insert.id},201);
