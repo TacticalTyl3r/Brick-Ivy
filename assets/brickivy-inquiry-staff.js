@@ -4,6 +4,11 @@ const el=id=>document.getElementById(id);
 const safe=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const statuses={new:"New",in_progress:"In progress",contacted:"Contacted",awaiting_customer:"Awaiting customer",closed:"Closed"};
 const n=val=>Number(val||0).toLocaleString("en-US");
+const followupHours=item=>{
+ if(!["new","in_progress"].includes(item.status)||item.contacted_at)return 0;
+ const started=Date.parse(item.created_at);
+ return Number.isFinite(started)?Math.max(0,(Date.now()-started)/3600000):0;
+};
 let client=null,inquiries=[],realtors=[],names={},metrics={},currentDiscordId="",role="",busy=false;
 const info=msg=>{el("inquiryStaffStatus").textContent=msg;};
 async function api(action,extra={}){
@@ -22,7 +27,8 @@ function renderStats(){
  // Aggregate totals come from server-side SQL; the inbox itself shows the 150 newest.
  const totals=[["inquiryStatNew","new"],["inquiryStatProgress","inProgress"],
   ["inquiryStatContacted","contacted"],["inquiryStatAwaiting","awaitingCustomer"],
-  ["inquiryStatClosed","closed"],["inquiryStatUnassigned","unassignedOpen"]];
+  ["inquiryStatClosed","closed"],["inquiryStatUnassigned","unassignedOpen"],
+  ["inquiryStatNeedsAttention","needsAttention24h"],["inquiryStatUrgent","urgent48h"]];
  for(const [id,key] of totals){const target=el(id);if(target)target.textContent=n(metrics[key]);}
 }
 function render(){
@@ -31,9 +37,11 @@ function render(){
  const filter=el("inquiryStaffFilter").value;
  const mine=el("inquiryStaffMine")?.checked;
  const unassigned=el("inquiryStaffUnassigned")?.checked;
+ const attention=el("inquiryStaffNeedsAttention")?.checked;
  const items=inquiries.filter(item=>(!filter||item.status===filter)
   &&(!mine||item.assigned_discord_id===currentDiscordId)
   &&(!unassigned||(!item.assigned_discord_id&&item.status!=="closed"))
+  &&(!attention||followupHours(item)>=24)
   &&(!term||[item.property_name,item.property_id,item.character_name,item.in_game_phone,item.message,item.discord_contact]
     .some(v=>String(v||"").toLowerCase().includes(term))));
  renderStats();
@@ -48,9 +56,15 @@ function render(){
    '<option value="'+value+'"'+(item.status===value?' selected':'')+'>'+label+'</option>').join("");
   const status=String(item.status||"new");
   const canClaim=!assignee&&status!=="closed";
+  const wait=followupHours(item);
+  const due=wait>=48?'<span class="bi-followup-tag is-urgent">Urgent · No contact for 48+ hours</span>':
+    wait>=24?'<span class="bi-followup-tag">Attention needed · No contact for 24+ hours</span>':'';
+  const retryable=role==="owner"&&["failed","not_configured"].includes(item.discord_notification);
+  const sinceRetry=item.discord_last_retry_at?Date.now()-Date.parse(item.discord_last_retry_at):Infinity;
+  const retryBlocked=sinceRetry<60000;
   return '<article class="bi-inbox-card" data-inquiry-id="'+safe(item.id)+'">'+
    '<div class="bi-inbox-top"><div><span class="eyebrow">INQUIRY · '+safe(age)+'</span>'+
-   '<h2 class="serif">'+safe(item.property_name)+'</h2>'+
+   '<h2 class="serif">'+safe(item.property_name)+'</h2>'+due+
    '<a href="property.html?id='+encodeURIComponent(item.property_id)+'" target="_blank" rel="noopener noreferrer">Open listing ↗</a></div>'+
    '<span class="bi-inbox-tag" data-status="'+safe(status)+'">'+safe(statuses[status]||status)+'</span></div>'+
    '<p class="bi-inbox-assigned"><strong>Assigned to:</strong> '+safe(assigned)+
@@ -68,7 +82,10 @@ function render(){
    '<option value="initial">First response</option><option value="viewing">Arrange a viewing</option>'+
    '<option value="followup">Follow-up</option><option value="unavailable">Property unavailable</option></select></label>'+
    '<button type="button" class="button outline" data-copy-response>Copy message</button></div>'+
-   '<small>Discord alert: '+safe(item.discord_notification||"pending")+'</small>'+
+   '<div class="bi-inbox-retry"><small>Original inquiry alert: '+safe(item.discord_notification||"pending")+'</small>'+
+   (retryable?'<button type="button" class="button outline" data-inquiry-retry'+(retryBlocked?' disabled':'')+
+   ' aria-label="Retry failed notification for '+safe(item.property_name)+'">Retry Discord notification</button>':'')+
+   (retryBlocked&&retryable?'<small>Retry available one minute after the previous attempt.</small>':'')+'</div>'+
    '<div class="bi-inbox-history" data-inquiry-history hidden></div></div></article>';
  }).join("");
 }
@@ -80,7 +97,8 @@ function renderAnalytics(){
  const max=Math.max(...properties.map(x=>Number(x.count)||0),1);
  const cards=[
   ["Total inquiries",summary.total],["Last 7 days",summary.lastSevenDays],
-  ["Unassigned & open",summary.unassignedOpen],["Closed",summary.closed]
+  ["Unassigned & open",summary.unassignedOpen],["Needs attention (24h)",summary.needsAttention24h],
+  ["Urgent (48h)",summary.urgent48h],["Closed",summary.closed]
  ].map(([title,num])=>'<div class="bi-analytics-metric"><strong>'+safe(n(num))+'</strong><span>'+safe(title)+'</span></div>').join("");
  root.innerHTML='<div class="bi-analytics-metrics">'+cards+'</div>'+
  '<p class="bi-analytics-average"><strong>Average time to close:</strong> '+safe(formatHours(summary.averageCloseHours))+'</p>'+
@@ -159,6 +177,16 @@ async function actionClick(event){
   catch{info("Clipboard unavailable. Please use a browser with clipboard access.");}
   return;
  }
+ if(button.hasAttribute("data-inquiry-retry")){
+  if(role!=="owner"){info("Only the Owner may retry a Discord notification.");return}
+  if(!confirm("Retry the failed Discord notification for this existing inquiry? This will not ping anyone or create a new inquiry."))return;
+  busy=true;button.disabled=true;info("Retrying the original inquiry notification…");
+  try{const result=await api("retryInquiryNotification",{id:item.id});
+    await reload();info(result.message||"Discord notification retried without pings.");
+  }catch(error){info(error.message||"Notification retry failed.");button.disabled=false}
+  finally{busy=false}
+  return;
+ }
  if(!button.hasAttribute("data-inquiry-save")&&!button.hasAttribute("data-inquiry-claim"))return;
  busy=true;button.disabled=true;
  let successMessage="";
@@ -194,6 +222,7 @@ async function init(){
   el("inquiryStaffFilter").addEventListener("change",render);
   el("inquiryStaffMine").addEventListener("change",render);
   el("inquiryStaffUnassigned").addEventListener("change",render);
+  el("inquiryStaffNeedsAttention").addEventListener("change",render);
   el("inquiryStaffList").addEventListener("click",actionClick);
   el("inquiryDiscordCheck").addEventListener("click",async()=>{
    const button=el("inquiryDiscordCheck"),output=el("inquiryDiscordDiagnostic");
