@@ -17,6 +17,8 @@
 
 The bot must have **View Channel**, **Send Messages**, and **Embed Links** in the notification channel. If the Realtor role is not mentionable, the bot also needs **Mention @everyone, @here, and All Roles** permission to trigger that role ping. Do not grant unnecessary permissions elsewhere. No credentials are exposed to website visitors.
 
+Both **new inquiry** notifications and the Owner's **test notification** now use matching Brick & Ivy Discord embeds (green border, branded heading, structured fields, and timestamp). Real inquiry embeds show the property, property ID, address, character name, in-game phone, optional Discord contact, message, and a clickable property listing link. The Realtor role mention stays in the message content outside the embed because Discord does not generate role notifications from embedded fields.
+
 The inquiry is saved in Supabase **before** Discord delivery is attempted. A bot or channel failure is recorded as `failed` (or `not_configured` when no destination/bot credential is configured); it does not discard the inquiry.
 
 ### Owner test
