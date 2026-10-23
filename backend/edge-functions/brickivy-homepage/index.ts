@@ -47,7 +47,7 @@ function validOrder(value:unknown):value is string[]{
   value.every(x=>typeof x==="string")&&new Set(value).size===SECTIONS.length&&
   SECTIONS.every(x=>value.includes(x));
 }
-function clean(content:unknown):Record<string,string|boolean>{
+function clean(content:unknown):Record<string,string|boolean|string[]>{
  if(!content||typeof content!=="object"||Array.isArray(content))throw Error("Homepage content must be an object");
  const values=content as Record<string,unknown>,out:Record<string,string|boolean>={};
  if(Object.keys(values).some(k=>!(k in DEFAULTS)))throw Error("Unknown homepage field");
