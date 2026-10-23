@@ -307,8 +307,8 @@ function renderFinanceReport(){
    '<td>'+safe(p.rented===true?'Rented':p.rented===false?'Vacant':'Unknown')+'</td>'+
    '<td class="finance-number">'+safe(amount(p.weeklyRevenue))+'</td>'+
    '<td class="finance-number">'+safe(amount(p.weeklyMaintenance))+'</td>'+
-   '<td class="finance-number '+(net===null?'':net<0?'finance-loss':net>0?'finance-profit':'')+'">'+
-    safe(net===null?'Unavailable':incomeDisplay(net))+'</td></tr>';
+   '<td class="finance-number '+(net==null?'':net<0?'finance-loss':net>0?'finance-profit':'')+'">'+
+    safe(net==null?'Unavailable':incomeDisplay(net))+'</td></tr>';
  }).join(''):'<tr><td colspan="5">No properties match these filters.</td></tr>';
  const count=byId('financeReportCount');if(count)count.textContent=rows.length+' of '+all.length+
   ' properties · projected weekly income, not a payment ledger.';
@@ -337,7 +337,14 @@ function renderFinance(){
  const panel=byId('brickivyOwnerFinancials');
  if(!panel)return;
  panel.hidden=!allowed('can_view_financials');
- if(!allowed('can_view_financials'))return;
+ if(!allowed('can_view_financials')){
+  const rows=byId('financePropertyRows');if(rows)rows.replaceChildren();
+  for(const field of ['financeProperties','financeRented','financeVacant','financePublished','financeFeatured',
+   'financeRevenue','financeMaintenance','financeNet']){
+   const node=byId(field);if(node)node.textContent='—';
+  }
+  return;
+ }
  const f=finance;
  const set=(id,value)=>{const node=byId(id);if(node)node.textContent=value;};
  set('financeProperties',f?String(f.totalProperties):'—');
