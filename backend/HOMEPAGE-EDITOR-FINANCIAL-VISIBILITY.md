@@ -18,14 +18,14 @@ Open [Homepage Editor](https://brickandivyhomes.com/manage-homepage.html) via th
 
 Editable content includes:
 - Announcement bar (text and show/hide)
-- Hero header, subtitle, top label, CTA button labels, main image URL, image alt text and caption
+- Hero header, subtitle, top label, CTA button labels, uploaded main photo (or HTTPS image URL), image alt text and caption
 - Search area introductory headline and subtitle (search filters remain connected to live OPFW properties)
 - Property collection heading, description and visibility (property cards still use OPFW plus your published/featured controls)
 - Neighborhood heading, description, three location images and visibility
 - About section header, text, image and visibility
 - Bottom contact CTA heading, description, button label and visibility
 
-Homepage images are configured using HTTPS URLs. Direct image uploads and the reusable media library have been removed from the editor.
+Homepage images can be uploaded from the computer using each section's **Choose File** picker. JPG, PNG, and WebP are supported. Photos above the 5 MB storage limit are optimized in the browser (up to 30 MB source size); the new image is shown immediately in the private preview. The uploaded URL is assigned to the image field, but the live homepage is unchanged until **Save Draft → Publish Homepage**. Existing HTTPS image URLs remain supported under **Use an image link instead**.
 
 ### Draft workflow
 
@@ -50,7 +50,7 @@ Changes show on the public site on the next page load. The public JS fetches `br
 - The public top navigation no longer includes Neighborhoods; the section itself is still available.
 - The public footer's **Legendary Roleplay** link opens `https://legendary-roleplay.com/`.
 
-The retired `brickivy-homepage-media` upload endpoint returns HTTP 410. Its previously created storage bucket and metadata table have been left intact to avoid deleting data, although no images were stored at the time the feature was retired.
+The `brickivy-homepage-media` endpoint has been restored for Owner-only image uploads using the existing `brickivy-homepage-media` public-read storage bucket. Every upload verifies the Supabase session, authentic Discord identity, and current Brick & Ivy Owner role. Server-side checks restrict the image field, image signature, type, and size (5 MB). Filenames are generated using random identifiers. No bucket credentials are exposed to the browser. Existing uploaded files are retained so published pages and prior homepage versions continue to reference their original URLs.
 
 ### Coordinated homepage theme palettes
 
