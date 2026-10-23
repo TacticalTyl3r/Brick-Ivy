@@ -4,10 +4,10 @@
 <meta name="description" content="Private Owner homepage content editor.">
 <title>Homepage Editor | Brick &amp; Ivy</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<link rel="stylesheet" href="assets/styles.css?v=20261022-homeeditor3">
-<script defer src="assets/site.js?v=20261022-homeeditor1"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20261022-studio2">
+<script defer src="assets/site.js?v=20261022-studio2"></script>
 <script>window.BRICK_IVY_CONFIG=Object.freeze({supabaseUrl:"https://rcbbnzqmfvapwuqmpmhk.supabase.co",publishableKey:"sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",discordAuthReady:true});</script>
-<script type="module" src="assets/brickivy-homepage-editor.js?v=20261022-homeeditor3"></script></head>
+<script type="module" src="assets/brickivy-homepage-editor.js?v=20261022-studio2"></script></head>
 <body data-page="staff-homepage">
 <header class="site-header"><div class="container header-inner">
 <a class="logo-lockup" href="index.html"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
@@ -31,6 +31,18 @@
 <div class="home-editor-layout">
 <section class="home-editor-form" aria-label="Homepage settings">
 <div id="homeEditorGroups"></div>
+<section class="home-editor-order-panel" aria-labelledby="homeOrderHeading">
+ <div class="home-editor-order-intro"><h3 id="homeOrderHeading" class="serif">Homepage section order</h3>
+ <p>Move sections up or down to change their position below the quick search. Hidden sections stay in your saved order for when you show them again.</p></div>
+ <div id="homeSectionOrder" class="home-order-list" aria-live="polite"></div>
+</section>
+<section class="home-editor-library" aria-labelledby="homeMediaHeading">
+ <div class="home-editor-library-head"><div><h3 class="serif" id="homeMediaHeading">Image library</h3>
+ <p>Upload JPEG, PNG or WebP images (up to 5 MB), then assign them to any homepage image field. Delete images you no longer use.</p>
+ </div><label class="button dark home-media-add">+ Upload image<input type="file" id="homeMediaUpload" accept="image/jpeg,image/png,image/webp" hidden></label></div>
+ <p id="homeMediaStatus" class="home-media-status" role="status" aria-live="polite">Choose an image field above, then pick an image from your library.</p>
+ <div id="homeMediaLibrary" class="home-media-grid"></div>
+</section>
 <div class="home-editor-savebar"><span id="homeEditorUnsaved">No unsaved changes</span>
 <div class="home-editor-save-actions">
 <button id="homeEditorSave" class="button outline" type="button">Save Draft</button>
@@ -62,7 +74,7 @@
 <div id="homePreviewCtaWrap" class="home-preview-section"><small>Get in touch</small><h3 id="homePreviewCta"></h3><p id="homePreviewCtaDesc"></p><span id="homePreviewCtaButton" class="home-preview-small-button"></span></div>
 </div>
 </div>
-<p class="home-editor-preview-hint">This preview shows the key sections and headline changes. Open the live homepage to see the full responsive layout after publishing.</p>
+<p class="home-editor-preview-hint">Preview follows your section order and color palette. Open the live homepage to see the full responsive layout after publishing.</p>
 </aside>
 </div>
 </div></div>
