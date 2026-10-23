@@ -13,6 +13,12 @@ const OPFW_ENDPOINT="https://opfw.gg/api/rest/1973/stocks_company_properties";
 const BASIC="company_id,block_id,property_id,property_name,property_type,property_address,property_cost";
 const RENTAL=",property_income,property_renter_cid,property_last_pay";
 const ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyhomes.com"]);
+const DEFAULT_PERMISSIONS={
+ can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
+ can_set_prices:false,can_manage_storage:false,can_publish:false,
+ can_feature:false,can_manage_photos:false
+};
+const OWNER_PERMISSIONS=Object.fromEntries(Object.keys(DEFAULT_PERMISSIONS).map(k=>[k,true]));
 const idPattern=/^[a-zA-Z0-9_-]{1,80}$/;
 const response=(body:unknown,status=200,cors:Record<string,string>={})=>
   new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff",...cors}});
@@ -127,11 +133,27 @@ Deno.serve(async(req:Request)=>{
     const roles=await guildRoles(providerId,bot);
     const owner=roles.includes(OWNER_ROLE_ID),realtor=owner||roles.includes(REALTOR_ROLE_ID);
     if(!realtor)return response({error:"Brick & Ivy staff role required"},403,cors);
+    // Permissions are attached to the server-verified Discord identity, never
+    // client metadata, a public Realtor title, or a client-supplied role.
+    let permissions={...DEFAULT_PERMISSIONS};
+    if(owner)permissions={...OWNER_PERMISSIONS} as typeof DEFAULT_PERMISSIONS;
+    else {
+      const {data:record,error:e}=await db.from("brickivy_realtor_permissions")
+        .select(Object.keys(DEFAULT_PERMISSIONS).join(",")).eq("discord_user_id",providerId).maybeSingle();
+      if(e)throw Error("Unable to verify Realtor permissions");
+      permissions={...DEFAULT_PERMISSIONS,...(record||{})};
+    }
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
     const action=(input as Record<string,unknown>).action;
     if(!["list","saveWeeklyCost","setArea","setReservation","setStorage","setDescription","setPublished","setFeatured"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
-    if(["saveWeeklyCost","setArea","setStorage","setDescription","setPublished","setFeatured"].includes(String(action))&&!owner)return response({error:"Owner role required for this action"},403,cors);
+    const actions:Record<string,keyof typeof DEFAULT_PERMISSIONS>={
+      saveWeeklyCost:"can_set_prices",setArea:"can_edit_area",setReservation:"can_manage_reservations",
+      setStorage:"can_manage_storage",setDescription:"can_edit_description",
+      setPublished:"can_publish",setFeatured:"can_feature"
+    };
+    const required=actions[String(action)];
+    if(required && !permissions[required])return response({error:"Permission denied for this action"},403,cors);
     // Each staff request fetches an up-to-date OPFW company snapshot.
     const {rows,rentalAvailable}=await stock(opfwToken);
     const properties=rows.filter(r=>pid(r.property_id)!=="");
@@ -315,7 +337,7 @@ Deno.serve(async(req:Request)=>{
     // Names are optional. A field-restricted OPFW token may not allow the characters table.
     // Never return player names outside authenticated staff responses.
     const names=rentalAvailable?await renterNames(opfwToken,properties):new Map<number,string>();
-    return response({role:owner?"owner":"realtor",rentalAvailable,
+    return response({role:owner?"owner":"realtor",permissions,rentalAvailable,
       propertyTypes:propertyTypes.map(type=>({
         type,capacityKg:storedTypes.get(type)?.capacity_kg??null,
         capacitySlots:storedTypes.get(type)?.capacity_slots??null
