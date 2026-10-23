@@ -19,10 +19,11 @@ async function api(action,extra={}){
  return data;
 }
 function renderStats(){
- const items=[["inquiryStatNew","new"],["inquiryStatProgress","in_progress"],["inquiryStatContacted","contacted"],
-  ["inquiryStatAwaiting","awaiting_customer"],["inquiryStatClosed","closed"]];
- for(const [id,status] of items){const elem=el(id);if(elem)elem.textContent=n(inquiries.filter(x=>x.status===status).length);}
- const unclaimed=el("inquiryStatUnassigned");if(unclaimed)unclaimed.textContent=n(inquiries.filter(x=>x.status!=="closed"&&!x.assigned_discord_id).length);
+ // Aggregate totals come from server-side SQL; the inbox itself shows the 150 newest.
+ const totals=[["inquiryStatNew","new"],["inquiryStatProgress","inProgress"],
+  ["inquiryStatContacted","contacted"],["inquiryStatAwaiting","awaitingCustomer"],
+  ["inquiryStatClosed","closed"],["inquiryStatUnassigned","unassignedOpen"]];
+ for(const [id,key] of totals){const target=el(id);if(target)target.textContent=n(metrics[key]);}
 }
 function render(){
  const target=el("inquiryStaffList");if(!target)return;
@@ -160,18 +161,20 @@ async function actionClick(event){
  }
  if(!button.hasAttribute("data-inquiry-save")&&!button.hasAttribute("data-inquiry-claim"))return;
  busy=true;button.disabled=true;
+ let successMessage="";
  try{
   if(button.hasAttribute("data-inquiry-claim")){
    info("Claiming inquiry…");const result=await api("claimInquiry",{id:item.id});
-   info("Inquiry claimed."+(result.notification==="failed"?" Discord mention could not be delivered.":""));
+   successMessage="Inquiry claimed."+(result.notification==="failed"?" Discord mention could not be delivered.":"");
   }else{
    const data={id:item.id,status:card.querySelector("[data-inquiry-status]").value,
     assignedDiscordId:card.querySelector("[data-inquiry-assignee]").value,
     note:card.querySelector("[data-inquiry-note]").value};
    info("Saving inquiry…");const result=await api("updateInquiry",data);
-   info("Inquiry saved."+(result.notification==="failed"?" The targeted Discord mention could not be delivered.":""));
+   successMessage="Inquiry saved."+(result.notification==="failed"?" The targeted Discord mention could not be delivered.":"");
   }
   await reload();
+  info(successMessage);
  }catch(e){info(e.message||"Unable to update this inquiry.");button.disabled=false}
  finally{busy=false}
 }
