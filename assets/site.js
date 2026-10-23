@@ -38,6 +38,44 @@ function populatePropertyTypes(select,properties){
  if(types.includes(prior))select.value=prior;
 }
 
+/* Editable homepage content is fetched from the dedicated public, sanitized
+ * Supabase Edge Function. The original HTML remains the visible fallback.
+ * textContent only: editable copy cannot inject HTML or scripts.
+ */
+async function hydrateHomepageContent(){
+ const c=window.BRICK_IVY_CONFIG||{};
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
+ try{
+  const url=c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
+  const response=await fetch(url,{cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
+  if(!response.ok)throw Error('Homepage content API HTTP '+response.status);
+  const payload=await response.json(),fields=payload?.content;
+  if(!fields||typeof fields!=='object'||Array.isArray(fields))throw Error('Unexpected homepage data');
+  $('[data-home-text]').forEach(element=>{
+    const field=element.dataset.homeText;
+    if(typeof fields[field]==='string')element.textContent=fields[field];
+  });
+  $('[data-home-image]').forEach(element=>{
+    const value=fields[element.dataset.homeImage];
+    if(typeof value!=='string'||!value)return;
+    try{
+      const image=new URL(value);
+      if(image.protocol==='https:'&&!image.username&&!image.password)element.src=image.href;
+    }catch{}
+  });
+  $('[data-home-alt]').forEach(element=>{
+    const value=fields[element.dataset.homeAlt];
+    if(typeof value==='string')element.alt=value;
+  });
+  $('[data-home-section]').forEach(element=>{
+    const value=fields[element.dataset.homeSection];
+    if(typeof value==='boolean')element.hidden=!value;
+  });
+  const announcement=$('#homeAnnouncement');
+  if(announcement)announcement.hidden=fields.announcementEnabled!==true||!safeText(fields.announcementText);
+ }catch(error){console.warn('Using default homepage content:',error);}
+}
+
 function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
 function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable','available','reserved'].includes(safeText(p.status).toLowerCase());}
 async function getProperties(){
@@ -364,4 +402,4 @@ async function realtorDirectory(){
  }finally{grid.setAttribute('aria-busy','false')}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home')home();if(page==='properties')propertiesPage();if(page==='detail')detailPage();if(page==='realtors')realtorDirectory()});
+document.addEventListener('DOMContentLoaded',()=>{setupNav();const page=document.body.dataset.page;if(page==='home'){hydrateHomepageContent();home();}if(page==='properties')propertiesPage();if(page==='detail')detailPage();if(page==='realtors')realtorDirectory()});
