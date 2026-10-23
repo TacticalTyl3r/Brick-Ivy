@@ -16,7 +16,7 @@ const ORIGINS=new Set(["https://brickandivyhomes.com","https://www.brickandivyho
 const DEFAULT_PERMISSIONS={
  can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
  can_set_prices:false,can_manage_storage:false,can_publish:false,
- can_feature:false,can_manage_photos:false
+ can_feature:false,can_manage_photos:false,can_view_financials:false
 };
 const OWNER_PERMISSIONS=Object.fromEntries(Object.keys(DEFAULT_PERMISSIONS).map(k=>[k,true]));
 const idPattern=/^[a-zA-Z0-9_-]{1,80}$/;
@@ -368,7 +368,7 @@ Deno.serve(async(req:Request)=>{
     const maintenanceKnown=propertyRows.every(p=>p.sourceWeeklyCost!==null);
     const rentsKnown=rentalAvailable&&propertyRows.filter(p=>p.rented===true).every(p=>p.weeklyCost!==null);
     const complete=maintenanceKnown&&rentsKnown;
-    const finance=owner?{
+    const finance=(owner||permissions.can_view_financials===true)?{
       totalProperties:propertyRows.length,
       rented:rentalAvailable?propertyRows.filter(p=>p.rented===true).length:null,
       vacant:rentalAvailable?propertyRows.filter(p=>p.rented===false).length:null,
