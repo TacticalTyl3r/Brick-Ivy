@@ -29,6 +29,25 @@ async function api(action,extra={}) {
   if(!response.ok)throw Error(result.error||'Request failed. Try again.');
   return result;
 }
+
+/* Staff Portal inquiry pulse. Denied Realtors see no private metrics. */
+async function loadInquirySummary(){
+ const box=element('staffInquirySummary');
+ if(!box)return;
+ try{
+  const result=await api('inquirySummary');
+  const m=result.metrics||{},recent=Array.isArray(result.recent)?result.recent:[];
+  box.innerHTML='<div class="bi-portal-pulse-head"><div><span class="eyebrow">Brick & Ivy team</span>'+
+   '<h2 class="serif">Inquiry pulse</h2></div><a class="button dark" href="manage-inquiries.html">Open inquiry inbox →</a></div>'+
+   '<div class="bi-portal-pulse-grid">'+
+   [['New inquiries',m.new],['Unassigned',m.unassignedOpen],['Awaiting customer',m.awaitingCustomer],['Closed',m.closed]]
+    .map(([label,value])=>'<div><strong>'+safe(Number(value||0).toLocaleString())+'</strong><span>'+safe(label)+'</span></div>').join('')+'</div>'+
+   '<div class="bi-portal-recent"><strong>Recent inquiries</strong>'+
+   (recent.length?recent.map(x=>'<a href="manage-inquiries.html">'+safe(x.property_name)+
+    ' <span>'+safe(String(x.status||'').replaceAll('_',' '))+'</span></a>').join(''):'<p>No inquiries yet.</p>')+'</div>';
+  show(box,true);
+ }catch{box.innerHTML='';show(box,false);}
+}
 async function checkRole() {
   const {data:{session}}=await supabase.auth.getSession();
   show(element('staffLogin'),!session);
@@ -36,6 +55,7 @@ async function checkRole() {
   show(element('staffOwnerContent'),false);
   show(element('staffTeamContent'),false);
   show(element('staffManagementContent'),false);
+  show(element('staffInquirySummary'),false);
   if(!session){currentRole=null;message('Sign in with Discord to continue.');return;}
   message('Checking your Brick & Ivy Discord permissions…');
   try {
@@ -44,6 +64,7 @@ async function checkRole() {
     message(currentRole==='owner'?'Signed in as Brick & Ivy Owner.':currentRole==='realtor'?'Signed in as a Brick & Ivy Realtor.':'Access restricted.');
     show(element('staffOwnerContent'),currentRole==='owner');
     show(element('staffTeamContent'),currentRole==='realtor');
+    await loadInquirySummary();
     if(currentRole==='owner'&&element('staffManagementContent')){
       await loadRoster();
       show(element('staffManagementContent'),true);
