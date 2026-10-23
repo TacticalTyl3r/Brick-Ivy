@@ -18,12 +18,12 @@ const ORIGINS = new Set([
 const FIELDS = "id,character_id,name,role_label,title,in_game_phone,discord_username,discord_user_id,photo_url,email,bio,published,display_order,updated_at";
 const PERMISSION_FIELDS=[
  "can_edit_area","can_manage_reservations","can_edit_description","can_set_prices",
- "can_manage_storage","can_publish","can_feature","can_manage_photos","can_view_financials"
+ "can_manage_storage","can_publish","can_feature","can_manage_photos","can_view_financials","can_manage_inquiries"
 ] as const;
 const DEFAULT_PERMISSIONS={
  can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
  can_set_prices:false,can_manage_storage:false,can_publish:false,
- can_feature:false,can_manage_photos:false,can_view_financials:false
+ can_feature:false,can_manage_photos:false,can_view_financials:false,can_manage_inquiries:false
 };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
