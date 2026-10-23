@@ -763,3 +763,54 @@ body[data-page="home"][data-home-about-layout="text-first"] .about-visual .logo-
 
 
 /* Expandable line-by-line property profit detail for permitted financial viewers. */
+
+
+/* Coordinated homepage palettes: matching surface tones for each theme */
+body[data-page="home"][data-home-theme="midnight"]{--home-surface:#f2f4f9;--home-tint:#e2eaf4}
+body[data-page="home"][data-home-theme="emerald"]{--home-surface:#eff8f3;--home-tint:#deefe6}
+body[data-page="home"][data-home-theme="burgundy"]{--home-surface:#fbf5f5;--home-tint:#f1e4e8}
+body[data-page="home"][data-home-theme="blush"]{--home-surface:#fdf5f8;--home-tint:#f5e9f0}
+body[data-page="home"][data-home-theme="charcoal"]{--home-surface:#f4f5f3;--home-tint:#e5e8e4}
+body[data-page="home"][data-home-theme="lavender"]{--home-surface:#f8f5fb;--home-tint:#ece7f5}
+body[data-page="home"][data-home-theme="autumn"]{--home-surface:#fff7ef;--home-tint:#f4e9dc}
+body[data-page="home"][data-home-theme="winter"]{--home-surface:#f1f7fa;--home-tint:#e0edf2}
+/* Make navigation, buttons, prices, and small details match the chosen palette */
+body[data-page="home"] .search-form .button.dark,
+body[data-page="home"] .search-form .button.dark:hover{background:var(--home-primary);color:#fff}
+body[data-page="home"] .hero .button.outline:hover{background:var(--home-primary);filter:brightness(1.17)}
+body[data-page="home"] .featured .property-price,
+body[data-page="home"] .featured .property-bottom,
+body[data-page="home"] .search-title strong,
+body[data-page="home"] .value-num{color:var(--home-primary)}
+body[data-page="home"] .neighborhood-content small{color:#f9ebdb}
+body[data-page="home"] .text-link:hover{color:var(--home-primary);filter:brightness(1.25)}
+body[data-page="home"] .featured .property-featured-kicker{color:var(--home-primary);background:var(--home-tint);border-color:var(--home-accent)}
+body[data-page="home"] .featured .property-featured-kicker span{color:var(--home-primary)}
+/* Homepage editor selectable theme palette tiles */
+.home-theme-picker{display:grid;gap:12px}
+.home-theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}
+.home-theme-tile{display:flex;align-items:start;flex-direction:column;gap:6px;min-height:112px;padding:11px 12px;text-align:left;border:1px solid #d8e3d4;background:#fff;color:#32543b;transition:box-shadow .16s,transform .16s,border-color .16s}
+.home-theme-tile:hover{border-color:#7a9b7d;transform:translateY(-2px);box-shadow:0 5px 16px rgba(35,61,43,.07)}
+.home-theme-tile.is-selected{border:2px solid #326544;background:#f0f7ee;padding:10px 11px;box-shadow:0 0 0 2px #d4e7d1}
+.home-theme-colors{display:flex;width:100%;height:31px;gap:3px;overflow:hidden}
+.home-theme-colors i{display:block;flex:1;min-width:0}
+.home-theme-colors i:first-child{flex:2}
+.home-theme-tile strong{font-size:11px;line-height:1.35;max-width:100%;font-weight:800}
+.home-theme-tile small{font-size:10px;color:#758478;line-height:1.35}
+.home-theme-tile.is-selected small{color:#56745c}
+.home-theme-tile:focus-visible{outline:3px solid #bd984f;outline-offset:3px}
+.home-theme-hint{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #d9e8d5;background:#f0f6ec;padding:11px 12px}
+.home-theme-hint small{flex:1 1 210px;font-size:10px;color:#4a6a50;line-height:1.6}
+.home-theme-reset{border:1px solid #a8c5a3;background:white;color:#27513a;font-size:10px;font-weight:800;padding:9px 12px;line-height:1.4}
+.home-theme-reset:hover{background:#e1eddf}
+/* Reflect tone of selected palette in the editor preview */
+.home-editor-preview-panel[data-home-theme="midnight"]{background:#edf1f8}
+.home-editor-preview-panel[data-home-theme="emerald"]{background:#e8f4ed}
+.home-editor-preview-panel[data-home-theme="burgundy"]{background:#faf0f1}
+.home-editor-preview-panel[data-home-theme="blush"]{background:#fbf0f5}
+.home-editor-preview-panel[data-home-theme="charcoal"]{background:#edf0ed}
+.home-editor-preview-panel[data-home-theme="lavender"]{background:#f4eefa}
+.home-editor-preview-panel[data-home-theme="autumn"]{background:#fbf0e6}
+.home-editor-preview-panel[data-home-theme="winter"]{background:#eaf5f8}
+@media(max-width:560px){.home-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.home-theme-tile{min-height:106px}}
+@media(prefers-reduced-motion:reduce){.home-theme-tile{transition:none}.home-theme-tile:hover{transform:none}}
