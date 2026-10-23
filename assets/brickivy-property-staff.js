@@ -350,7 +350,7 @@ async function load(){
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
    toggle('propertyStaffContent',true);
    toggle('propertyStaffRentalWarning',!rentalAvailable);
-   status(role==='owner'?'Signed in as Owner — editing and reservation tools enabled.':'Signed in as Realtor — rental details and reservations enabled.');
+   status(role==='owner'?'Signed in as Owner — financial dashboard and all editing tools available.':'Signed in as Realtor — your Owner-approved editing permissions are active.');
    feedback(roster.length+' company properties loaded. Website values may take up to 90 seconds to refresh after a save.');
    render();
    renderStorage();
