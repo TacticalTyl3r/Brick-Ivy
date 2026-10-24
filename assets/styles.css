@@ -1005,6 +1005,10 @@ body[data-page="home"] .neighborhood [data-home-image].home-image-placeholder{
 body[data-page="home"] .about-visual [data-home-image].home-image-placeholder{
  background:#e5ebe2;padding:40px;opacity:.85;
 }
+/* Keep the branded fallback hidden while the actual published photo is loading. */
+body[data-page="home"] [data-home-image].home-image-placeholder.home-image-loading{
+ opacity:0;
+}
 html[data-ui-theme="dark"] body[data-page="home"] .about-visual [data-home-image].home-image-placeholder{
  background:#1b2e23;opacity:.75;
 }
