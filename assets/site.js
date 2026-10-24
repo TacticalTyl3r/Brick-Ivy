@@ -81,9 +81,16 @@ async function hydrateHomepageContent(){
  try{
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
   const url=c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
-  const response=await fetch(url,{cache:'no-store',credentials:'omit',signal:abort.signal,headers:{Accept:'application/json'}});
-  if(!response.ok)throw Error('Homepage content API HTTP '+response.status);
-  const payload=await response.json(),fields=payload?.content;
+  // The homepage starts its fetch in <head>, eliminating the DOM-ready delay.
+  const early=window.BRICK_IVY_HOME_PREFETCH;
+  let payload;
+  if(early&&typeof early.then==='function')payload=await early;
+  else{
+   const response=await fetch(url,{cache:'no-store',credentials:'omit',signal:abort.signal,headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('Homepage content API HTTP '+response.status);
+   payload=await response.json();
+  }
+  const fields=payload?.content;
   if(!fields||typeof fields!=='object'||Array.isArray(fields))throw Error('Unexpected homepage data');
   $$('[data-home-text]').forEach(element=>{
     const field=element.dataset.homeText;
