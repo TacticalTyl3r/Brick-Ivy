@@ -28,6 +28,22 @@ The Owner can also use [Realtor Permissions](https://brickandivyhomes.com/manage
 
 See [Homepage Editor and financial visibility guide](backend/HOMEPAGE-EDITOR-FINANCIAL-VISIBILITY.md).
 
+## Homepage first-paint behavior
+
+The public homepage is customized through Supabase, so the static HTML now starts
+with an immediately enabled `home-content-pending` class. A lightweight inline
+head script begins fetching the published configuration before page parsing
+finishes. The original HTML images have been replaced with local Brick & Ivy
+brand-mark placeholders, preventing old unsplash photos from flashing briefly.
+
+`assets/site.js` applies approved published headings, images, palette, layouts,
+visibility, and section order before removing the pending state. The main hero
+photo is predecoded before display and lower-page photos retain browser lazy
+loading. CSS displays a branded progress state instead of outdated copy while
+loading. If the backend times out or is unavailable, the pending class is
+removed and local Brick & Ivy fallback content remains available. No Owner
+drafts are exposed and the Save Draft / Publish workflow is unchanged.
+
 ## Footer visitor counter
 
 Every public and staff page footer shows the same **Site visitors** total. Only the four public sections (Home, Properties, Property Details, and Realtor Directory) register visits. The protected staff pages display the total without increasing it.
