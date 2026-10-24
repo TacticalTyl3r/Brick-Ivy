@@ -64,7 +64,7 @@ function publishedHomepageImage(element,href){
  }else{
   // Allow native lazy loading for the lower-page photos.
   element.onload=()=>{
-   if(element.currentSrc!==href)return;
+   if(element.currentSrc!==href||!element.complete||element.naturalWidth===0)return;
    element.onload=null;element.onerror=null;show();
   };
   element.onerror=fallback;
