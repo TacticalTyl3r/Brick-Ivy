@@ -38,16 +38,50 @@ function populatePropertyTypes(select,properties){
  if(types.includes(prior))select.value=prior;
 }
 
-/* Editable homepage content is fetched from the dedicated public, sanitized
- * Supabase Edge Function. The original HTML remains the visible fallback.
- * textContent only: editable copy cannot inject HTML or scripts.
+/* Homepage publication is loaded separately; the static HTML is a branded
+ * network-failure fallback and never flashes outdated photos first.
  */
+function publishedHomepageImage(element,href){
+ element.classList.add('home-image-loading');
+ function show(){element.classList.remove('home-image-loading','home-image-placeholder');}
+ function fallback(){
+  element.onload=null;element.onerror=null;
+  element.src='assets/brick-ivy-mark.svg';
+  element.classList.add('home-image-placeholder');
+  element.classList.remove('home-image-loading');
+ }
+ if(element.dataset.homeImage==='heroImage'){
+  // Decode the visible hero before swapping it into the page.
+  const preload=new Image();
+  preload.decoding='async';
+  preload.fetchPriority='high';
+  preload.onload=async()=>{
+   try{if(preload.decode)await preload.decode();}catch{}
+   element.src=href;show();
+  };
+  preload.onerror=fallback;
+  preload.src=href;
+ }else{
+  // Allow native lazy loading for the lower-page photos.
+  element.onload=()=>{
+   if(element.currentSrc!==href)return;
+   element.onload=null;element.onerror=null;show();
+  };
+  element.onerror=fallback;
+  element.src=href;
+  if(element.complete&&element.naturalWidth>0&&element.currentSrc===href){
+   element.onload=null;element.onerror=null;show();
+  }
+ }
+}
 async function hydrateHomepageContent(){
  const c=window.BRICK_IVY_CONFIG||{};
- if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
+ const abort=new AbortController();
+ const deadline=setTimeout(()=>abort.abort(),7000);
  try{
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(c.supabaseUrl||''))return;
   const url=c.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-homepage';
-  const response=await fetch(url,{cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
+  const response=await fetch(url,{cache:'no-store',credentials:'omit',signal:abort.signal,headers:{Accept:'application/json'}});
   if(!response.ok)throw Error('Homepage content API HTTP '+response.status);
   const payload=await response.json(),fields=payload?.content;
   if(!fields||typeof fields!=='object'||Array.isArray(fields))throw Error('Unexpected homepage data');
@@ -60,7 +94,7 @@ async function hydrateHomepageContent(){
     if(typeof value!=='string'||!value)return;
     try{
       const image=new URL(value);
-      if(image.protocol==='https:'&&!image.username&&!image.password)element.src=image.href;
+      if(image.protocol==='https:'&&!image.username&&!image.password)publishedHomepageImage(element,image.href);
     }catch{}
   });
   $$('[data-home-alt]').forEach(element=>{
@@ -98,7 +132,11 @@ async function hydrateHomepageContent(){
   }
   const announcement=$('#homeAnnouncement');
   if(announcement)announcement.hidden=fields.announcementEnabled!==true||!safeText(fields.announcementText);
- }catch(error){console.warn('Using default homepage content:',error);}
+ }catch(error){console.warn('Using branded homepage fallback:',error);}
+ finally{
+  clearTimeout(deadline);
+  document.documentElement.classList.remove('home-content-pending');
+ }
 }
 
 function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
