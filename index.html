@@ -13,6 +13,19 @@
   <script>
     document.documentElement.classList.add('home-content-pending');
     window.setTimeout(function(){ document.documentElement.classList.remove('home-content-pending'); }, 9000);
+    // Start the public homepage request while the rest of the page is parsing,
+    // rather than waiting for all page assets and DOMContentLoaded.
+    window.BRICK_IVY_HOME_PREFETCH = (function(){
+      var controller = new AbortController();
+      var deadline = setTimeout(function(){ controller.abort(); }, 7000);
+      return fetch('https://rcbbnzqmfvapwuqmpmhk.supabase.co/functions/v1/brickivy-homepage', {
+        cache: 'no-store', credentials: 'omit', signal: controller.signal,
+        headers: {Accept:'application/json'}
+      }).then(function(response){
+        if(!response.ok)throw Error('Homepage publication unavailable');
+        return response.json();
+      }).catch(function(){ return null; }).finally(function(){ clearTimeout(deadline); });
+    })();
   </script>
   <link rel="preconnect" href="https://rcbbnzqmfvapwuqmpmhk.supabase.co" crossorigin>
 <link rel="stylesheet" href="assets/styles.css?v=20261024-home-load1">
