@@ -42,6 +42,12 @@ function populatePropertyTypes(select,properties){
  * network-failure fallback and never flashes outdated photos first.
  */
 function publishedHomepageImage(element,href){
+ // When the HTML already contains the published photo, don't hide or reload it.
+ // This also preserves the browser's native high-priority first-paint request.
+ const rendered=element.getAttribute('src');
+ if(!element.classList.contains('home-image-placeholder')&&rendered){
+  try{if(new URL(rendered,document.baseURI).href===href)return;}catch{}
+ }
  element.classList.add('home-image-loading');
  function show(){element.classList.remove('home-image-loading','home-image-placeholder');}
  function fallback(){
@@ -139,6 +145,8 @@ async function hydrateHomepageContent(){
   }
   const announcement=$('#homeAnnouncement');
   if(announcement)announcement.hidden=fields.announcementEnabled!==true||!safeText(fields.announcementText);
+  const heroCaption=$('.hero-image .image-caption');
+  if(heroCaption)heroCaption.hidden=!safeText(fields.heroCaption);
  }catch(error){console.warn('Using branded homepage fallback:',error);}
  finally{
   clearTimeout(deadline);
