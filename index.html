@@ -9,12 +9,8 @@
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="assets/theme.js?v=20261022-dark1"></script>
-  <!-- Prevent the original HTML fallback from flashing before the published homepage arrives. -->
+  <!-- Fetch updates early, but render the latest published homepage immediately. -->
   <script>
-    document.documentElement.classList.add('home-content-pending');
-    window.setTimeout(function(){ document.documentElement.classList.remove('home-content-pending'); }, 9000);
-    // Start the public homepage request while the rest of the page is parsing,
-    // rather than waiting for all page assets and DOMContentLoaded.
     window.BRICK_IVY_HOME_PREFETCH = (function(){
       var controller = new AbortController();
       var deadline = setTimeout(function(){ controller.abort(); }, 7000);
@@ -28,10 +24,10 @@
     })();
   </script>
   <link rel="preconnect" href="https://rcbbnzqmfvapwuqmpmhk.supabase.co" crossorigin>
-<link rel="stylesheet" href="assets/styles.css?v=20261024-home-load1">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1"><script defer src="assets/brickivy-config.js"></script><script defer src="assets/site.js?v=20261024-home-load1"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20261024-firstpaint2">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1"><script defer src="assets/brickivy-config.js"></script><script defer src="assets/site.js?v=20261024-firstpaint2"></script>
 </head>
-<body data-page="home">
+<body data-page="home" data-home-theme="midnight" data-home-hero-layout="split" data-home-featured-layout="three" data-home-neighborhood-layout="cards" data-home-about-layout="image-left" style="--home-primary:#172b47;--home-accent:#edcb91">
   <header class="site-header">
     <div class="container header-inner">
       <a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage">
@@ -54,7 +50,6 @@
   <main>
     <section class="hero" aria-labelledby="hero-heading">
       <div class="hero-copy">
-        <div class="home-loading-intro" role="status" aria-live="polite"><span>BRICK &amp; IVY REAL ESTATE</span><strong>Finding your next chapter.</strong><small>Preparing our latest properties and details…</small></div>
         <div class="eyebrow" data-home-text="heroEyebrow">Welcome to Brick &amp; Ivy Real Estate</div>
         <h1 class="serif" id="hero-heading"><span data-home-text="heroLead">Your next chapter</span> <em data-home-text="heroHighlight">starts here.</em></h1>
         <p data-home-text="heroDescription">Thoughtfully selected spaces, personal guidance, and a place to belong. Discover real estate across San Andreas with the Brick &amp; Ivy team.</p>
@@ -64,8 +59,8 @@
         </div>
       </div>
       <div class="hero-image">
-        <img class="home-image-placeholder" data-home-image="heroImage" src="assets/brick-ivy-mark.svg" data-home-alt="heroImageAlt" alt="Brick & Ivy Real Estate" fetchpriority="high">
-        <div class="image-caption" data-home-text="heroCaption">Imagery for illustration</div>
+        <img class="" data-home-image="heroImage" src="https://rcbbnzqmfvapwuqmpmhk.supabase.co/storage/v1/object/public/brickivy-homepage-media/homepage/heroImage/0c6ad719-8db4-4f8a-b550-f1382fb2c6b9.png" data-home-alt="heroImageAlt" alt="Brick & Ivy Real Estate" fetchpriority="high">
+        <div class="image-caption" data-home-text="heroCaption" hidden></div>
       </div>
     </section>
     <div class="quick-search" aria-label="Quick property search">
@@ -88,23 +83,23 @@
         <div class="property-grid" id="featuredGrid" aria-live="polite"><div class="empty-listings"><div><div class="eyebrow">Brick &amp; Ivy properties</div><h3>Preparing our property collection.</h3><p>Our listings will appear here once they are published.</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div></div>
       </div>
     </section>
-    <section class="section neighborhoods" id="neighborhoods" data-home-section="showNeighborhoods">
+    <section class="section neighborhoods" id="neighborhoods" data-home-section="showNeighborhoods" hidden>
       <div class="container">
         <div class="section-top">
           <div><div class="eyebrow" data-home-text="neighborhoodsEyebrow">Explore San Andreas</div><h2 class="section-heading"><span data-home-text="neighborhoodsLead">Find your kind</span> <em data-home-text="neighborhoodsHighlight">of place.</em></h2></div>
-          <p class="section-copy" data-home-text="neighborhoodsDescription">From the heart of the city to peaceful surroundings, there's a neighborhood for every way of life.</p>
+          <p class="section-copy" data-home-text="neighborhoodsDescription">From the heart of the city to peaceful surroundings, there&#39;s a neighborhood for every way of life.</p>
         </div>
         <div class="neighborhood-grid">
           <a href="properties.html?area=Los+Santos" class="neighborhood">
-            <img class="home-image-placeholder" data-home-image="lsImage" src="assets/brick-ivy-mark.svg" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
+            <img class="" data-home-image="lsImage" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
             <div class="neighborhood-content"><div><small>City living</small><h3>Los Santos</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
           <a href="properties.html?area=Sandy+Shores" class="neighborhood">
-            <img class="home-image-placeholder" data-home-image="sandyImage" src="assets/brick-ivy-mark.svg" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
+            <img class="" data-home-image="sandyImage" src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
             <div class="neighborhood-content"><div><small>Quiet escapes</small><h3>Sandy Shores</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
           <a href="properties.html?area=Paleto+Bay" class="neighborhood">
-            <img class="home-image-placeholder" data-home-image="paletoImage" src="assets/brick-ivy-mark.svg" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
+            <img class="" data-home-image="paletoImage" src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Brick &amp; Ivy neighborhood photo" loading="lazy">
             <div class="neighborhood-content"><div><small>Coastal calm</small><h3>Paleto Bay</h3></div><span class="arrow" aria-hidden="true">↗</span></div>
           </a>
         </div>
@@ -114,13 +109,13 @@
     <section class="section" id="our-story" data-home-section="showAbout">
       <div class="container about">
         <div class="about-visual">
-          <img class="portrait home-image-placeholder" data-home-image="aboutImage" src="assets/brick-ivy-mark.svg" alt="Brick &amp; Ivy real estate image" loading="lazy">
+          <img class="portrait" data-home-image="aboutImage" src="https://rcbbnzqmfvapwuqmpmhk.supabase.co/storage/v1/object/public/brickivy-homepage-media/homepage/aboutImage/70aea082-b576-45ed-8448-7a1be2324eed.png" alt="Brick &amp; Ivy real estate image" loading="lazy">
           <div class="logo-plaque"><img src="assets/brick-ivy-logo.svg" alt="Brick and Ivy Real Estate logo" loading="lazy"></div>
         </div>
         <div class="about-copy">
           <div class="eyebrow" data-home-text="aboutEyebrow">A more personal approach</div>
           <h2 class="section-heading"><span data-home-text="aboutLead">More than a home.</span> <em data-home-text="aboutHighlight">A fresh start.</em></h2>
-          <p class="section-copy" data-home-text="aboutDescription">At Brick &amp; Ivy, we believe finding a property should feel personal. Whether you're making your first move or searching for something new, our Realtors are here to help you find the right fit.</p>
+          <p class="section-copy" data-home-text="aboutDescription">At Brick &amp; Ivy, we believe finding a property should feel personal. Whether you&#39;re making your first move or searching for something new, our Realtors are here to help you find the right fit.</p>
           <div class="values">
             <div class="value"><div class="value-num">01</div><div><strong>Discover what fits</strong><span>Browse listings with the details that matter most to you.</span></div></div>
             <div class="value"><div class="value-num">02</div><div><strong>Talk with a Realtor</strong><span>Get help exploring the options available across San Andreas.</span></div></div>
