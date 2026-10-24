@@ -30,19 +30,19 @@ See [Homepage Editor and financial visibility guide](backend/HOMEPAGE-EDITOR-FIN
 
 ## Homepage first-paint behavior
 
-The public homepage is customized through Supabase, so the static HTML now starts
-with an immediately enabled `home-content-pending` class. A lightweight inline
-head script begins fetching the published configuration before page parsing
-finishes. The original HTML images have been replaced with local Brick & Ivy
-brand-mark placeholders, preventing old unsplash photos from flashing briefly.
+The homepage's initial HTML includes a snapshot of the **actual published**
+Supabase configuration (text, five image URLs, current theme, section visibility
+and layout). Visitors see the real hero photo and copy immediately rather than
+a blank loading treatment or the original stock images. The public content API
+is prefetched from the page head and still hydrates updates without a refresh;
+`assets/site.js` does **not** re-hide/reload an image when the published URL
+already matches the HTML.
 
-`assets/site.js` applies approved published headings, images, palette, layouts,
-visibility, and section order before removing the pending state. The main hero
-photo is predecoded before display and lower-page photos retain browser lazy
-loading. CSS displays a branded progress state instead of outdated copy while
-loading. If the backend times out or is unavailable, the pending class is
-removed and local Brick & Ivy fallback content remains available. No Owner
-drafts are exposed and the Save Draft / Publish workflow is unchanged.
+The Owner's **Save Draft → Publish Homepage** workflow and live public content
+API are unchanged. A subsequently published version can differ from the static
+fallback until the next GitHub HTML snapshot update; the browser will reconcile
+the new published values on load. If Supabase is temporarily unavailable, the
+latest static HTML snapshot remains visible instead of an empty page.
 
 ## Footer visitor counter
 
