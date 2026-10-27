@@ -170,24 +170,15 @@ Deno.serve(async request=>{
  if(error||!insert)return reply({error:"Could not save inquiry"},503);
 
  const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
- // Notify current Brick & Ivy team members directly. Mentioning individual
- // Discord users works without the guild-wide Mention Everyone permission.
- // Never accept mention targets from the public inquiry form.
- const {data:team,error:teamError}=await db.from("brickivy_realtors")
-  .select("discord_user_id,role_label,published");
- if(teamError)console.warn("Brick & Ivy inquiry recipient lookup failed");
- const mentionIds=[...new Set((team||[])
-  .filter(row=>row.role_label==="Owner"||(row.role_label==="Realtor"&&row.published===true))
-  .map(row=>String(row.discord_user_id||""))
-  .filter(value=>/^\d{17,20}$/.test(value)))].slice(0,40);
+ // A new inquiry pings only the Realtor role in the Brick & Ivy guild.
+ // Never accept a role ID or mention target from the public inquiry form.
+ const REALTOR_ROLE_ID="1502870035176357968";
  const {weeklyRent,availability}=await getInquiryListingDetails(url,id);
  const listingUrl="https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
  const inquiryPayload={
-  // Actual pings: only the trusted Owner/Realtor IDs from our staff directory.
-  content:mentionIds.length
-   ?"🏡 **New housing inquiry for Brick & Ivy!** "+mentionIds.map(userId=>"<@"+userId+">").join(" ")
-   :"🏡 **New housing inquiry for Brick & Ivy!**",
-  allowed_mentions:{parse:[],users:mentionIds},
+  // Explicitly allow only the trusted Brick & Ivy Realtor role to ping.
+  content:"🏡 **New housing inquiry for Brick & Ivy!** <@&"+REALTOR_ROLE_ID+">",
+  allowed_mentions:{parse:[],roles:[REALTOR_ROLE_ID]},
   embeds:[{
    author:{name:"BRICK & IVY  ·  REAL ESTATE"},
    title:"🏡 New Property Inquiry",
@@ -211,7 +202,7 @@ Deno.serve(async request=>{
  const delivery=await sendInquiryAsBot(inquiryPayload);
  const notification=delivery.sent?"sent":delivery.configured?"failed":"not_configured";
  if(!delivery.sent)console.warn("Brick & Ivy inquiry bot:",delivery.reason);
- if(delivery.sent&&!mentionIds.length)console.warn("Brick & Ivy inquiry posted without staff pings: no active Discord IDs found");
+
  const {error:statusError}=await db.from("brickivy_property_inquiries").update({discord_notification:notification}).eq("id",insert.id);
  if(statusError)console.warn("Inquiry notification status could not be recorded");
  return reply({success:true,reference:insert.id},201);
