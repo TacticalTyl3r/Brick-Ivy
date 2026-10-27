@@ -508,18 +508,11 @@ Deno.serve(async request => {
           }
         }
       }catch{ /* A temporary property feed outage must not block a retry. */ }
-      // An Owner retries only a previously failed inquiry alert. Target the
-      // verified staff directory, never user-controlled inquiry contact data.
-      const {data:staff,error:staffError}=await admin.from("brickivy_realtors")
-        .select("discord_user_id,role_label,published");
-      if(staffError)console.warn("Inquiry retry staff recipient lookup failed");
-      const mentionIds=[...new Set((staff||[])
-        .filter(member=>member.role_label==="Owner"||(member.role_label==="Realtor"&&member.published===true))
-        .map(member=>String(member.discord_user_id||""))
-        .filter(discordId=>/^\d{17,20}$/.test(discordId)))].slice(0,40);
+      // Retries match the new-inquiry alert: ping only the Brick & Ivy Realtor role.
+      const REALTOR_INQUIRY_ROLE_ID="1502870035176357968";
       const result=await sendInquiryAsBot({
-        content:"🏡 **Housing inquiry notification retry** "+mentionIds.map(discordId=>"<@"+discordId+">").join(" "),
-        allowed_mentions:{parse:[],users:mentionIds},
+        content:"🏡 **Housing inquiry notification retry** <@&"+REALTOR_INQUIRY_ROLE_ID+">",
+        allowed_mentions:{parse:[],roles:[REALTOR_INQUIRY_ROLE_ID]},
         embeds:[{
           author:{name:"BRICK & IVY · REAL ESTATE"},
           title:"🏡 Property Inquiry • Delivery Retry",
@@ -551,7 +544,7 @@ Deno.serve(async request => {
       });
       if(auditError)console.warn("Brick & Ivy retry audit could not be recorded");
       return json({success:result.sent,notification:outcome,
-        ...(result.sent?{message:"Inquiry notification resent to the Brick & Ivy team."}:{error:"Discord delivery failed: "+result.reason})},result.sent?200:502,cors);
+        ...(result.sent?{message:"Inquiry notification resent to the Brick & Ivy Realtor role."}:{error:"Discord delivery failed: "+result.reason})},result.sent?200:502,cors);
     }
     if (action === "diagnoseInquiryDiscord") {
       const diagnostic=await diagnoseInquiryBot();
