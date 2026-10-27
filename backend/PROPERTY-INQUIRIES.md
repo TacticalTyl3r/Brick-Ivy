@@ -13,9 +13,9 @@
 
 **Channel:** `BRICKIVY_INQUIRY_DISCORD_CHANNEL_ID` is optional. If set, it must be the numeric Discord channel ID inside the Brick & Ivy guild. If absent, the backend securely performs a read-only `GET` of the saved `BRICKIVY_INQUIRY_DISCORD_WEBHOOK` to discover the original channel. **No webhook POST is performed.** This allows existing installations to switch to the bot without changing their channel settings. Once the channel ID is explicitly configured, the saved webhook can be removed if desired.
 
-**Notification rules:** Every new inquiry explicitly mentions the current published Brick & Ivy Realtors and Owner from the protected team directory. A new assignment, reassignment, or successful self-claim explicitly mentions **only the receiving Realtor**. Routine status changes and Owner test messages remain non-pinging. The bot uses allowlisted user IDs rather than mass role mentions, so it does not require permission to mention an entire role. Any Realtor receiving an assignment still needs the appropriate inquiry-management permission.
+**Notification rules:** Every new inquiry mentions **only the Brick & Ivy Realtor role** (`1502870035176357968`), not individual staff members or the Owner separately. A new assignment, reassignment, or successful self-claim mentions **only the receiving Realtor**. Routine status changes and Owner test messages remain non-pinging. Role alerts use one allowlisted Discord role mention. That role must be mentionable by the bot (either enabled as mentionable in Discord or the bot must have the *Mention @everyone, @here, and All Roles* permission).
 
-The bot needs **View Channel**, **Send Messages**, and **Embed Links** in the notification channel. New inquiry and recovery alerts use explicit `allowed_mentions.users` derived only from the Owner/Realtor directory; assignments and self-claims allowlist one authenticated assignee. The bot cannot be used to ping arbitrary people from public inquiry text. Recipients must be able to view the notification channel for the mention to reach them.
+The bot needs **View Channel**, **Send Messages**, and **Embed Links** in the notification channel. New-inquiry and recovery alerts use `allowed_mentions: { parse: [], roles: [REALTOR_ROLE_ID] }`; assignments and self-claims use an explicitly allowlisted assignee in `allowed_mentions.users`. Public inquiry text never controls these targets. Role members must be able to view the channel, and the Realtor role must be mentionable or the bot must have permission to mention roles.
 
 New inquiry embeds display the property, address, price, availability, customer details and message. Status-change embeds use distinct colors and are sent only when the saved status **actually changes** to one of these stages:
 
@@ -75,7 +75,7 @@ The clock runs from the original inquiry creation time. Only inquiries in **New*
 
 ### Owner-only recovery of an undelivered initial inquiry notification
 
-For an original new-inquiry message with `discord_notification` = `failed` or `not_configured`, the Owner sees **Retry Discord notification** in the private inbox. The button invokes Owner-only `retryInquiryNotification` on `brickivy-admin`. The server rechecks the Owner's live Discord role, finds the **existing** inquiry, atomically changes its delivery state to `pending`, and makes one team-mention bot attempt. The retry embeds existing property/customer details and the available current listing rent/status. It **does not** insert another inquiry or replay later assignment/status messages.
+For an original new-inquiry message with `discord_notification` = `failed` or `not_configured`, the Owner sees **Retry Discord notification** in the private inbox. The button invokes Owner-only `retryInquiryNotification` on `brickivy-admin`. The server rechecks the Owner's live Discord role, finds the **existing** inquiry, atomically changes its delivery state to `pending`, and makes one Realtor-role mention bot attempt. The retry embeds existing property/customer details and the available current listing rent/status. It **does not** insert another inquiry or replay later assignment/status messages.
 
 Retries have a one-minute cooldown, use a monotonically increasing attempt counter to prevent simultaneous double-sends, and are recorded as `notification_retried` in the private activity log. If an interrupted attempt stays `pending`, Owner recovery is possible after two minutes. If Discord delivery fails again, the inquiry remains saved with delivery state `failed`. Staff who are Realtors cannot call this recovery endpoint even with normal inquiry-management permission.
 
@@ -89,7 +89,7 @@ Quality checks performed during this update: all four affected browser JavaScrip
 1. Load a published home detail page and verify the form appears and is responsive.
 2. Submit one **clearly labeled test inquiry** with approved test contact information.
 3. Verify the success response, exactly one private database row and status `sent`.
-4. Confirm a new inquiry mentions the Owner and published Realtors, then assign it to a Realtor to verify only the new assignee receives the targeted mention.
+4. Confirm a new inquiry pings the Realtor role (without individual mentions), then assign it to a Realtor to verify only the new assignee receives the targeted mention.
 5. Owner can read, change status, assign a Realtor and save a private note.
 6. A Realtor without `can_manage_inquiries` receives HTTP 403, including by direct API call. A Realtor with permission can perform only inquiry operations, not Owner-only profile/permission writes.
 7. Anonymous direct Data API access to both tables is denied.
