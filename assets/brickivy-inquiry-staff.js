@@ -179,10 +179,10 @@ async function actionClick(event){
  }
  if(button.hasAttribute("data-inquiry-retry")){
   if(role!=="owner"){info("Only the Owner may retry a Discord notification.");return}
-  if(!confirm("Retry the failed Discord notification for this existing inquiry? This will not ping anyone or create a new inquiry."))return;
+  if(!confirm("Retry the failed Discord notification for this existing inquiry? This will alert the Brick & Ivy team again, but will not create a new inquiry."))return;
   busy=true;button.disabled=true;info("Retrying the original inquiry notification…");
   try{const result=await api("retryInquiryNotification",{id:item.id});
-    await reload();info(result.message||"Discord notification retried without pings.");
+    await reload();info(result.message||"Discord notification retried and sent to the team.");
   }catch(error){info(error.message||"Notification retry failed.");button.disabled=false}
   finally{busy=false}
   return;
@@ -193,7 +193,7 @@ async function actionClick(event){
  try{
   if(button.hasAttribute("data-inquiry-claim")){
    info("Claiming inquiry…");const result=await api("claimInquiry",{id:item.id});
-   successMessage="Inquiry claimed."+(result.notification==="failed"?" The non-pinging Discord claim update could not be posted.":"");
+   successMessage="Inquiry claimed."+(result.notification==="failed"?" The Discord mention for the Realtor who claimed this inquiry could not be delivered.":"");
   }else{
    const data={id:item.id,status:card.querySelector("[data-inquiry-status]").value,
     assignedDiscordId:card.querySelector("[data-inquiry-assignee]").value,
