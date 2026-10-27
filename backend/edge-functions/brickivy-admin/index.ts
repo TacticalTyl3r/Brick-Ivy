@@ -321,22 +321,23 @@ Deno.serve(async request => {
           old_assignee:null,new_assignee:assignee
         });
         if(auditError)console.warn("Claim activity could not be recorded");
-        // Claiming an inquiry may post an update, but never pings the claimant.
-        // Direct @mentions are reserved for a deliberate assignment to a Realtor.
+        // Claim is also an assignment: notify the Realtor who took ownership.
+        // The atomic claim above guarantees this is only attempted once.
         const delivery=await sendInquiryAsBot({
-          allowed_mentions:{parse:[]},
+          content:"🏡 Inquiry claimed by <@"+assignee+">",
+          allowed_mentions:{parse:[],users:[assignee]},
           embeds:[{
             author:{name:"BRICK & IVY · REAL ESTATE"},
             title:"🏡 Property Inquiry Claimed",
             url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
-            description:"A member of the Brick & Ivy team has claimed this inquiry.",
+            description:"You have claimed this inquiry. Open the Brick & Ivy inquiry dashboard to follow up.",
             color:0x285640,
             fields:[
               {name:"Property",value:String(before.property_name).replace(/[@<>]/g,"").slice(0,160),inline:true},
               {name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80),inline:true},
               {name:"Claimed by",value:String(realtorNames.get(providerId)||"Brick & Ivy staff").replace(/[@<>]/g,"").slice(0,80)}
             ],
-            footer:{text:"BRICK & IVY • Inquiry workflow • No pings"},
+            footer:{text:"BRICK & IVY • Inquiry claimed • Assigned Realtor notified"},
             timestamp:now
           }]
         });
@@ -387,10 +388,11 @@ Deno.serve(async request => {
         const safeProperty=String(before.property_name).replace(/[@<>]/g,"").slice(0,150);
         const target=assignee;
         const result=await sendInquiryAsBot({
-          content:"<@"+target+">",
+          content:"🏡 New property inquiry assigned to <@"+target+">",
           allowed_mentions:{parse:[],users:[target]},
           embeds:[{title:"🏡 Property Inquiry Assigned",
-            description:"**"+safeProperty+"** has been assigned to you.\n\nOpen the Brick & Ivy Staff Portal to follow up.",
+            url:"https://brickandivyhomes.com/manage-inquiries.html",
+            description:"**"+safeProperty+"** has been assigned to you.\n\nOpen the Brick & Ivy Inquiry Dashboard to follow up.",
             color:0x285640,
             fields:[{name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80)},
               {name:"Status",value:status.replaceAll("_"," ")}],
@@ -506,8 +508,18 @@ Deno.serve(async request => {
           }
         }
       }catch{ /* A temporary property feed outage must not block a retry. */ }
+      // An Owner retries only a previously failed inquiry alert. Target the
+      // verified staff directory, never user-controlled inquiry contact data.
+      const {data:staff,error:staffError}=await admin.from("brickivy_realtors")
+        .select("discord_user_id,role_label,published");
+      if(staffError)console.warn("Inquiry retry staff recipient lookup failed");
+      const mentionIds=[...new Set((staff||[])
+        .filter(member=>member.role_label==="Owner"||(member.role_label==="Realtor"&&member.published===true))
+        .map(member=>String(member.discord_user_id||""))
+        .filter(discordId=>/^\d{17,20}$/.test(discordId)))].slice(0,40);
       const result=await sendInquiryAsBot({
-        allowed_mentions:{parse:[]},
+        content:"🏡 **Housing inquiry notification retry** "+mentionIds.map(discordId=>"<@"+discordId+">").join(" "),
+        allowed_mentions:{parse:[],users:mentionIds},
         embeds:[{
           author:{name:"BRICK & IVY · REAL ESTATE"},
           title:"🏡 Property Inquiry • Delivery Retry",
@@ -524,7 +536,7 @@ Deno.serve(async request => {
             {name:"In-game phone",value:clean(inquiry.in_game_phone,35),inline:true},
             {name:"Discord contact",value:clean(inquiry.discord_contact||"Not provided",80),inline:true}
           ],
-          footer:{text:"BRICK & IVY · Private staff inquiry · Notification retry · No pings"},
+          footer:{text:"BRICK & IVY • Retry for previously failed inquiry • Staff notified"},
           timestamp:now
         }]
       });
@@ -539,7 +551,7 @@ Deno.serve(async request => {
       });
       if(auditError)console.warn("Brick & Ivy retry audit could not be recorded");
       return json({success:result.sent,notification:outcome,
-        ...(result.sent?{message:"Notification resent without pinging anyone."}:{error:"Discord delivery failed: "+result.reason})},result.sent?200:502,cors);
+        ...(result.sent?{message:"Inquiry notification resent to the Brick & Ivy team."}:{error:"Discord delivery failed: "+result.reason})},result.sent?200:502,cors);
     }
     if (action === "diagnoseInquiryDiscord") {
       const diagnostic=await diagnoseInquiryBot();
