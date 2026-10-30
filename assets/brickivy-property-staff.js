@@ -421,6 +421,7 @@ async function load(){
    galleries.clear();loadedGalleries.clear();openedGalleries.clear();uploadMessages.clear();
    storageTypes=Array.isArray(result.propertyTypes)?result.propertyTypes:[];
    toggle('propertyStaffContent',true);
+   toggle('propertyMapQuickLinks',role==='owner');
    toggle('propertyStaffRentalWarning',!rentalAvailable);
    status(role==='owner'?'Signed in as Owner — financial dashboard and all editing tools available.':'Signed in as Realtor — your Owner-approved editing permissions are active.');
    feedback(roster.length+' company properties loaded. Website values may take up to 90 seconds to refresh after a save.');
