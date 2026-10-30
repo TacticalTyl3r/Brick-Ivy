@@ -126,9 +126,9 @@ html[data-ui-theme="dark"] .map-state-tag.is-placed{background:#31513c;border-co
 .map-status-text.status-reserved{color:#93631e}
 .map-status-text.status-unavailable{color:#b3404e}
 .map-status-text.status-unknown{color:#5c758e}
-.map-canvas .map-layer-road{filter:grayscale(.95) contrast(1.65) brightness(1.12);}
-/* The road-focused Atlas treatment and Satellite are alternate basemaps;
-   all markers remain separate Leaflet vector overlays. */
+/* Road now uses the original blue-water GTA V road map artwork.
+   No grayscale or contrast filter: this preserves the official colors.
+   All property blips remain in Leaflet's vector overlay pane. */
 .map-view-link{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:6px;background:#e4f0e6;color:#28533a;border:1px solid #accab1;text-decoration:none;font-size:11px;font-weight:800}
 .map-view-link:hover{background:#d0e5d4}
 .map-quick-links{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:0 0 18px}
