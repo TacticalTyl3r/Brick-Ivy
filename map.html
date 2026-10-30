@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#182d25">
+<meta name="description" content="Explore published Brick & Ivy properties across San Andreas on our interactive map.">
+<link rel="canonical" href="https://brickandivyhomes.com/map.html">
+<title>Property Map | Brick & Ivy Real Estate</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<script src="assets/theme.js?v=20261022-dark1"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="assets/brickivy-public-map.css?v=20261030-public1">
+<script defer src="assets/brickivy-config.js"></script>
+<script defer src="assets/site.js?v=20261030-public1"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script defer src="assets/brickivy-public-map.js?v=20261030-public1"></script>
+</head>
+<body data-page="map">
+<header class="site-header"><div class="container header-inner">
+<a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate home"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="map.html" aria-current="page">Property Map</a><a href="realtors.html">Realtors</a><a href="index.html#our-story">About us</a></nav>
+<div class="header-actions"><a class="link-button" href="admin.html">Staff portal <span aria-hidden="true">↗</span></a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav"><span aria-hidden="true"></span></button></div>
+</div></header>
+<main>
+<section class="page-header"><div class="container"><div class="eyebrow">Explore San Andreas</div><h1 class="section-heading">Find your place <em>on the map.</em></h1>
+<p>Explore our published properties, discover nearby homes, and take a closer look at the locations that catch your eye.</p></div></section>
+<div class="container bi-public-map-workspace">
+<div class="bi-public-map-toolbar">
+ <div class="bi-map-search"><label for="publicMapSearch">Find a property</label><input id="publicMapSearch" type="search" placeholder="Search by property, address or area"></div>
+ <div><label for="publicMapFilter">Availability</label><select id="publicMapFilter"><option value="all">All mapped homes</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="unavailable">Unavailable</option><option value="unknown">Status unavailable</option></select></div>
+ <div><label for="publicMapStyle">Map style</label><select id="publicMapStyle"><option value="atlas" selected>Atlas</option><option value="satellite">Satellite</option><option value="road">Road</option></select></div>
+ <button id="publicMapShowAll" type="button" class="button outline">Show All Properties</button>
+</div>
+<div class="bi-public-map-main">
+ <div class="bi-public-map-frame">
+  <div id="publicPropertyMap" class="bi-public-map-canvas" role="application" aria-label="Interactive San Andreas map showing Brick and Ivy published property locations"></div>
+  <div id="publicMapMessage" class="bi-public-map-message" role="status" aria-live="polite">Loading available property locations…</div>
+ </div>
+ <aside id="publicMapSelected" class="bi-public-map-selected" aria-label="Selected property" hidden></aside>
+</div>
+<div class="bi-public-map-legend" aria-label="Map legend"><span><i class="available"></i> Available</span><span><i class="reserved"></i> Reserved</span><span><i class="unavailable"></i> Unavailable</span><span><i class="unknown"></i> Status unavailable</span><small>Selected home is shown with a large highlighted marker.</small></div>
+<p class="bi-map-footnote">Property details and availability can change. Contact a Brick &amp; Ivy Realtor to confirm your next steps.</p>
+</div>
+</main>
+<footer class="site-footer"><div class="container"><div class="footer-grid">
+<div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Discover your next home in San Andreas. Built for the Legendary Roleplay community.</p></div>
+<div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="map.html">Property Map</a><a href="realtors.html">Realtors</a></div></div>
+<div><div class="footer-title">Brick &amp; Ivy</div><div class="footer-links"><a href="realtors.html">Contact a Realtor</a><a href="admin.html">Staff portal</a><a href="https://legendary-roleplay.com/" target="_blank" rel="noopener noreferrer">Legendary Roleplay ↗</a></div></div>
+</div><div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate. All rights reserved.</span><span>An independent in-game business within Legendary Roleplay.</span><span class="footer-visitor-counter" title="Estimated unique browsers since visitor tracking began"><span class="visitor-indicator" aria-hidden="true"></span><span class="visitor-label">Site visitors</span><strong data-visitor-total>—</strong></span></div></div></footer>
+<script defer src="assets/brickivy-visitors.js?v=20261023-visitors1"></script>
+</body></html>
