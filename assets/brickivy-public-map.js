@@ -20,6 +20,36 @@
  const isPin=p=>typeof p.x==="number"&&typeof p.y==="number"&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=-8000&&p.x<=8000&&p.y>=-8000&&p.y<=9000;
  const urlFor=p=>"map.html?property="+encodeURIComponent(p.id);
  const detailFor=p=>"property.html?id="+encodeURIComponent(p.id);
+ const dollar=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+ const integer=new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+ const displayNumber=v=>typeof v==="number"&&Number.isFinite(v)&&v>=0?integer.format(v):"Not listed";
+ const displayPrice=v=>typeof v==="number"&&Number.isFinite(v)&&v>=0?dollar.format(v):"Price on request";
+ const interiorNames=Object.freeze({
+  "1":"Motel","2":"Trevor's Trailer","3":"Janitor Apartment",
+  "4":"Low-End Apartment","5":"Lester's House","6":"Franklin's House",
+  "7":"Mid-End Apartment","8":"Trevor's Beach House","9":"Michael's Mansion",
+  "10":"Franklin's Mansion","11":"High-End Apartment"
+ });
+ const interiorName=p=>interiorNames[String(p.type??"")]||String(p.type??"").trim()||"Not listed";
+ function sidebarMarkup(p){
+  const cover=typeof p.coverImage==="string"&&/^https:\/\//i.test(p.coverImage)
+    ?'<div class="bi-map-picked-photo"><img src="'+esc(p.coverImage)+'" alt="'+esc(p.name)+'" loading="lazy" decoding="async"></div>':"";
+  const price=displayPrice(p.price);
+  return '<div class="bi-map-picked">'+
+   '<span class="bi-map-picked-kicker">SELECTED PROPERTY</span>'+cover+
+   '<strong>'+esc(p.name)+'</strong><p class="bi-map-picked-address">'+esc(p.address||p.area||"San Andreas")+'</p>'+
+   '<span class="bi-public-status status-'+status(p)+'">'+LABELS[status(p)]+'</span>'+
+   '<div class="bi-map-price"><span>WEEKLY RENT</span><b>'+esc(price)+'</b></div>'+
+   '<div class="bi-map-facts">'+
+    '<div><span>Storage capacity</span><strong>'+esc(displayNumber(p.storageKg))+(p.storageKg!==null&&p.storageKg!==undefined?" SU":"")+'</strong></div>'+
+    '<div><span>Furniture objects</span><strong>'+esc(displayNumber(p.storageSlots))+'</strong></div>'+
+    '<div class="bi-map-fact-wide"><span>Interior</span><strong>'+esc(interiorName(p))+'</strong></div>'+
+    (p.blockId?'<div class="bi-map-fact-wide"><span>Block</span><strong>'+esc(p.blockId)+'</strong></div>':"")+
+   '</div>'+
+   '<a class="bi-map-details-button" href="'+detailFor(p)+'">View Property Details <span aria-hidden="true">→</span></a>'+
+   '<a class="bi-map-inquire-button" href="'+detailFor(p)+'#biInquiry">Inquire About This Home <span aria-hidden="true">↗</span></a>'+
+  '</div>';
+ }
  let currentStyle="atlas",publicProperties=[],loaded=false;
  try{const v=localStorage.getItem(KEY);if(Object.hasOwn(TILES,v))currentStyle=v}catch{}
  function storeStyle(value){currentStyle=value;try{localStorage.setItem(KEY,value)}catch{}}
@@ -112,10 +142,7 @@
      .bindTooltip("★ "+esc(picked.name),{permanent:true,direction:"right",offset:[12,-20],
        className:"bi-public-selected-tooltip"}).addTo(pins);
     details.hidden=false;
-    details.innerHTML='<div class="bi-map-picked"><span class="bi-map-picked-kicker">SELECTED PROPERTY</span><strong>'+esc(picked.name)+'</strong>'+
-     '<p>'+esc(picked.address||picked.area||"San Andreas")+'</p>'+
-     '<span class="bi-public-status status-'+status(picked)+'">'+LABELS[status(picked)]+'</span>'+
-     '<div><a href="'+detailFor(picked)+'">View Property Details →</a></div></div>';
+    details.innerHTML=sidebarMarkup(picked);
    }else{details.hidden=true;details.innerHTML=""}
    label.textContent=visible.length+" mapped "+(visible.length===1?"property":"properties")+
     (picked?" · Selected: "+picked.name:" · Select a pin to explore");
