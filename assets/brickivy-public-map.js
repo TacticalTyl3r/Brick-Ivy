@@ -65,6 +65,10 @@
    scrollWheelZoom:options.mini!==true,preferCanvas:true});
   const bounds=L.latLngBounds(map.unproject([0,8192],5),map.unproject([8192,0],5));
   map.setMaxBounds(bounds.pad(.08));
+  // Leaflet needs an initial center/zoom BEFORE tile layers and vector pins
+  // are added. Without a loaded view the first selected marker can leave an
+  // empty blue map even though the sidebar has already rendered.
+  map.setView(L.latLng(1550,0),3,{animate:false});
   let layer=null,styleCounter=0;
   function setStyle(kind){
    if(!Object.hasOwn(TILES,kind))return;
@@ -72,19 +76,31 @@
    const fresh=model.image?L.imageOverlay(model.url,bounds,{pane:"tilePane",attribution:model.attr}):
     L.tileLayer(model.url,{tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,
      noWrap:true,bounds,attribution:model.attr,keepBuffer:2});
-   let activated=false;
+   let activated=false,successfulTile=false,failedTiles=0;
    const activate=()=>{
     if(request!==styleCounter||activated)return;
     activated=true;
     if(layer&&map.hasLayer(layer))map.removeLayer(layer);
     layer=fresh;
    };
-   fresh.once("load",activate);
-   if(!model.image)fresh.once("tileload",activate);
+   fresh.on("load",()=>{successfulTile=true;activate()});
+   if(!model.image)fresh.on("tileload",()=>{successfulTile=true;activate()});
+   // Keep the previous map imagery visible while a replacement loads.
    fresh.addTo(map);
    if(!layer)activate();
    fresh.on(model.image?"error":"tileerror",()=>{
-    if(request===styleCounter&&!activated)map.fire("brickivy:tileerror");
+    if(request!==styleCounter)return;
+    failedTiles++;
+    if(!successfulTile&&failedTiles>=3&&kind!=="road"){
+     // Third-party Atlas/Satellite tiles sometimes fail. Keep the property
+     // map usable with the single-image Road basemap rather than blue water.
+     setStyle("road");
+     const picker=$(options.mini?"propertyMiniMapStyle":"publicMapStyle");
+     if(picker)picker.value="road";
+     map.fire("brickivy:tilefallback",{from:kind,to:"road"});
+    }else if(!successfulTile&&(model.image||failedTiles>=3)){
+     map.fire("brickivy:tileerror",{style:kind});
+    }
    });
    storeStyle(kind);
   }
@@ -151,7 +167,11 @@
    const p=publicProperties.find(p=>p.id===id);
    if(!p)return;
    chosen=id;render();
-   if(move)map.flyTo(point(p),5,{duration:.6});
+   if(move){
+    map.invalidateSize();
+    // setView also works reliably on a newly initialized simple-CRS map.
+    map.setView(point(p),5,{animate:false});
+   }
    const query=new URL(location.href);query.searchParams.set("property",p.id);
    history.replaceState(null,"",query);
   }
@@ -173,7 +193,8 @@
   const wanted=new URLSearchParams(location.search).get("property");
   const focused=wanted&&publicProperties.find(p=>p.id===wanted);
   if(focused)select(focused.id);else showAll();
-  map.on("brickivy:tileerror",()=>{label.textContent="Map images could not load. Try another map style."});
+  map.on("brickivy:tileerror",()=>{label.textContent="Map imagery is not loading. Try another style or refresh the page."});
+  map.on("brickivy:tilefallback",()=>{label.textContent="Atlas or Satellite tiles could not load, so Road is being shown instead.";});
   requestAnimationFrame(()=>map.invalidateSize());
  }
  function detailMini(){
@@ -206,6 +227,8 @@
   }
   style.value=currentStyle;
   style.addEventListener("change",e=>kit.setStyle(e.target.value));
+  map.on("brickivy:tilefallback",()=>{message.textContent="The requested map imagery did not load. Showing Road instead.";});
+  map.on("brickivy:tileerror",()=>{message.textContent="Map imagery is unavailable. Try another style.";});
   map.setView(point(selected),5);
   message.textContent="Highlighted: "+selected.name+" · "+LABELS[status(selected)]+
    ". Smaller pins show nearby homes.";
