@@ -6,7 +6,7 @@
  "use strict";
  const total=document.querySelector("[data-visitor-total]");
  if(!total)return;
- const PUBLIC_PAGES=new Set(["home","properties","detail","realtors"]);
+ const PUBLIC_PAGES=new Set(["home","properties","detail","realtors","map"]);
  const endpoint="https://rcbbnzqmfvapwuqmpmhk.supabase.co/functions/v1/brickivy-visitors";
  const key="brickivy-visitor-id-v1";
  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
