@@ -70,7 +70,7 @@ function renderList(){
 function renderMarkers(){
  if(!markers||!map)return;
  markers.clearLayers();
- for(const p of items){
+ for(const p of filtered()){
   if(!hasPin(p))continue;
   const chosen=p.id===selectedId;
   const circle=window.L.circleMarker(toLatLng(p.x,p.y),{
@@ -158,6 +158,9 @@ function switchMapStyle(name){
 }
 function showAllPins(){
  if(!map)return;
+ // Show All clears browsing filters so every saved pin is visible.
+ $("mapSearch").value="";$("mapArea").value="";$("mapFilter").value="all";
+ renderList();renderMarkers();
  const positions=items.filter(hasPin).map(p=>toLatLng(p.x,p.y));
  if(!positions.length){
   info("No properties have map coordinates yet. Select a home to place its first pin.");
@@ -271,9 +274,9 @@ async function start(){
   $("mapStyle").addEventListener("change",event=>switchMapStyle(event.target.value));
   $("mapShowAll").addEventListener("click",showAllPins);
   $("mapRefresh").addEventListener("click",reload);
-  $("mapSearch").addEventListener("input",renderList);
-  $("mapArea").addEventListener("change",renderList);
-  $("mapFilter").addEventListener("change",renderList);
+  $("mapSearch").addEventListener("input",()=>{renderList();renderMarkers()});
+  $("mapArea").addEventListener("change",()=>{renderList();renderMarkers()});
+  $("mapFilter").addEventListener("change",()=>{renderList();renderMarkers()});
   $("mapPropertyList").addEventListener("click",event=>{
    const button=event.target.closest("[data-map-property]");
    if(button)choose(button.dataset.mapProperty);
