@@ -11,7 +11,7 @@ let tileLayer=null,mapStyle="atlas",requestedFocusHandled=false;
 const STYLE_TILES=Object.freeze({
  atlas:{url:"https://cdn.fivedock.dev/o/fivedock/maps/styleatlas/{z}/{x}/{y}.jpg",attribution:"Map © Rockstar Games · Tiles © FiveDock",className:"map-layer-atlas"},
  satellite:{url:"https://viruxe.github.io/gtav-map-tiles/satelite/{z}/{x}-{y}.webp",attribution:"Map © Rockstar Games · Satellite tiles © VIRUXE",className:"map-layer-satellite"},
- road:{url:"https://viruxe.github.io/gtav-map-tiles/atlas/{z}/{x}-{y}.webp",attribution:"Map © Rockstar Games · Atlas tiles © VIRUXE (road emphasis)",className:"map-layer-road"}
+ road:{url:"https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV-HD-MAP-roadmap.jpg",attribution:"Map © Rockstar Games · Roadmap image via Bragitoff",className:"map-layer-road",imageOverlay:true}
 });
 const STATUS_COLORS=Object.freeze({available:"#25a265",reserved:"#f4b544",unavailable:"#d8545b",unknown:"#8298ab"});
 const STATUS_LABELS=Object.freeze({available:"Available",reserved:"Reserved",unavailable:"Unavailable",unknown:"Status unknown"});
@@ -132,10 +132,14 @@ function coordsFromForm(){
 function switchMapStyle(name){
  if(!map||!Object.hasOwn(STYLE_TILES,name))return;
  const style=STYLE_TILES[name],bounds=map._brickivyWorldBounds;
- const next=window.L.tileLayer(style.url,{
-  tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,noWrap:true,bounds,
-  className:style.className,attribution:style.attribution,keepBuffer:2
- });
+ // Native Road artwork is a complete high-resolution image; Leaflet
+ // stretches it over the same calibrated 8192-pixel world bounds.
+ const next=style.imageOverlay?
+  window.L.imageOverlay(style.url,bounds,{className:style.className,attribution:style.attribution,interactive:false}):
+  window.L.tileLayer(style.url,{
+   tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,noWrap:true,bounds,
+   className:style.className,attribution:style.attribution,keepBuffer:2
+  });
  // Retain current base tiles until the first tile of the new layer is ready.
  let swapped=false;
  function activate(){
@@ -145,12 +149,12 @@ function switchMapStyle(name){
   tileLayer=next;
   $("mapTileAttribution").textContent=style.attribution;
  }
- next.once("tileload",activate);
+ if(!style.imageOverlay)next.once("tileload",activate);
  next.once("load",activate);
  next.addTo(map);
  if(!tileLayer)activate();
  // Map tile sources are remote. Report failures without clearing saved pins.
- next.on("tileerror",()=>{
+ next.on(style.imageOverlay?"error":"tileerror",()=>{
   if(!swapped)$("mapTileAttribution").textContent="Map imagery is unavailable; try another style.";
  });
  mapStyle=name;
