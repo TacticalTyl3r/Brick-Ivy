@@ -1,0 +1,56 @@
+/* Public, read-only Brick & Ivy property map and property-detail mini-map. */
+.bi-public-map-workspace{padding:30px 0 72px}
+.bi-public-map-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:12px;padding:20px;background:#f1f5ee;border:1px solid #d9e3d7}
+.bi-public-map-toolbar>div{display:flex;flex-direction:column;gap:7px;min-width:140px}
+.bi-public-map-toolbar .bi-map-search{flex:2;min-width:225px}
+.bi-public-map-toolbar label,.bi-mini-style label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:#53705c}
+.bi-public-map-toolbar input,.bi-public-map-toolbar select,.bi-mini-style select{border:1px solid #adc4b2;background:#fff;color:#253f2e;padding:11px 12px;min-height:42px;font:600 12px 'DM Sans',Arial,sans-serif;border-radius:3px}
+.bi-public-map-toolbar button{min-height:42px;white-space:nowrap}
+.bi-public-map-main{display:grid;grid-template-columns:minmax(0,1fr) 285px;align-items:stretch;gap:13px;margin-top:13px}
+.bi-public-map-frame{min-width:0;position:relative;background:#2264a2;border:1px solid #cad7c9;overflow:hidden}
+.bi-public-map-canvas{height:min(68vh,680px);min-height:490px;z-index:0;background:#2264a2}
+.bi-public-map-message{padding:11px 15px;color:#4a6452;background:#f4f8f2;font-size:11px;line-height:1.6}
+.bi-public-map-selected{background:#f3f7f0;border:1px solid #d6e3d3;min-width:0;padding:20px}
+.bi-public-map-selected[hidden]{display:none}
+.bi-map-picked-kicker{display:block;color:#a47736;font-size:10px;font-weight:850;letter-spacing:.15em;margin-bottom:11px}
+.bi-map-picked strong{font:400 26px/1.25 'Playfair Display',Georgia,serif;color:#294b34;overflow-wrap:anywhere;display:block}
+.bi-map-picked p{color:#697c6d;line-height:1.65;font-size:12px;margin:12px 0 16px}
+.bi-public-status{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:850;padding:8px 10px;border:1px solid #91bca1;background:#e6f3e7;color:#276943}
+.bi-public-status.status-reserved{border-color:#e9c57a;background:#fdf0cc;color:#75551e}
+.bi-public-status.status-unavailable{border-color:#dfa8aa;background:#f8e5e3;color:#8d3840}
+.bi-public-status.status-unknown{border-color:#abc1cf;background:#ebf0f5;color:#4b667d}
+.bi-map-picked a{margin-top:22px;display:flex;align-items:center;justify-content:center;background:#315c41;padding:14px 10px;text-decoration:none;color:#fff;font-size:11px;font-weight:850}
+.bi-map-picked a:hover{background:#417a53}
+.bi-public-map-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:15px 17px;background:#f2f6ef;color:#526b58;font-size:11px}
+.bi-public-map-legend span{display:inline-flex;gap:7px;align-items:center}
+.bi-public-map-legend i{width:11px;height:11px;border:2px solid white;box-shadow:0 0 0 1px #94a69a;border-radius:50%}
+.bi-public-map-legend .available{background:#25a265}
+.bi-public-map-legend .reserved{background:#f4b544}
+.bi-public-map-legend .unavailable{background:#d8545b}
+.bi-public-map-legend .unknown{background:#8298ab}
+.bi-public-map-legend small{margin-left:auto;color:#69816f;font-size:10px}
+.bi-map-footnote{color:#738375;font-size:11px;line-height:1.6;margin:15px 0}
+.bi-public-focus-icon{background:transparent;border:0}
+.bi-focus-pin{position:absolute;top:15px;left:15px;width:34px;height:34px;display:grid;place-items:center;border:4px solid #fff;box-shadow:0 0 0 3px #182b20,0 4px 13px rgba(0,0,0,.45);background:var(--pin);color:white;font-size:21px;border-radius:50%;z-index:2}
+.bi-focus-ripple{position:absolute;inset:0;border:3px solid #f6cc74;border-radius:50%;background:rgba(250,193,92,.19);box-shadow:0 0 0 5px rgba(255,255,255,.42);animation:bi-map-focus 2.2s ease-out infinite}
+.bi-focus-crosshair{position:absolute;width:54px;height:54px;top:5px;left:5px;border:2px dashed rgba(255,255,255,.95);border-radius:50%;filter:drop-shadow(0 1px 2px #18351f);pointer-events:none}
+@keyframes bi-map-focus{0%{transform:scale(.7);opacity:1}75%{transform:scale(1.12);opacity:.7}100%{transform:scale(1.3);opacity:0}}
+.bi-public-selected-tooltip{background:#183a2a!important;border:2px solid #f1cf8f!important;color:#fff!important;box-shadow:0 3px 12px rgba(0,0,0,.35)!important;font-size:12px!important;font-weight:850!important;max-width:210px;white-space:normal!important}
+.bi-public-selected-tooltip:before{border-right-color:#f1cf8f!important}
+.property-private-map-section{background:#f0f4ed}
+.bi-mini-style{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.bi-mini-style select{min-height:36px;padding:7px 10px}
+.property-private-map-canvas{height:320px}
+.property-private-map-canvas .leaflet-control-attribution{font-size:9px}
+html[data-ui-theme="dark"] .bi-public-map-toolbar,html[data-ui-theme="dark"] .bi-public-map-legend{background:#253c2b;border-color:#496c51;color:#d4e8d7}
+html[data-ui-theme="dark"] .bi-public-map-toolbar label,html[data-ui-theme="dark"] .bi-mini-style label{color:#c6decd}
+html[data-ui-theme="dark"] .bi-public-map-toolbar input,html[data-ui-theme="dark"] .bi-public-map-toolbar select,html[data-ui-theme="dark"] .bi-mini-style select{background:#14291d;color:#edf6ef;border-color:#719478}
+html[data-ui-theme="dark"] .bi-public-map-selected{background:#1c3025;border-color:#4b6a55}
+html[data-ui-theme="dark"] .bi-map-picked strong{color:#eff6ee}
+html[data-ui-theme="dark"] .bi-map-picked p,html[data-ui-theme="dark"] .bi-public-map-legend small{color:#cbdecf}
+html[data-ui-theme="dark"] .bi-public-map-message{background:#253e2c;color:#cde2d0}
+html[data-ui-theme="dark"] .bi-public-map-workspace .bi-public-map-frame{border-color:#4d6d57}
+html[data-ui-theme="dark"] .bi-map-footnote{color:#c9ddcd}
+@media(max-width:900px){.bi-public-map-main{grid-template-columns:1fr}.bi-public-map-selected{padding:14px}.bi-public-map-canvas{height:510px;min-height:350px}.bi-public-map-legend small{margin-left:0}}
+@media(max-width:550px){.bi-public-map-toolbar>div{min-width:calc(50% - 7px);flex:1}.bi-public-map-toolbar .bi-map-search{flex-basis:100%}.bi-public-map-toolbar button{width:100%}.bi-public-map-canvas{height:400px;min-height:340px}.bi-public-map-selected{padding:18px}.property-private-map-canvas{height:270px}.bi-public-selected-tooltip{max-width:140px}}
+@media(prefers-reduced-motion:reduce){.bi-focus-ripple{animation:none;opacity:.8}}
