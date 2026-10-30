@@ -274,6 +274,7 @@ function propertyCard(p){
    '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
    '<div class="property-private-card-tags">'+photoBadge(p)+
    '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></div></header>'+
+   (isOwner?'<div class="property-private-map-action"><span>Location preview · Owner-only</span><a class="map-view-link" href="manage-map.html?property='+encodeURIComponent(String(p.id))+'">⌖ View on map ↗</a></div>':'')+
    publishTools+occupancyTools+
    '<div class="property-private-cost-grid"><div><span>Weekly maintenance cost</span><strong>'+usd(p.sourceWeeklyCost)+'</strong></div>'+
    '<div><span>Weekly rent price</span><strong>'+usd(total)+'</strong>'+
