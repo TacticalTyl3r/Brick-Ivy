@@ -202,7 +202,9 @@ function cardMarkup(p){
  '<div class="property-value-label">Weekly Rent</div><div class="property-price">'+cost+'</div><h3 class="property-title"><a href="'+detailUrl+'">'+name+'</a></h3>'+
  '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
+ '<div class="property-card-actions">'+
  '<a class="property-inquiry-cta" href="'+inquiryUrl+'" aria-label="Inquire about '+name+'">Inquire About This Property <span aria-hidden="true">→</span></a>'+
+ '<a class="property-map-cta" data-owner-map-link href="manage-map.html?property='+id+'" aria-label="View '+name+' on the private property map" hidden>View on Map <span aria-hidden="true">↗</span></a></div>'+
  '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><a href="'+detailUrl+'">See details <span aria-hidden="true">→</span></a></div></div></article>';
 }
 function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(toggle&&nav){toggle.addEventListener('click',()=>{const opened=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));});$$('a',nav).forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false')}))}$$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear())}
@@ -306,20 +308,17 @@ async function detailPage(){
     '<div class="property-detail-feature"><span>Furniture Objects</span><strong>'+esc(capacity(p.storageSlots,'pieces'))+'</strong></div>'+
     '</div>';
  const overview=safeText(p.description)||'Contact our Realtors to learn more about this property and its features.';
- const propertyStatus=safeText(p.status).toLowerCase();
- const contactText=propertyStatus==='unavailable'?'This property is currently unavailable. Our Realtors can help you find another home.':
-  propertyStatus==='reserved'?'This property is reserved. Our Realtors can provide further information.':
-  'Interested in this home? Our Realtors can help with details and arrange a viewing.';
- const contactMarkup='<div class="property-realtor-cta"><div><strong>Talk to a Brick &amp; Ivy Realtor</strong><p>'+esc(contactText)+'</p></div>'+
-  '<div class="property-contact-actions"><a class="button dark" href="#biInquiry">Inquire About This Property <span aria-hidden="true">→</span></a>'+
-  '<a class="button outline" href="realtors.html">Meet Our Realtors <span aria-hidden="true">→</span></a></div></div>';
+ const mapPreview='<section class="property-private-map-section" id="privatePropertyMapPreview" hidden aria-label="Private property map preview">'+
+  '<div class="property-private-map-heading"><div><div class="eyebrow">Private Owner Preview</div><h2 class="serif">Property location</h2><p id="propertyPrivateMapMessage">Checking saved location…</p></div>'+
+  '<a id="propertyPrivateMapLink" class="button outline" href="manage-map.html?property='+encodeURIComponent(String(p.id))+'">View on Map ↗</a></div>'+
+  '<div class="property-private-map-canvas" id="propertyPrivateMapCanvas" aria-label="Preview of selected property on the San Andreas map"></div></section>';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+
  (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
  '<div class="property-value-label">Weekly Rent</div><div class="detail-price">'+priceText+'</div>'+
  featureGrid+galleryMarkup+
  '<section class="property-overview-section"><h2 class="serif">Property Overview</h2><p class="detail-copy">'+esc(overview)+'</p></section>'+
- contactMarkup+'</article>';
+ mapPreview+'</article>';
  if(galleryImages.length>1){
   let active=0;
   const display=index=>{
