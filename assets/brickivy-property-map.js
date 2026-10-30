@@ -259,7 +259,7 @@ async function start(){
   const {createClient}=await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.84.0/+esm");
   client=createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   $("mapSignIn").addEventListener("click",async()=>{
-   const {error}=await client.auth.signInWithOAuth({provider:"discord",options:{redirectTo:location.origin+location.pathname}});
+   const {error}=await client.auth.signInWithOAuth({provider:"discord",options:{redirectTo:location.origin+location.pathname+location.search}});
    if(error)status(error.message);
   });
   $("mapSignOut").addEventListener("click",async()=>{await client.auth.signOut();await authChanged()});
