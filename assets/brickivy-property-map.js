@@ -73,12 +73,21 @@ function renderMarkers(){
  for(const p of filtered()){
   if(!hasPin(p))continue;
   const chosen=p.id===selectedId;
-  const circle=window.L.circleMarker(toLatLng(p.x,p.y),{
-   radius:chosen?9:6,color:"#fff",weight:chosen?3:2,
-   fillColor:STATUS_COLORS[verifiedStatus(p)],fillOpacity:1
-  }).bindTooltip(esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)]+(p.published?"":" · Unpublished")+" · #"+esc(p.id),{direction:"top"});
-  circle.on("click",event=>{window.L.DomEvent.stopPropagation(event);choose(p.id);});
-  circle.addTo(markers);
+  if(chosen){
+   const icon=window.L.divIcon({className:"bi-owner-focused-pin",
+    html:'<span class="bi-owner-focus-halo"></span><span class="bi-owner-focus-core" style="--pin:'+STATUS_COLORS[verifiedStatus(p)]+'">⌂</span>',
+    iconSize:[68,68],iconAnchor:[34,34],tooltipAnchor:[28,-17]});
+   window.L.marker(toLatLng(p.x,p.y),{icon,zIndexOffset:9000})
+    .bindTooltip("★ "+esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)],{
+     permanent:true,direction:"right",offset:[12,-17],className:"bi-owner-focused-label"
+    }).addTo(markers);
+  }else{
+   const circle=window.L.circleMarker(toLatLng(p.x,p.y),{
+    radius:6,color:"#fff",weight:2,fillColor:STATUS_COLORS[verifiedStatus(p)],fillOpacity:.86
+   }).bindTooltip(esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)]+(p.published?"":" · Unpublished")+" · #"+esc(p.id),{direction:"top"});
+   circle.on("click",event=>{window.L.DomEvent.stopPropagation(event);choose(p.id);});
+   circle.addTo(markers);
+  }
  }
  if(previewMarker){map.removeLayer(previewMarker);previewMarker=null}
  if(current()&&draft&&isCoordinate(draft.x,draft.y)){
