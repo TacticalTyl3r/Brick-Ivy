@@ -55,12 +55,25 @@ Deno.serve(async request=>{
    if(!listing||!gameCoordinate(location.x,location.y))return [];
    const state=safe(listing.status,20).toLowerCase();
    const status=["available","reserved","unavailable"].includes(state)?state:"unknown";
-   const price=typeof listing.price==="number"&&Number.isFinite(listing.price)?listing.price:null;
+   const numeric=(v:unknown,max:number)=>{
+    if(v===null||v===undefined||v==="")return null;
+    const n=Number(v);
+    return Number.isFinite(n)&&n>=0&&n<=max?n:null;
+   };
+   const imageUrl=safe(listing.coverImage,2048);
+   const coverImage=(()=>{try{
+    const candidate=new URL(imageUrl);
+    return candidate.protocol==="https:"&&!candidate.username&&!candidate.password?candidate.href:null;
+   }catch{return null}})();
    return [{
     id,name:safe(listing.name,160)||"Property #"+id,
     address:safe(listing.address,200),area:safe(listing.area,80),
-    blockId:safe(String(listing.blockId??""),80),status,price,
-    x:location.x,y:location.y
+    blockId:safe(String(listing.blockId??""),80),status,
+    price:numeric(listing.price,1_000_000_000_000),
+    storageKg:numeric(listing.storageKg,1_000_000_000),
+    storageSlots:numeric(listing.storageSlots,1_000_000),
+    type:safe(String(listing.type??""),80),
+    coverImage,x:location.x,y:location.y
    }];
   });
   return reply({properties,count:properties.length},200,origin);
