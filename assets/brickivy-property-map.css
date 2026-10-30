@@ -103,3 +103,42 @@ html[data-ui-theme="dark"] .map-state-tag.is-placed{background:#31513c;border-co
  .map-editor-buttons button{flex:1}
  .map-summary strong{font-size:23px}
 }
+
+
+/* Private map navigation, true listing status blips and style picker */
+.map-mode-tabs{display:flex;align-items:center;gap:6px;margin:0 0 16px;flex-wrap:wrap}
+.map-mode-tabs a{padding:10px 16px;border:1px solid #b8c8b7;background:#fff;color:#355642;text-decoration:none;border-radius:7px;font-size:12px;font-weight:800}
+.map-mode-tabs a:hover{background:#e6f0e7}
+.map-mode-tabs a[aria-current="page"]{background:#214730;color:#fff;border-color:#214730}
+.map-mode-tabs span{margin-left:auto;color:#856128;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+.map-toolbar-actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.map-toolbar-actions label{display:flex;flex-direction:column;gap:4px;font-size:10px;color:#c9dacd;font-weight:700}
+.map-toolbar-actions select{min-width:120px;min-height:35px;border:1px solid #648371;background:#f6faf6;color:#284533;border-radius:6px;padding:7px 9px;font-size:11px;font-weight:800}
+.map-show-all{min-height:35px;padding:7px 11px;background:#345d40;border:1px solid #89ac8b;color:#fff;border-radius:6px;cursor:pointer;font-size:11px;font-weight:800}
+.map-show-all:hover{background:#497751}
+.map-status-legend{background:#f1f6f0;padding:10px 16px;border-bottom:1px solid #d5e0d4;justify-content:flex-start;flex-wrap:wrap;color:#445b4c;font-weight:750}
+.map-legend .is-available{background:#25a265}
+.map-legend .is-reserved{background:#f4b544}
+.map-legend .is-unavailable{background:#d8545b}
+.map-legend .is-unknown{background:#8298ab}
+.map-legend .is-draft{background:#a57bf4}
+.map-status-text.status-available{color:#28764a}
+.map-status-text.status-reserved{color:#93631e}
+.map-status-text.status-unavailable{color:#b3404e}
+.map-status-text.status-unknown{color:#5c758e}
+.map-canvas .map-layer-road{filter:grayscale(.95) contrast(1.65) brightness(1.12);}
+/* The road-focused Atlas treatment and Satellite are alternate basemaps;
+   all markers remain separate Leaflet vector overlays. */
+.map-view-link{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:6px;background:#e4f0e6;color:#28533a;border:1px solid #accab1;text-decoration:none;font-size:11px;font-weight:800}
+.map-view-link:hover{background:#d0e5d4}
+.map-quick-links{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:0 0 18px}
+html[data-ui-theme="dark"] .map-mode-tabs a{background:#1c3025;border-color:#5c8163;color:#deefe0}
+html[data-ui-theme="dark"] .map-mode-tabs a[aria-current="page"]{background:#406e4b;color:#fff}
+html[data-ui-theme="dark"] .map-mode-tabs span{color:#d9c396}
+html[data-ui-theme="dark"] .map-status-legend{background:#243d2c;border-color:#547358;color:#d4e6d6}
+html[data-ui-theme="dark"] .map-status-text.status-available{color:#a1e9b5}
+html[data-ui-theme="dark"] .map-status-text.status-reserved{color:#f7d390}
+html[data-ui-theme="dark"] .map-status-text.status-unavailable{color:#ffb6b9}
+html[data-ui-theme="dark"] .map-status-text.status-unknown{color:#cad8ea}
+html[data-ui-theme="dark"] .map-view-link{background:#294934;border-color:#729b7a;color:#dbf2df}
+@media(max-width:830px){.map-toolbar-actions{width:100%}.map-mode-tabs span{margin-left:0}}
