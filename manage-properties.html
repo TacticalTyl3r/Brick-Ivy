@@ -9,6 +9,7 @@
 <script src="assets/theme.js?v=20261022-dark1"></script>
 <link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
 <link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-map2">
 <script defer src="assets/site.js?v=20261022-opfw2"></script>
 <script>
 window.BRICK_IVY_CONFIG=Object.freeze({
@@ -17,7 +18,7 @@ window.BRICK_IVY_CONFIG=Object.freeze({
   discordAuthReady:true
 });
 </script>
-<script type="module" src="assets/brickivy-property-staff.js?v=20261023-photo-upload-fix1"></script>
+<script type="module" src="assets/brickivy-property-staff.js?v=20261030-map-links1"></script>
 </head>
 <body data-page="staff-properties">
 <header class="site-header"><div class="container header-inner">
@@ -41,6 +42,10 @@ window.BRICK_IVY_CONFIG=Object.freeze({
 <div id="propertyStaffSession" hidden><button id="propertyStaffSignOut" class="button outline" type="button">Sign out</button></div>
 </div>
 <div id="propertyStaffContent" hidden>
+<div class="map-quick-links" id="propertyMapQuickLinks" hidden>
+  <a class="map-view-link" href="manage-map.html?view=all">⌖ Property Map — View All Pins ↗</a>
+  <span>Private Owner preview · View property locations across San Andreas</span>
+</div>
 <section id="brickivyOwnerFinancials" class="owner-finance-section" aria-labelledby="financeTitle" hidden>
   <div class="owner-finance-heading"><div><div class="eyebrow">Private company overview</div><h2 class="serif" id="financeTitle">Weekly financial snapshot</h2><p>Live company stock, rental occupancy and Brick &amp; Ivy website weekly rent settings.</p></div><span class="owner-finance-private">Private financial data</span></div>
   <div class="owner-finance-stats">
