@@ -155,7 +155,9 @@ async function hydrateHomepageContent(){
 }
 
 function normalStatus(p){const s=safeText(p.status).toLowerCase();return s==='unavailable'?'Unavailable':s==='reserved'?'Reserved':s==='available'?'Available':s==='pending'?'Pending':s==='sold'?'Sold':s==='listed'?'In portfolio':'For Sale'}
-function listed(p){return p&&p.published===true&&['for-sale','pending','sold','listed','unavailable','available','reserved'].includes(safeText(p.status).toLowerCase());}
+// The trusted public feed already enforces publication status. Never hide a
+// published home because its current status is not in a hardcoded list.
+function listed(p){return p&&p.published===true&&safeText(p.id)!=='';}
 async function getProperties(){
  const cfg=window.BRICK_IVY_CONFIG||{};
  const hasBackend=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'');
@@ -281,8 +283,19 @@ async function detailPage(){
    container.innerHTML='<div class="detail-empty"><h1 class="serif">Property details are temporarily unavailable.</h1><p>The live Brick & Ivy property feed could not be reached. Please try again shortly.</p><a href="properties.html" class="button outline">Back to properties →</a></div>';
    return;
  }
- const p=props.find(x=>safeText(x.id)===id);
- if(!p){container.innerHTML='<div class="detail-empty"><div class="eyebrow" style="justify-content:center">Brick & Ivy Real Estate</div><h2>We couldn’t find this property.</h2><p>The listing may not be published yet or is no longer available.</p><a href="properties.html" class="button dark" style="margin-top:18px">Browse properties <span aria-hidden="true">→</span></a></div>';return}
+ // The map and listing feed may briefly use different publication snapshots.
+ // Retry before assuming a visitor's mapped property has been removed.
+ let p=props.find(x=>safeText(x.id)===id);
+ if(!p&&id){
+  try{
+   await new Promise(resolve=>setTimeout(resolve,500));
+   p=(await getProperties()).find(x=>safeText(x.id)===id);
+  }catch(error){console.warn('Property detail retry failed:',error)}
+ }
+ if(!p){
+  container.innerHTML='<div class="detail-empty"><div class="eyebrow" style="justify-content:center">Brick & Ivy Real Estate</div><h2>Property details are temporarily unavailable.</h2><p>We could not confirm the latest listing. It may have changed or been removed. Please explore the latest properties or speak with our Realtors.</p><a href="properties.html" class="button dark" style="margin-top:18px">Browse Properties →</a> <a href="map.html" class="button outline" style="margin-top:18px">Back to Property Map →</a></div>';
+  return;
+ }
  document.title=safeText(p.name)+' | Brick & Ivy Real Estate';
  const imgs=Array.isArray(p.images)?p.images.map(safeImage).filter(Boolean):[];
  const cover=safeImage(p.coverImage)||imgs[0]||'';
