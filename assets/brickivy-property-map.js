@@ -7,6 +7,15 @@ const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=(v)=>Number.isFinite(v)?new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(v):"—";
 let client=null,items=[],map=null,markers=null,previewMarker=null,selectedId=null,draft=null,working=false;
+let tileLayer=null,mapStyle="atlas",requestedFocusHandled=false;
+const STYLE_TILES=Object.freeze({
+ atlas:{url:"https://cdn.fivedock.dev/o/fivedock/maps/styleatlas/{z}/{x}/{y}.jpg",attribution:"Map © Rockstar Games · Tiles © FiveDock",className:"map-layer-atlas"},
+ satellite:{url:"https://viruxe.github.io/gtav-map-tiles/satelite/{z}/{x}-{y}.webp",attribution:"Map © Rockstar Games · Satellite tiles © VIRUXE",className:"map-layer-satellite"},
+ road:{url:"https://viruxe.github.io/gtav-map-tiles/atlas/{z}/{x}-{y}.webp",attribution:"Map © Rockstar Games · Atlas tiles © VIRUXE (road emphasis)",className:"map-layer-road"}
+});
+const STATUS_COLORS=Object.freeze({available:"#25a265",reserved:"#f4b544",unavailable:"#d8545b",unknown:"#8298ab"});
+const STATUS_LABELS=Object.freeze({available:"Available",reserved:"Reserved",unavailable:"Unavailable",unknown:"Status unknown"});
+const verifiedStatus=p=>Object.hasOwn(STATUS_LABELS,p?.status)?p.status:"unknown";
 const toLatLng=(x,y)=>window.L.latLng(y,x);
 const isCoordinate=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&x>=-8000&&x<=8000&&y>=-8000&&y<=9000;
 const hasPin=p=>p&&isCoordinate(p.x,p.y);
@@ -41,7 +50,7 @@ async function api(action,data={}){
 function filtered(){
  const term=$("mapSearch").value.trim().toLowerCase(),area=$("mapArea").value,filter=$("mapFilter").value;
  return items.filter(p=>(!area||p.area===area)&&(!term||[p.name,p.address,p.blockId,p.id].join(" ").toLowerCase().includes(term))
- &&(filter==="all"||filter==="placed"&&hasPin(p)||filter==="unplaced"&&!hasPin(p)||filter==="published"&&p.published===true))
+ &&(filter==="all"||filter==="placed"&&hasPin(p)||filter==="unplaced"&&!hasPin(p)||filter==="published"&&p.published===true||Object.hasOwn(STATUS_LABELS,filter)&&verifiedStatus(p)===filter))
  .sort((a,b)=>Number(hasPin(b))-Number(hasPin(a))||a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
 }
 function counts(){
@@ -55,7 +64,7 @@ function renderList(){
  const container=$("mapPropertyList"),data=filtered();
  container.innerHTML=data.length?data.map(p=>'<button type="button" class="map-property-choice'+(hasPin(p)?" is-placed":"")+'" data-map-property="'+esc(p.id)+'" aria-pressed="'+String(selectedId===p.id)+'">'+
   '<span class="map-choice-dot" aria-hidden="true">'+(hasPin(p)?"✓":"＋")+'</span><span class="map-choice-body"><strong>'+esc(p.name)+'</strong>'+
-  '<small>'+esc(propertyLabel(p))+'</small><em>'+(hasPin(p)?"Pin placed":"Needs location")+' · '+(p.published?"Published":"Hidden")+'</em></span></button>').join(""):
+  '<small>'+esc(propertyLabel(p))+'</small><em class="map-status-text status-'+verifiedStatus(p)+'">'+STATUS_LABELS[verifiedStatus(p)]+'</em><em> · '+(hasPin(p)?"Pin placed":"Needs location")+' · '+(p.published?"Published":"Hidden")+'</em></span></button>').join(""):
   '<div class="map-list-empty">No properties match these filters.</div>';
 }
 function renderMarkers(){
@@ -66,8 +75,8 @@ function renderMarkers(){
   const chosen=p.id===selectedId;
   const circle=window.L.circleMarker(toLatLng(p.x,p.y),{
    radius:chosen?9:6,color:"#fff",weight:chosen?3:2,
-   fillColor:p.published?"#2f8b58":"#8595a4",fillOpacity:1
-  }).bindTooltip(esc(p.name)+" · #"+esc(p.id),{direction:"top"});
+   fillColor:STATUS_COLORS[verifiedStatus(p)],fillOpacity:1
+  }).bindTooltip(esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)]+(p.published?"":" · Unpublished")+" · #"+esc(p.id),{direction:"top"});
   circle.on("click",event=>{window.L.DomEvent.stopPropagation(event);choose(p.id);});
   circle.addTo(markers);
  }
@@ -83,7 +92,7 @@ function renderEditor(){
  const p=current(),has=hasPin(p);
  $("mapEditorHeading").textContent=p?p.name:"Select a property to begin.";
  $("mapEditorMeta").textContent=p?
-  (propertyLabel(p)+" · "+(p.published?"Published":"Not published")+(p.area?" · "+p.area:"")):
+  (propertyLabel(p)+" · "+STATUS_LABELS[verifiedStatus(p)]+" · "+(p.published?"Published":"Not published")+(p.area?" · "+p.area:"")):
   "Properties without coordinates will remain off the map.";
  $("mapEditorState").textContent=!p?"No selection":draft?"Unsaved change":has?"Location saved":"No location";
  $("mapEditorState").className="map-state-tag"+(draft?" is-dirty":has?" is-placed":"");
@@ -120,6 +129,43 @@ function coordsFromForm(){
  if(!isCoordinate(x,y))throw Error("Coordinates must be inside the San Andreas map bounds.");
  return {x,y};
 }
+function switchMapStyle(name){
+ if(!map||!Object.hasOwn(STYLE_TILES,name))return;
+ const style=STYLE_TILES[name],bounds=map._brickivyWorldBounds;
+ const next=window.L.tileLayer(style.url,{
+  tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,noWrap:true,bounds,
+  className:style.className,attribution:style.attribution,keepBuffer:2
+ });
+ // Retain current base tiles until the first tile of the new layer is ready.
+ let swapped=false;
+ function activate(){
+  if(swapped||!map||!map.hasLayer(next))return;
+  swapped=true;
+  if(tileLayer&&map.hasLayer(tileLayer))map.removeLayer(tileLayer);
+  tileLayer=next;
+  $("mapTileAttribution").textContent=style.attribution;
+ }
+ next.once("tileload",activate);
+ next.once("load",activate);
+ next.addTo(map);
+ if(!tileLayer)activate();
+ // Map tile sources are remote. Report failures without clearing saved pins.
+ next.on("tileerror",()=>{
+  if(!swapped)$("mapTileAttribution").textContent="Map imagery is unavailable; try another style.";
+ });
+ mapStyle=name;
+ try{localStorage.setItem("brickivy-private-map-style",name)}catch{}
+}
+function showAllPins(){
+ if(!map)return;
+ const positions=items.filter(hasPin).map(p=>toLatLng(p.x,p.y));
+ if(!positions.length){
+  info("No properties have map coordinates yet. Select a home to place its first pin.");
+  map.setView(toLatLng(0,1550),3);return;
+ }
+ map.fitBounds(window.L.latLngBounds(positions).pad(.2),{maxZoom:5,padding:[35,35]});
+ info("Showing "+positions.length+" saved property locations across San Andreas.");
+}
 function initMap(){
  if(map)return;
  if(!window.L)throw Error("Map library did not load. Check your connection and refresh.");
@@ -132,10 +178,10 @@ function initMap(){
  map=L.map("propertyMap",{crs:CRS,minZoom:2,maxZoom:6,zoomControl:true,preferCanvas:true,attributionControl:true});
  const z=5,size=8192;
  const bounds=L.latLngBounds(map.unproject([0,size],z),map.unproject([size,0],z));
- L.tileLayer("https://cdn.fivedock.dev/o/fivedock/maps/styleatlas/{z}/{x}/{y}.jpg",{
-  tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,bounds,
-  attribution:"Map © Rockstar Games · Tiles © FiveDock"
- }).addTo(map);
+ // All three styles keep the same GTA world coordinates and saved pins.
+ // The Road view emphasizes high-contrast roads in the Atlas tiles.
+ map._brickivyWorldBounds=bounds;
+ switchMapStyle(mapStyle);
  map.setMaxBounds(bounds.pad(.1));
  markers=L.layerGroup().addTo(map);
  map.setView(toLatLng(0,1550),3);
@@ -156,6 +202,12 @@ async function reload(){
   initMap();
   if(!items.some(p=>p.id===selectedId)){selectedId=null;draft=null}
   render();status("Owner access verified. This property map is private and not published.");
+  if(!requestedFocusHandled){
+   requestedFocusHandled=true;
+   const target=new URLSearchParams(location.search).get("property");
+   if(target&&items.some(p=>p.id===target)){choose(target);$("mapPropertyList").querySelector('[data-map-property="'+CSS.escape(target)+'"]')?.scrollIntoView({block:"nearest"});}
+   else if(new URLSearchParams(location.search).get("view")==="all")showAllPins();
+  }
   info("Choose a property and click the map to place its location.");
  }catch(error){
   $("mapPrivateContent").hidden=true;
@@ -211,6 +263,13 @@ async function start(){
    if(error)status(error.message);
   });
   $("mapSignOut").addEventListener("click",async()=>{await client.auth.signOut();await authChanged()});
+  try{
+   const stored=localStorage.getItem("brickivy-private-map-style");
+   if(Object.hasOwn(STYLE_TILES,stored))mapStyle=stored;
+  }catch{}
+  $("mapStyle").value=mapStyle;
+  $("mapStyle").addEventListener("change",event=>switchMapStyle(event.target.value));
+  $("mapShowAll").addEventListener("click",showAllPins);
   $("mapRefresh").addEventListener("click",reload);
   $("mapSearch").addEventListener("input",renderList);
   $("mapArea").addEventListener("change",renderList);
