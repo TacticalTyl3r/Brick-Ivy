@@ -54,3 +54,28 @@ html[data-ui-theme="dark"] .bi-map-footnote{color:#c9ddcd}
 @media(max-width:900px){.bi-public-map-main{grid-template-columns:1fr}.bi-public-map-selected{padding:14px}.bi-public-map-canvas{height:510px;min-height:350px}.bi-public-map-legend small{margin-left:0}}
 @media(max-width:550px){.bi-public-map-toolbar>div{min-width:calc(50% - 7px);flex:1}.bi-public-map-toolbar .bi-map-search{flex-basis:100%}.bi-public-map-toolbar button{width:100%}.bi-public-map-canvas{height:400px;min-height:340px}.bi-public-map-selected{padding:18px}.property-private-map-canvas{height:270px}.bi-public-selected-tooltip{max-width:140px}}
 @media(prefers-reduced-motion:reduce){.bi-focus-ripple{animation:none;opacity:.8}}
+
+
+/* Selected property details: use the same public data as the listing cards. */
+.bi-public-map-main{grid-template-columns:minmax(0,1fr) minmax(285px,320px)}
+.bi-public-map-selected{align-self:stretch;overflow-y:auto;max-height:750px}
+.bi-map-picked-photo{margin:0 0 16px;aspect-ratio:16/10;overflow:hidden;background:#dce8df;border:1px solid #c7d7cc}
+.bi-map-picked-photo img{height:100%;width:100%;object-fit:cover;display:block}
+.bi-map-picked-address{margin:9px 0 13px!important}
+.bi-map-price{display:flex;flex-direction:column;gap:7px;margin:19px 0 14px;padding:14px 0;border-top:1px solid #cddfcf;border-bottom:1px solid #cddfcf}
+.bi-map-price>span,.bi-map-facts>div>span{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#677d6d}
+.bi-map-price b{font:500 27px/1.25 'Playfair Display',Georgia,serif;color:#224a32}
+.bi-map-facts{display:grid;grid-template-columns:1fr 1fr;gap:13px 9px}
+.bi-map-facts>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.bi-map-facts>div strong{font-size:12px;font-weight:750;color:#2f503c;overflow-wrap:anywhere;line-height:1.5}
+.bi-map-facts .bi-map-fact-wide{grid-column:span 2}
+.bi-map-picked .bi-map-details-button{margin-top:20px}
+.bi-map-picked .bi-map-inquire-button{margin-top:8px;background:transparent;color:#2b6240;border:1px solid #98bca1}
+.bi-map-picked .bi-map-inquire-button:hover{background:#e1efe4}
+html[data-ui-theme="dark"] .bi-map-picked-photo{background:#193423;border-color:#5a7960}
+html[data-ui-theme="dark"] .bi-map-price{border-color:#4d6b54}
+html[data-ui-theme="dark"] .bi-map-price b,html[data-ui-theme="dark"] .bi-map-facts>div strong{color:#e3f5e7}
+html[data-ui-theme="dark"] .bi-map-price>span,html[data-ui-theme="dark"] .bi-map-facts>div>span{color:#c2d6c6}
+html[data-ui-theme="dark"] .bi-map-picked .bi-map-inquire-button{color:#e7f4e9;border-color:#698d72}
+html[data-ui-theme="dark"] .bi-map-picked .bi-map-inquire-button:hover{background:#2f4f39}
+@media(max-width:900px){.bi-public-map-main{grid-template-columns:1fr}.bi-public-map-selected{max-height:none}}
