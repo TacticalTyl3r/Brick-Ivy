@@ -1,0 +1,35 @@
+/* Brick & Ivy private map preview on public property layouts.
+ * Extra map controls remain hidden unless the backend verifies an Owner.
+ */
+.property-card-actions{display:block;margin:21px 0 14px}
+.property-card-actions .property-inquiry-cta{margin:0;min-width:0;min-height:48px}
+.property-card-actions:has(.property-map-cta:not([hidden])){display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.property-card-actions:has(.property-map-cta:not([hidden])) .property-inquiry-cta{padding:12px 11px;font-size:10px;letter-spacing:0;text-transform:none}
+.property-map-cta{display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0;min-height:48px;padding:12px 10px;
+ background:#273d31;color:#f5f5eb!important;border:1px solid #7d9f86;font-size:11px;font-weight:800;line-height:1.35;
+ text-decoration:none;transition:background .2s}
+.property-map-cta:hover{background:#335e43}
+.property-map-cta span{font-size:15px}
+.property-map-cta[hidden],.property-private-map-section[hidden],.property-private-map-canvas[hidden]{display:none!important}
+.property-map-cta:focus-visible{outline:3px solid #caa463;outline-offset:2px}
+.property-private-map-section{margin:30px 0 23px;padding:22px;background:#f0f4ee;border:1px solid #c9d9cb}
+.property-private-map-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:16px}
+.property-private-map-heading h2{font-size:27px;margin:7px 0 5px;color:#274635}
+.property-private-map-heading p{margin:0;color:#587461;font-size:12px;line-height:1.65}
+.property-private-map-heading .button{flex:none;white-space:nowrap}
+.property-private-map-canvas{height:290px;background:#2263a0;border:1px solid #bed4c4;border-radius:4px;z-index:0}
+.property-private-map-canvas .leaflet-container{height:100%}
+.property-private-map-canvas .leaflet-control-attribution{font-size:9px}
+html[data-ui-theme="dark"] .property-card-actions .property-map-cta{background:#335b43;color:#f1faf1!important;border-color:#91ac94}
+html[data-ui-theme="dark"] .property-card-actions .property-map-cta:hover{background:#467653}
+html[data-ui-theme="dark"] .property-private-map-section{background:#1f3929;border-color:#53715b}
+html[data-ui-theme="dark"] .property-private-map-heading h2{color:#edf5eb}
+html[data-ui-theme="dark"] .property-private-map-heading p{color:#c5d9c9}
+@media(max-width:600px){
+ .property-card-actions:has(.property-map-cta:not([hidden])){grid-template-columns:1fr 1fr;gap:7px}
+ .property-card-actions:has(.property-map-cta:not([hidden])) .property-inquiry-cta{padding:11px 10px;font-size:10px}
+ .property-map-cta{font-size:10px;padding:11px 9px}
+ .property-private-map-heading{flex-direction:column;align-items:flex-start}
+ .property-private-map-heading .button{width:100%;justify-content:center}
+ .property-private-map-canvas{height:245px}
+}
