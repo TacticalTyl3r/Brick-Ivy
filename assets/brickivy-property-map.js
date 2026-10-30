@@ -135,7 +135,7 @@ function switchMapStyle(name){
  // Native Road artwork is a complete high-resolution image; Leaflet
  // stretches it over the same calibrated 8192-pixel world bounds.
  const next=style.imageOverlay?
-  window.L.imageOverlay(style.url,bounds,{className:style.className,attribution:style.attribution,interactive:false}):
+  window.L.imageOverlay(style.url,bounds,{pane:"tilePane",className:style.className,attribution:style.attribution,interactive:false}):
   window.L.tileLayer(style.url,{
    tileSize:256,minZoom:0,maxZoom:6,maxNativeZoom:5,noWrap:true,bounds,
    className:style.className,attribution:style.attribution,keepBuffer:2
