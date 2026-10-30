@@ -204,7 +204,7 @@ function cardMarkup(p){
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
  '<div class="property-card-actions">'+
  '<a class="property-inquiry-cta" href="'+inquiryUrl+'" aria-label="Inquire about '+name+'">Inquire About This Property <span aria-hidden="true">→</span></a>'+
- '<a class="property-map-cta" data-owner-map-link href="manage-map.html?property='+id+'" aria-label="View '+name+' on the private property map" hidden>View on Map <span aria-hidden="true">↗</span></a></div>'+
+ '<a class="property-map-cta" data-public-map-link href="map.html?property='+id+'" aria-label="View '+name+' on the San Andreas property map" hidden>View on Map <span aria-hidden="true">↗</span></a></div>'+
  '<div class="property-bottom"><span>'+esc(interiorName(p.type))+'</span><a href="'+detailUrl+'">See details <span aria-hidden="true">→</span></a></div></div></article>';
 }
 function setupNav(){const toggle=$('.menu-toggle'),nav=$('.primary-nav');if(toggle&&nav){toggle.addEventListener('click',()=>{const opened=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(opened));});$$('a',nav).forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false')}))}$$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear())}
@@ -308,10 +308,11 @@ async function detailPage(){
     '<div class="property-detail-feature"><span>Furniture Objects</span><strong>'+esc(capacity(p.storageSlots,'pieces'))+'</strong></div>'+
     '</div>';
  const overview=safeText(p.description)||'Contact our Realtors to learn more about this property and its features.';
- const mapPreview='<section class="property-private-map-section" id="privatePropertyMapPreview" hidden aria-label="Private property map preview">'+
-  '<div class="property-private-map-heading"><div><div class="eyebrow">Private Owner Preview</div><h2 class="serif">Property location</h2><p id="propertyPrivateMapMessage">Checking saved location…</p></div>'+
-  '<a id="propertyPrivateMapLink" class="button outline" href="manage-map.html?property='+encodeURIComponent(String(p.id))+'">View on Map ↗</a></div>'+
-  '<div class="property-private-map-canvas" id="propertyPrivateMapCanvas" aria-label="Preview of selected property on the San Andreas map"></div></section>';
+ const mapPreview='<section class="property-private-map-section" id="privatePropertyMapPreview" hidden aria-label="Property map preview">'+
+  '<div class="property-private-map-heading"><div><div class="eyebrow">Explore the neighborhood</div><h2 class="serif">Find this home on the map.</h2><p id="propertyPrivateMapMessage">Loading property location…</p></div>'+
+  '<div class="bi-mini-style"><label for="propertyMiniMapStyle">Map view</label><select id="propertyMiniMapStyle" aria-label="Choose property map style"><option value="atlas">Atlas</option><option value="satellite">Satellite</option><option value="road">Road</option></select>'+
+  '<a id="propertyPrivateMapLink" class="button outline" href="map.html?property='+encodeURIComponent(String(p.id))+'">View on Full Map ↗</a></div></div>'+
+  '<div class="property-private-map-canvas" id="propertyPrivateMapCanvas" aria-label="Interactive map centered on this property"></div></section>';
  container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
  '<div class="detail-meta">'+esc(p.address||'San Andreas')+
  (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
