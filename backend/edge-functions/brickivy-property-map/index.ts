@@ -64,6 +64,30 @@ async function stock(token:string){
  }
  return rows;
 }
+/** Confirm tenant occupancy separately. Missing/restricted renter data is
+ * unknown, never incorrectly labelled Available. No renter IDs leave backend. */
+async function occupancy(token:string,ids:string[]):Promise<Map<string,boolean>|null>{
+ const source=new URL(STOCK);
+ source.searchParams.set("select","company_id,property_id,property_renter_cid");
+ source.searchParams.set("where","company_id="+COMPANY);
+ try{
+  const response=await fetch(source,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},signal:AbortSignal.timeout(9500)});
+  if(!response.ok)return null;
+  const payload=await response.json();
+  if(!Array.isArray(payload?.data)||payload.data.length>MAX_PROPERTIES)return null;
+  const found=new Map<string,boolean>();
+  for(const row of payload.data){
+   if(!row||Number(row.company_id)!==COMPANY||!Object.prototype.hasOwnProperty.call(row,"property_renter_cid"))return null;
+   const id=propId(row.property_id);
+   if(!id||found.has(id))return null;
+   const raw=row.property_renter_cid;
+   if(raw!==null&&raw!==""&&(!Number.isSafeInteger(Number(raw))||Number(raw)<0))return null;
+   found.set(id,raw!==null&&raw!==""&&Number(raw)>0);
+  }
+  if(found.size!==ids.length||ids.some(id=>!found.has(id)))return null;
+  return found;
+ }catch{return null}
+}
 Deno.serve(async request=>{
  const origin=request.headers.get("origin")||"";
  const cors:Record<string,string>={
@@ -92,19 +116,24 @@ Deno.serve(async request=>{
   const portfolio=await stock(opfw);
   const ids=portfolio.map(p=>p.id);
   if(action==="list"){
-   const [points,metadata]=await Promise.all([
+   const [points,metadata,renters]=await Promise.all([
     db.from("brickivy_property_map_locations").select("property_id,x,y,updated_at"),
     ids.length?db.from("brickivy_property_listing_settings")
       .select("property_id,area,published,featured,reserved").in("property_id",ids):
-      Promise.resolve({data:[],error:null})
+      Promise.resolve({data:[],error:null}),
+    occupancy(opfw,ids)
    ]);
    if(points.error||metadata.error)throw Error("Map metadata lookup failed");
    const locations=new Map((points.data||[]).map(p=>[String(p.property_id),p]));
    const settings=new Map((metadata.data||[]).map(p=>[String(p.property_id),p]));
    return respond({role:"owner",privatePreview:true,properties:portfolio.map(p=>{
     const point=locations.get(p.id),meta=settings.get(p.id);
+    // Status priority: rented > reserved > explicitly vacant > unknown.
+    // A hidden listing retains its true occupancy status in the private map.
+    const rented=renters?.get(p.id);
+    const status=rented===true?"unavailable":meta?.reserved===true?"reserved":rented===false?"available":"unknown";
     return {...p,area:safe(meta?.area,70),published:meta?.published!==false,
-     featured:meta?.featured===true,reserved:meta?.reserved===true,
+     featured:meta?.featured===true,reserved:meta?.reserved===true,status,
      x:typeof point?.x==="number"?point.x:null,
      y:typeof point?.y==="number"?point.y:null,
      updatedAt:point?.updated_at||null};
