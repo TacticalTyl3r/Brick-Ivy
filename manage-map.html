@@ -11,17 +11,17 @@
 <link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-map1">
+<link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-map2">
 <script src="assets/brickivy-config.js"></script>
 <script defer src="assets/site.js?v=20261024-firstpaint2"></script>
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script type="module" src="assets/brickivy-property-map.js?v=20261030-map1"></script>
+<script type="module" src="assets/brickivy-property-map.js?v=20261030-map2"></script>
 </head>
 <body data-page="staff-map">
 <header class="site-header"><div class="container header-inner">
 <a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate home"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
-<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="admin.html">Staff Portal</a></nav>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="admin.html">Staff Portal</a><a href="manage-map.html" aria-current="page">Map Preview</a></nav>
 <div class="header-actions"><a class="link-button" href="admin.html">Staff tools ↗</a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav"><span aria-hidden="true"></span></button></div>
 </div></header>
 <main>
@@ -37,6 +37,7 @@
   <div id="mapSession" hidden><button id="mapSignOut" class="button outline" type="button">Sign out</button></div>
  </div>
  <section id="mapPrivateContent" hidden aria-label="Private property map editor">
+  <div class="map-mode-tabs" role="navigation" aria-label="Private map navigation"><a href="manage-map.html" aria-current="page">Property Map</a><a href="manage-properties.html">Property Management</a><span>Private owner preview</span></div>
   <div class="map-summary">
    <div><span class="map-summary-kicker">Properties</span><strong id="mapTotal">—</strong></div>
    <div><span class="map-summary-kicker">Pins placed</span><strong id="mapPlaced">—</strong></div>
@@ -50,16 +51,18 @@
     <div class="map-filters">
      <label for="mapSearch">Find a property</label><input type="search" id="mapSearch" placeholder="Property, address, block or ID">
      <div class="map-filter-pair"><div><label for="mapArea">Region</label><select id="mapArea"><option value="">All regions</option><option value="Los Santos">Los Santos</option><option value="Sandy Shores">Sandy Shores</option><option value="Paleto Bay">Paleto Bay</option></select></div>
-     <div><label for="mapFilter">Show</label><select id="mapFilter"><option value="all">All properties</option><option value="unplaced">Needs a pin</option><option value="placed">Pins placed</option><option value="published">Published only</option></select></div></div>
+     <div><label for="mapFilter">Show</label><select id="mapFilter"><option value="all">All properties</option><option value="unplaced">Needs a pin</option><option value="placed">Pins placed</option><option value="published">Published only</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="unavailable">Unavailable</option><option value="unknown">Status unknown</option></select></div></div>
     </div>
     <div id="mapPropertyList" class="map-property-list" aria-live="polite"></div>
    </aside>
    <div class="map-main">
-    <div class="map-toolbar"><div><strong>San Andreas property map</strong><small>Click to place the selected home · Mouse wheel or +/− to zoom</small></div>
-     <div class="map-legend"><span><i class="is-listed"></i> Published</span><span><i class="is-hidden"></i> Unpublished</span><span><i class="is-draft"></i> Unsaved</span></div>
+    <div class="map-toolbar"><div><strong>San Andreas property map</strong><small>Select any pin for property details · Click empty map space to set a location</small></div>
+     <div class="map-toolbar-actions"><label for="mapStyle">Map style<select id="mapStyle"><option value="atlas">Atlas</option><option value="satellite">Satellite</option><option value="road">Road</option></select></label>
+     <button id="mapShowAll" type="button" class="map-show-all">Show all pins</button></div>
     </div>
+    <div class="map-legend map-status-legend" aria-label="Property status legend"><span><i class="is-available"></i> Available</span><span><i class="is-reserved"></i> Reserved</span><span><i class="is-unavailable"></i> Unavailable</span><span><i class="is-unknown"></i> Unknown</span><span><i class="is-draft"></i> Unsaved</span></div>
     <div id="propertyMap" class="map-canvas" role="application" aria-label="Interactive Grand Theft Auto V map showing Brick and Ivy property locations"></div>
-    <div class="map-toolbar-bottom"><span id="mapInteractionHint">Select a property to set its map location.</span><span>Map imagery © Rockstar Games · FiveDock tiles</span></div>
+    <div class="map-toolbar-bottom"><span id="mapInteractionHint">Select a property to set its map location.</span><span id="mapTileAttribution">Map imagery © Rockstar Games · FiveDock / GTAV map tiles</span></div>
     <section class="map-editor" aria-labelledby="mapEditorHeading">
      <div class="map-editor-heading"><div><span class="eyebrow">Location editor</span><h3 class="serif" id="mapEditorHeading">Select a property to begin.</h3><p id="mapEditorMeta">Properties without coordinates will remain off the map.</p></div><span id="mapEditorState" class="map-state-tag">No selection</span></div>
      <div class="map-coordinates"><label>X coordinate <input id="mapX" type="number" step="0.01" min="-8000" max="8000" placeholder="e.g. -1037.00" disabled></label><label>Y coordinate <input id="mapY" type="number" step="0.01" min="-8000" max="9000" placeholder="e.g. -2737.00" disabled></label>
