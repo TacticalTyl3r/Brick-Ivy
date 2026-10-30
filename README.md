@@ -28,6 +28,14 @@ The Owner can also use [Realtor Permissions](https://brickandivyhomes.com/manage
 
 See [Homepage Editor and financial visibility guide](backend/HOMEPAGE-EDITOR-FINANCIAL-VISIBILITY.md).
 
+## Property map: private Owner preview
+
+Brick & Ivy has a private property-location editor at [manage-map.html](manage-map.html), linked only from the **Owner** tools on the Staff Portal. It is intentionally absent from public menus, uses \`noindex\`, and has no public map API. **GitHub Pages cannot make a static HTML document secret**, so the page markup itself can be visited with its URL, but the map data, portfolio, saved coordinates, and editor remain hidden and are served only after a valid Discord sign-in whose current Brick & Ivy Owner role is verified server-side. The map is **not published** to home listings, property cards, or detail pages.
+
+The private Edge Function is \`brickivy-property-map\`. It requires a Supabase session and the live Discord Owner role, pulls company ID 5 properties, and uses \`brickivy_property_map_locations\` for private, explicitly placed \`x\`/\`y\` game coordinates. The table has RLS enabled and no direct anonymous or authenticated Data API privileges. It never exposes renter data or changes original game property records. New pins start empty: the portfolio's \`block_id\`/address do not supply a verified GTA location, so owners must **click the map or enter actual game X/Y coordinates** rather than inventing locations. Z is not needed.
+
+The map uses Leaflet 1.9.4 and the FiveDock base-game Atlas tile layer at \`https://cdn.fivedock.dev/o/fivedock/maps/styleatlas/{z}/{x}/{y}.jpg\`, calibrated to the X/Y FiveM game coordinate system. Those external tiles require an internet connection. The map supports filtering by area and pin state, selecting a property, clicking to preview, saving or removing pins, and viewing their private placement coverage. Test exact placements against your in-game positions before considering any public launch. A future **explicit** Owner-controlled publication flow would be required to expose pins to visitors; do not repurpose this private Edge Function as an unauthenticated endpoint.
+
 ## Homepage first-paint behavior
 
 The homepage's initial HTML includes a snapshot of the **actual published**
