@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#182d25">
+<title>Property Map Preview | Brick & Ivy</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<script src="assets/theme.js?v=20261022-dark1"></script>
+<link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-map1">
+<script src="assets/brickivy-config.js"></script>
+<script defer src="assets/site.js?v=20261024-firstpaint2"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script type="module" src="assets/brickivy-property-map.js?v=20261030-map1"></script>
+</head>
+<body data-page="staff-map">
+<header class="site-header"><div class="container header-inner">
+<a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate home"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a>
+<nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="admin.html">Staff Portal</a></nav>
+<div class="header-actions"><a class="link-button" href="admin.html">Staff tools ↗</a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav"><span aria-hidden="true"></span></button></div>
+</div></header>
+<main>
+<section class="page-header admin-management-hero"><div class="container">
+ <div class="eyebrow">Brick &amp; Ivy / Private owner preview</div>
+ <h1 class="section-heading">Map your <em>properties.</em></h1>
+ <p>Explore the San Andreas map, find each home, and save exact property locations. This map is being tested privately and is not available to customers.</p>
+</div></section>
+<div class="container map-workspace">
+ <div class="map-private-notice"><span class="map-draft-dot"></span><div><strong>Owner-only testing · Not published</strong><p>Locations you save here remain private. The public Properties page does not show these pins.</p></div></div>
+ <div class="manage-auth-gate map-auth-gate"><p class="staff-auth-message" id="mapStatus" role="status" aria-live="polite">Checking your Owner session…</p>
+  <div id="mapLogin" hidden><button id="mapSignIn" class="button dark" type="button">Sign in with Discord ↗</button></div>
+  <div id="mapSession" hidden><button id="mapSignOut" class="button outline" type="button">Sign out</button></div>
+ </div>
+ <section id="mapPrivateContent" hidden aria-label="Private property map editor">
+  <div class="map-summary">
+   <div><span class="map-summary-kicker">Properties</span><strong id="mapTotal">—</strong></div>
+   <div><span class="map-summary-kicker">Pins placed</span><strong id="mapPlaced">—</strong></div>
+   <div><span class="map-summary-kicker">Locations to map</span><strong id="mapUnplaced">—</strong></div>
+   <div class="map-summary-actions"><button id="mapRefresh" class="button outline" type="button">Refresh portfolio ↻</button></div>
+  </div>
+  <div class="map-layout">
+   <aside class="map-sidebar" aria-label="Property selection">
+    <div class="map-sidebar-head"><span class="eyebrow">Your properties</span><h2 class="serif">Choose a location.</h2>
+     <p>Choose a property, then click its location on the map. Save to keep the pin.</p></div>
+    <div class="map-filters">
+     <label for="mapSearch">Find a property</label><input type="search" id="mapSearch" placeholder="Property, address, block or ID">
+     <div class="map-filter-pair"><div><label for="mapArea">Region</label><select id="mapArea"><option value="">All regions</option><option value="Los Santos">Los Santos</option><option value="Sandy Shores">Sandy Shores</option><option value="Paleto Bay">Paleto Bay</option></select></div>
+     <div><label for="mapFilter">Show</label><select id="mapFilter"><option value="all">All properties</option><option value="unplaced">Needs a pin</option><option value="placed">Pins placed</option><option value="published">Published only</option></select></div></div>
+    </div>
+    <div id="mapPropertyList" class="map-property-list" aria-live="polite"></div>
+   </aside>
+   <div class="map-main">
+    <div class="map-toolbar"><div><strong>San Andreas property map</strong><small>Click to place the selected home · Mouse wheel or +/− to zoom</small></div>
+     <div class="map-legend"><span><i class="is-listed"></i> Published</span><span><i class="is-hidden"></i> Unpublished</span><span><i class="is-draft"></i> Unsaved</span></div>
+    </div>
+    <div id="propertyMap" class="map-canvas" role="application" aria-label="Interactive Grand Theft Auto V map showing Brick and Ivy property locations"></div>
+    <div class="map-toolbar-bottom"><span id="mapInteractionHint">Select a property to set its map location.</span><span>Map imagery © Rockstar Games · FiveDock tiles</span></div>
+    <section class="map-editor" aria-labelledby="mapEditorHeading">
+     <div class="map-editor-heading"><div><span class="eyebrow">Location editor</span><h3 class="serif" id="mapEditorHeading">Select a property to begin.</h3><p id="mapEditorMeta">Properties without coordinates will remain off the map.</p></div><span id="mapEditorState" class="map-state-tag">No selection</span></div>
+     <div class="map-coordinates"><label>X coordinate <input id="mapX" type="number" step="0.01" min="-8000" max="8000" placeholder="e.g. -1037.00" disabled></label><label>Y coordinate <input id="mapY" type="number" step="0.01" min="-8000" max="9000" placeholder="e.g. -2737.00" disabled></label>
+     <button id="mapLocate" type="button" class="button outline" disabled>Preview pin</button></div>
+     <div class="map-editor-footer"><span id="mapEditorFeedback" role="status" aria-live="polite">Choose a property and click its location on the map.</span>
+      <div class="map-editor-buttons"><button type="button" id="mapRemove" class="button outline" disabled>Remove pin</button><button type="button" id="mapSave" class="button dark" disabled>Save location</button></div></div>
+     <p class="map-editor-tip">Tip: Use exact in-game X/Y coordinates when available. A clicked location is only a preview until you select <strong>Save location</strong>. Z/height is not needed for this map.</p>
+    </section>
+   </div>
+  </div>
+ </section>
+</div>
+</main>
+<footer class="site-footer"><div class="container"><div class="footer-grid"><div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Discover your next home in San Andreas. Built for the Legendary Roleplay community.</p></div><div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a></div></div><div><div class="footer-title">Brick &amp; Ivy</div><div class="footer-links"><a href="admin.html">Staff Portal</a><a href="https://legendary-roleplay.com/" target="_blank" rel="noopener noreferrer">Legendary Roleplay ↗</a></div></div></div><div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate.</span><span>Private staging map · Not for customer use</span></div></div></footer>
+</body></html>
