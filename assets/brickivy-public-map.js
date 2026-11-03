@@ -16,6 +16,13 @@
  const KEY="brickivy-public-map-style-v1";
  const $=id=>document.getElementById(id);
  const esc=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ const propertyAddress=p=>String(p?.address??"").trim()||String(p?.name??"").trim()||"Property";
+ const propertyRoad=p=>{
+  const road=String(p?.name??"").trim();
+  return road&&road.toLocaleLowerCase()!==propertyAddress(p).toLocaleLowerCase()?road:"";
+ };
+ const propertySubtitle=p=>[propertyRoad(p),String(p?.area??"").trim(),
+  p?.blockId?"Block "+String(p.blockId).trim():""].filter(Boolean).join(" · ");
  const status=p=>Object.hasOwn(COLORS,p.status)?p.status:"unknown";
  const isPin=p=>typeof p.x==="number"&&typeof p.y==="number"&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=-8000&&p.x<=8000&&p.y>=-8000&&p.y<=9000;
  const urlFor=p=>"map.html?property="+encodeURIComponent(p.id);
@@ -33,11 +40,11 @@
  const interiorName=p=>interiorNames[String(p.type??"")]||String(p.type??"").trim()||"Not listed";
  function sidebarMarkup(p){
   const cover=typeof p.coverImage==="string"&&/^https:\/\//i.test(p.coverImage)
-    ?'<div class="bi-map-picked-photo"><img src="'+esc(p.coverImage)+'" alt="'+esc(p.name)+'" loading="lazy" decoding="async"></div>':"";
+    ?'<div class="bi-map-picked-photo"><img src="'+esc(p.coverImage)+'" alt="'+esc(propertyAddress(p))+'" loading="lazy" decoding="async"></div>':"";
   const price=displayPrice(p.price);
   return '<div class="bi-map-picked">'+
    '<span class="bi-map-picked-kicker">SELECTED PROPERTY</span>'+cover+
-   '<strong>'+esc(p.name)+'</strong><p class="bi-map-picked-address">'+esc(p.address||p.area||"San Andreas")+'</p>'+
+   '<strong>'+esc(propertyAddress(p))+'</strong><p class="bi-map-picked-address">'+esc(propertySubtitle(p)||"San Andreas")+'</p>'+
    '<span class="bi-public-status status-'+status(p)+'">'+LABELS[status(p)]+'</span>'+
    '<div class="bi-map-price"><span>WEEKLY RENT</span><b>'+esc(price)+'</b></div>'+
    '<div class="bi-map-facts">'+
@@ -149,19 +156,19 @@
     if(p.id===chosen)continue;
     const marker=L.circleMarker(point(p),{
      radius:7,weight:2,color:"#fff",fillColor:COLORS[status(p)],fillOpacity:.82,opacity:.85
-    }).bindTooltip(esc(p.name)+" · "+LABELS[status(p)],{direction:"top"});
+    }).bindTooltip(esc(propertyAddress(p))+" · "+LABELS[status(p)],{direction:"top"});
     marker.on("click",()=>select(p.id));marker.addTo(pins);
    }
    const picked=chosen?byId.get(chosen):null;
    if(picked){
     L.marker(point(picked),{icon:focusIcon(picked),zIndexOffset:10000})
-     .bindTooltip("★ "+esc(picked.name),{permanent:true,direction:"right",offset:[12,-20],
+     .bindTooltip("★ "+esc(propertyAddress(picked)),{permanent:true,direction:"right",offset:[12,-20],
        className:"bi-public-selected-tooltip"}).addTo(pins);
     details.hidden=false;
     details.innerHTML=sidebarMarkup(picked);
    }else{details.hidden=true;details.innerHTML=""}
    label.textContent=visible.length+" mapped "+(visible.length===1?"property":"properties")+
-    (picked?" · Selected: "+picked.name:" · Select a pin to explore");
+    (picked?" · Selected: "+propertyAddress(picked):" · Select a pin to explore");
   }
   function select(id,move=true){
    const p=publicProperties.find(p=>p.id===id);
@@ -213,7 +220,7 @@
   const kit=leafletMap(canvas,{mini:true});if(!kit){canvas.hidden=true;return}
   const {map,L,point}=kit;
   const chosen=L.marker(point(selected),{icon:focusIcon(selected),zIndexOffset:10000})
-   .bindTooltip("★ "+esc(selected.name),{permanent:true,direction:"right",offset:[12,-20],className:"bi-public-selected-tooltip"}).addTo(map);
+   .bindTooltip("★ "+esc(propertyAddress(selected)),{permanent:true,direction:"right",offset:[12,-20],className:"bi-public-selected-tooltip"}).addTo(map);
   // Nearby homes are visible, but deliberately smaller and less prominent.
   for(const p of publicProperties){
    if(p.id===selected.id)continue;
@@ -221,7 +228,7 @@
    if(distance>1300)continue;
    const other=L.circleMarker(point(p),{radius:4,color:"#fff",weight:1.5,
     fillColor:COLORS[status(p)],fillOpacity:.65});
-   other.bindTooltip(esc(p.name),{direction:"top"});
+   other.bindTooltip(esc(propertyAddress(p)),{direction:"top"});
    other.on("click",()=>{location.href=urlFor(p)});
    other.addTo(map);
   }
@@ -230,7 +237,7 @@
   map.on("brickivy:tilefallback",()=>{message.textContent="The requested map imagery did not load. Showing Road instead.";});
   map.on("brickivy:tileerror",()=>{message.textContent="Map imagery is unavailable. Try another style.";});
   map.setView(point(selected),5);
-  message.textContent="Highlighted: "+selected.name+" · "+LABELS[status(selected)]+
+  message.textContent="Highlighted: "+propertyAddress(selected)+" · "+LABELS[status(selected)]+
    ". Smaller pins show nearby homes.";
   requestAnimationFrame(()=>map.invalidateSize());
  }
