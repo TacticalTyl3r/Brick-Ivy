@@ -59,11 +59,16 @@ function counts(){
  $("mapPlaced").textContent=money(placed);
  $("mapUnplaced").textContent=money(items.length-placed);
 }
-function propertyLabel(p){return p.address||"Block "+(p.blockId||"—")+" · Property #"+p.id}
+function propertyTitle(p){return String(p?.address??"").trim()||String(p?.name??"").trim()||"Property #"+p.id}
+function propertyLabel(p){
+ const name=String(p?.name??"").trim();
+ const road=name&&name.toLocaleLowerCase()!==propertyTitle(p).toLocaleLowerCase()?name:"";
+ return [road,String(p?.area??"").trim(),p.blockId?"Block "+p.blockId:""].filter(Boolean).join(" · ")||"Property #"+p.id;
+}
 function renderList(){
  const container=$("mapPropertyList"),data=filtered();
  container.innerHTML=data.length?data.map(p=>'<button type="button" class="map-property-choice'+(hasPin(p)?" is-placed":"")+'" data-map-property="'+esc(p.id)+'" aria-pressed="'+String(selectedId===p.id)+'">'+
-  '<span class="map-choice-dot" aria-hidden="true">'+(hasPin(p)?"✓":"＋")+'</span><span class="map-choice-body"><strong>'+esc(p.name)+'</strong>'+
+  '<span class="map-choice-dot" aria-hidden="true">'+(hasPin(p)?"✓":"＋")+'</span><span class="map-choice-body"><strong>'+esc(propertyTitle(p))+'</strong>'+
   '<small>'+esc(propertyLabel(p))+'</small><em class="map-status-text status-'+verifiedStatus(p)+'">'+STATUS_LABELS[verifiedStatus(p)]+'</em><em> · '+(hasPin(p)?"Pin placed":"Needs location")+' · '+(p.published?"Published":"Hidden")+'</em></span></button>').join(""):
   '<div class="map-list-empty">No properties match these filters.</div>';
 }
@@ -78,13 +83,13 @@ function renderMarkers(){
     html:'<span class="bi-owner-focus-halo"></span><span class="bi-owner-focus-core" style="--pin:'+STATUS_COLORS[verifiedStatus(p)]+'">⌂</span>',
     iconSize:[68,68],iconAnchor:[34,34],tooltipAnchor:[28,-17]});
    window.L.marker(toLatLng(p.x,p.y),{icon,zIndexOffset:9000})
-    .bindTooltip("★ "+esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)],{
+    .bindTooltip("★ "+esc(propertyTitle(p))+" · "+STATUS_LABELS[verifiedStatus(p)],{
      permanent:true,direction:"right",offset:[12,-17],className:"bi-owner-focused-label"
     }).addTo(markers);
   }else{
    const circle=window.L.circleMarker(toLatLng(p.x,p.y),{
     radius:6,color:"#fff",weight:2,fillColor:STATUS_COLORS[verifiedStatus(p)],fillOpacity:.86
-   }).bindTooltip(esc(p.name)+" · "+STATUS_LABELS[verifiedStatus(p)]+(p.published?"":" · Unpublished")+" · #"+esc(p.id),{direction:"top"});
+   }).bindTooltip(esc(propertyTitle(p))+" · "+STATUS_LABELS[verifiedStatus(p)]+(p.published?"":" · Unpublished")+" · #"+esc(p.id),{direction:"top"});
    circle.on("click",event=>{window.L.DomEvent.stopPropagation(event);choose(p.id);});
    circle.addTo(markers);
   }
@@ -94,14 +99,14 @@ function renderMarkers(){
   previewMarker=window.L.circleMarker(toLatLng(draft.x,draft.y),{
    radius:10,color:"#fff",weight:3,dashArray:"4 3",
    fillColor:"#e1a453",fillOpacity:.95
-  }).bindTooltip("Unsaved location · "+esc(current().name),{direction:"top"}).addTo(map);
+  }).bindTooltip("Unsaved location · "+esc(propertyTitle(current())),{direction:"top"}).addTo(map);
  }
 }
 function renderEditor(){
  const p=current(),has=hasPin(p);
- $("mapEditorHeading").textContent=p?p.name:"Select a property to begin.";
+ $("mapEditorHeading").textContent=p?propertyTitle(p):"Select a property to begin.";
  $("mapEditorMeta").textContent=p?
-  (propertyLabel(p)+" · "+STATUS_LABELS[verifiedStatus(p)]+" · "+(p.published?"Published":"Not published")+(p.area?" · "+p.area:"")):
+  (propertyLabel(p)+" · "+STATUS_LABELS[verifiedStatus(p)]+" · "+(p.published?"Published":"Not published")):
   "Properties without coordinates will remain off the map.";
  $("mapEditorState").textContent=!p?"No selection":draft?"Unsaved change":has?"Location saved":"No location";
  $("mapEditorState").className="map-state-tag"+(draft?" is-dirty":has?" is-placed":"");
@@ -112,7 +117,7 @@ function renderEditor(){
  $("mapSave").disabled=!p||working;
  $("mapRemove").disabled=!p||working||!has;
  $("mapInteractionHint").textContent=p?
-  "Selected: "+p.name+" · Click anywhere on the map to preview a new location":
+  "Selected: "+propertyTitle(p)+" · Click anywhere on the map to preview a new location":
   "Select a property in the left panel to place a map pin.";
 }
 function render(){counts();renderList();renderEditor();renderMarkers()}
@@ -121,7 +126,7 @@ function choose(id){
  if(draft&&selectedId!==id&&!window.confirm("You have an unsaved map location. Discard it and select another property?"))return;
  selectedId=id;draft=null;render();
  if(hasPin(p))map?.flyTo(toLatLng(p.x,p.y),Math.max(map.getZoom(),5),{duration:.55});
- info(hasPin(p)?"Saved pin loaded. Click the map or enter coordinates to adjust it.":"Click the map to place "+p.name+", or enter its game X/Y coordinates.");
+ info(hasPin(p)?"Saved pin loaded. Click the map or enter coordinates to adjust it.":"Click the map to place "+propertyTitle(p)+", or enter its game X/Y coordinates.");
 }
 function preview(x,y,panto=true){
  if(!current()){info("Choose a property first.","error");return}
@@ -245,7 +250,7 @@ async function save(){
 }
 async function remove(){
  const p=current();if(!p||working||!hasPin(p))return;
- if(!window.confirm("Remove the saved map pin for "+p.name+"? The property listing will not be affected."))return;
+ if(!window.confirm("Remove the saved map pin for "+propertyTitle(p)+"? The property listing will not be affected."))return;
  try{
   setBusy(true);info("Removing private map pin…");
   const result=await api("remove",{propertyId:p.id});
