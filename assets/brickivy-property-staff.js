@@ -4,6 +4,50 @@
 const config=window.BRICK_IVY_CONFIG||{};
 const byId=id=>document.getElementById(id);
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const formattedOverview=v=>window.BrickIvyMarkdown?.render(String(v??''))||('<p>'+safe(v).replace(/\r\n?|\n/g,'<br>')+'</p>');
+function refreshOverviewPreview(form){
+ const textarea=form?.querySelector('[data-description-input]');
+ const output=form?.querySelector('[data-markdown-preview]');
+ const count=form?.querySelector('[data-markdown-count]');
+ if(!textarea||!output)return;
+ const text=textarea.value;
+ output.innerHTML=text.trim()?formattedOverview(text):'<p class="property-markdown-empty">Your formatted overview will appear here as you type.</p>';
+ if(count)count.textContent=text.length.toLocaleString()+' / 3,000 characters';
+}
+function applyOverviewFormatting(form,action){
+ const textarea=form?.querySelector('[data-description-input]');
+ if(!textarea||!allowed('can_edit_description')||busy)return;
+ const start=textarea.selectionStart,end=textarea.selectionEnd,value=textarea.value;
+ const selected=value.slice(start,end);
+ let offset=start,removeLength=end-start,insert="",selStart=0,selEnd=0;
+ const wraps={bold:"**",italic:"*",strike:"~~",code:"`"};
+ if(Object.prototype.hasOwnProperty.call(wraps,action)){
+  const mark=wraps[action],middle=selected||(action==="code"?"code":"your text");
+  insert=mark+middle+mark;selStart=mark.length;selEnd=mark.length+middle.length;
+ }else if(action==="link"){
+  const middle=selected||"link text",address="https://example.com";
+  insert="["+middle+"]("+address+")";selStart=1;selEnd=1+middle.length;
+ }else if(["heading","subheading","bullet","number","quote"].includes(action)){
+  const begin=value.lastIndexOf('\n',start-1)+1;
+  const after=value.indexOf('\n',end);
+  const finish=after<0?value.length:after;
+  const block=value.slice(begin,finish);
+  const lines=block.split('\n');
+  const make=(line,index)=>action==="heading"?"## "+line:
+   action==="subheading"?"### "+line:action==="bullet"?"- "+line:
+   action==="number"?(index+1)+". "+line:"> "+line;
+  insert=lines.map(make).join('\n');
+  offset=begin;removeLength=finish-begin;selStart=0;selEnd=insert.length;
+ }else return;
+ if(value.length-removeLength+insert.length>3000){
+  feedback('This formatting would exceed the 3,000-character overview limit. Shorten the description first.');
+  return;
+ }
+ textarea.focus();
+ textarea.setRangeText(insert,offset,offset+removeLength,'select');
+ textarea.setSelectionRange(offset+selStart,offset+selEnd);
+ textarea.dispatchEvent(new Event('input',{bubbles:true}));
+}
 const numeric=v=>v===null||v===undefined||v===''?null:Number(v);
 const propertyTitle=p=>String(p?.address??'').trim()||String(p?.name??'').trim()||'Unnamed property';
 const propertyRoad=p=>{
@@ -259,12 +303,27 @@ function propertyCard(p){
  const overviewEditor=allowed('can_edit_description')?
    '<details class="property-overview-editor"><summary>Edit public property overview'+(currentDescription?' · Custom description saved':'')+'</summary>'+
    '<form data-description-form="'+safe(p.id)+'">'+
-   '<label for="overview-'+safe(p.id)+'">Describe this property for visitors</label>'+
-   '<textarea id="overview-'+safe(p.id)+'" data-description-input maxlength="3000" rows="5" placeholder="Describe the interior, rooms, amenities, location, and what makes this home special.">'+safe(currentDescription)+'</textarea>'+
-   '<div class="property-overview-actions"><small>Public on the property detail page · Maximum 3,000 characters</small>'+
+   '<label for="overview-'+safe(p.id)+'">Property overview · Markdown formatting</label>'+
+   '<div class="property-markdown-toolbar" role="toolbar" aria-label="Overview formatting">'+
+   '<button type="button" data-markdown-action="bold" title="Bold selected text (Ctrl+B)" aria-label="Bold"><strong>B</strong></button>'+
+   '<button type="button" data-markdown-action="italic" title="Italic selected text (Ctrl+I)" aria-label="Italic"><em>I</em></button>'+
+   '<button type="button" data-markdown-action="strike" title="Strikethrough" aria-label="Strikethrough"><s>S</s></button>'+
+   '<button type="button" data-markdown-action="heading" title="Heading" aria-label="Heading">H2</button>'+
+   '<button type="button" data-markdown-action="subheading" title="Smaller heading" aria-label="Smaller heading">H3</button>'+
+   '<button type="button" data-markdown-action="bullet" title="Bullet list" aria-label="Bullet list">• List</button>'+
+   '<button type="button" data-markdown-action="number" title="Numbered list" aria-label="Numbered list">1. List</button>'+
+   '<button type="button" data-markdown-action="quote" title="Quote" aria-label="Quote">❝ Quote</button>'+
+   '<button type="button" data-markdown-action="link" title="Insert a website link" aria-label="Insert link">↗ Link</button>'+
+   '<button type="button" data-markdown-action="code" title="Inline code" aria-label="Inline code">&lt;/&gt;</button></div>'+
+   '<textarea id="overview-'+safe(p.id)+'" data-description-input maxlength="3000" rows="8" placeholder="Describe the home. Use **bold**, *italics*, ## headings, or - bullet points.">'+safe(currentDescription)+'</textarea>'+
+   '<div class="property-markdown-helper"><span>Supports bold, italics, headings, bullets, numbered lists, quotes and links.</span><span data-markdown-count>'+currentDescription.length.toLocaleString()+' / 3,000 characters</span></div>'+
+   '<div class="property-markdown-preview-panel"><div class="property-markdown-preview-label">Live preview · This is how visitors will see it</div>'+
+   '<div class="property-markdown property-markdown-preview" data-markdown-preview>'+
+   (currentDescription.trim()?formattedOverview(currentDescription):'<p class="property-markdown-empty">Your formatted overview will appear here as you type.</p>')+'</div></div>'+
+   '<div class="property-overview-actions"><small>Public on the property detail page · Markdown text is saved as written.</small>'+
    '<button type="submit" class="button dark">Save overview</button></div>'+
    '</form></details>':
-   (currentDescription?'<div class="property-overview-readonly"><span>Public property overview</span><p>'+safe(currentDescription)+'</p></div>':'');
+   (currentDescription?'<div class="property-overview-readonly"><span>Public property overview</span><div class="property-markdown">'+formattedOverview(currentDescription)+'</div></div>':'');
  const ownerEditor=allowed('can_set_prices')?
    '<form class="property-private-editor" data-price-form="'+safe(p.id)+'">'+
    '<div class="field"><label>Override weekly rent price ($)</label>'+
