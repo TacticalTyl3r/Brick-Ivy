@@ -184,6 +184,12 @@ function storageText(p){
  return data.join(' · ');
 }
 function emptyMarkup(title='New listings are on the way.',body='Our team is preparing the latest Brick & Ivy properties. Check back soon, or reach out to a Realtor in Legendary Roleplay.'){return '<div class="empty-listings"><div><div class="eyebrow">Brick & Ivy properties</div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></div><div class="empty-icon" aria-hidden="true">⌂</div></div>'}
+// Use the exact street address as the property title on every public page.
+function propertyDisplayAddress(p){return safeText(p?.address)||safeText(p?.name)||'Property'}
+function propertyDisplayRoad(p){
+ const name=safeText(p?.name),address=propertyDisplayAddress(p);
+ return name&&name.toLocaleLowerCase()!==address.toLocaleLowerCase()?name:'';
+}
 function cardMarkup(p){
  const id=encodeURIComponent(safeText(p.id));
  const detailUrl='property.html?id='+id;
@@ -194,15 +200,16 @@ function cardMarkup(p){
  const label=normalStatus(p);
  const neighborhood=safeText(p.area||p.neighborhood||interiorName(p.type)||'San Andreas');
  const block=safeText(p.blockId),storage=storageText(p);
- const name=esc(p.name||'Property');
+ const name=esc(propertyDisplayAddress(p));
+ const road=propertyDisplayRoad(p);
  return '<article class="property-card">'+
  '<a class="property-card-photo-link" href="'+detailUrl+'" aria-label="View '+name+' listing">'+
- '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name||'Property photograph')+'" loading="lazy" decoding="async">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy" decoding="async"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
+ '<div class="property-image">'+(image?'<img src="'+esc(image)+'" alt="'+esc(propertyDisplayAddress(p))+'" loading="lazy" decoding="async">':'<div class="property-logo-placeholder" aria-label="Brick &amp; Ivy logo placeholder"><img src="assets/brick-ivy-mark.svg" alt="" loading="lazy" decoding="async"><span>BRICK &amp; IVY</span><small>REAL ESTATE</small></div>')+
  '<span class="status-tag '+(safeText(p.status).toLowerCase()==='unavailable'?'is-unavailable':safeText(p.status).toLowerCase()==='reserved'?'is-reserved':safeText(p.status).toLowerCase()==='available'?'is-available':'')+'">'+esc(label)+'</span></div></a><div class="property-body">'+
  '<div class="property-topline"><span>'+esc(neighborhood)+'</span><a href="'+detailUrl+'">View home ↗</a></div>'+
  (p.featured===true?'<div class="property-featured-kicker"><span aria-hidden="true">★</span> Featured home</div>':'')+
  '<div class="property-value-label">Weekly Rent</div><div class="property-price">'+cost+'</div><h3 class="property-title"><a href="'+detailUrl+'">'+name+'</a></h3>'+
- '<p class="property-address">'+esc(p.address||'Address available on request')+'</p>'+
+ (road?'<p class="property-address">'+esc(road)+'</p>':'')+
  (block||storage?'<p class="property-card-facts">'+(block?'<span>Block '+esc(block)+'</span>':'')+(storage?'<span>Storage: '+esc(storage)+'</span>':'')+'</p>':'')+
  '<div class="property-card-actions">'+
  '<a class="property-inquiry-cta" href="'+inquiryUrl+'" aria-label="Inquire about '+name+'">Inquire About This Property <span aria-hidden="true">→</span></a>'+
@@ -296,13 +303,13 @@ async function detailPage(){
   container.innerHTML='<div class="detail-empty"><div class="eyebrow" style="justify-content:center">Brick & Ivy Real Estate</div><h2>Property details are temporarily unavailable.</h2><p>We could not confirm the latest listing. It may have changed or been removed. Please explore the latest properties or speak with our Realtors.</p><a href="properties.html" class="button dark" style="margin-top:18px">Browse Properties →</a> <a href="map.html" class="button outline" style="margin-top:18px">Back to Property Map →</a></div>';
   return;
  }
- document.title=safeText(p.name)+' | Brick & Ivy Real Estate';
+ document.title=propertyDisplayAddress(p)+' | Brick & Ivy Real Estate';
  const imgs=Array.isArray(p.images)?p.images.map(safeImage).filter(Boolean):[];
  const cover=safeImage(p.coverImage)||imgs[0]||'';
  const galleryImages=cover?[cover,...imgs.filter(x=>x!==cover)]:imgs;
  const galleryMarkup=galleryImages.length?
   '<div class="property-photo-gallery">'+
-   '<div class="property-photo-hero"><img id="propertyGalleryMain" src="'+esc(galleryImages[0])+'" alt="'+esc((p.name||'Property')+' photo 1')+'">'+
+   '<div class="property-photo-hero"><img id="propertyGalleryMain" src="'+esc(galleryImages[0])+'" alt="'+esc(propertyDisplayAddress(p)+' photo 1')+'">'+
     (galleryImages.length>1?'<button class="property-photo-nav is-prev" type="button" data-photo-nav="-1" aria-label="Previous property photo">‹</button><button class="property-photo-nav is-next" type="button" data-photo-nav="1" aria-label="Next property photo">›</button>':'')+
    '</div>'+
    (galleryImages.length>1?'<div class="property-photo-controls"><span id="propertyGalleryCount">1 of '+galleryImages.length+' photos</span></div>'+
@@ -326,9 +333,10 @@ async function detailPage(){
   '<div class="bi-mini-style"><label for="propertyMiniMapStyle">Map view</label><select id="propertyMiniMapStyle" aria-label="Choose property map style"><option value="atlas">Atlas</option><option value="satellite">Satellite</option><option value="road">Road</option></select>'+
   '<a id="propertyPrivateMapLink" class="button outline" href="map.html?property='+encodeURIComponent(String(p.id))+'">View on Full Map ↗</a></div></div>'+
   '<div class="property-private-map-canvas" id="propertyPrivateMapCanvas" aria-label="Interactive map centered on this property"></div></section>';
- container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(p.name||'Property')+'</h1>'+
- '<div class="detail-meta">'+esc(p.address||'San Andreas')+
- (p.area?' · '+esc(p.area):'')+(p.blockId?' · Block '+esc(p.blockId):'')+'</div>'+
+ container.innerHTML='<article class="detail-shell"><div class="eyebrow '+(safeText(p.status).toLowerCase()==='unavailable'?'detail-status-unavailable':'')+'">'+esc(normalStatus(p))+'</div><h1 class="detail-title">'+esc(propertyDisplayAddress(p))+'</h1>'+
+ '<div class="detail-meta">'+esc([
+  propertyDisplayRoad(p),safeText(p.area),p.blockId?'Block '+safeText(p.blockId):''
+ ].filter(Boolean).join(' · ')||'San Andreas')+'</div>'+
  '<div class="property-value-label">Weekly Rent</div><div class="detail-price">'+priceText+'</div>'+
  featureGrid+galleryMarkup+
  '<section class="property-overview-section"><h2 class="serif">Property Overview</h2><p class="detail-copy">'+esc(overview)+'</p></section>'+
@@ -338,7 +346,7 @@ async function detailPage(){
   const display=index=>{
    active=(index+galleryImages.length)%galleryImages.length;
    const main=$('#propertyGalleryMain',container);
-   if(main){main.src=galleryImages[active];main.alt=(p.name||'Property')+' photo '+(active+1);}
+   if(main){main.src=galleryImages[active];main.alt=propertyDisplayAddress(p)+' photo '+(active+1);}
    const count=$('#propertyGalleryCount',container);
    if(count)count.textContent=(active+1)+' of '+galleryImages.length+' photos';
    $('.property-photo-thumb',container).forEach((button,i)=>{
