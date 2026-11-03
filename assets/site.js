@@ -339,7 +339,10 @@ async function detailPage(){
  ].filter(Boolean).join(' · ')||'San Andreas')+'</div>'+
  '<div class="property-value-label">Weekly Rent</div><div class="detail-price">'+priceText+'</div>'+
  featureGrid+galleryMarkup+
- '<section class="property-overview-section"><h2 class="serif">Property Overview</h2><p class="detail-copy">'+esc(overview)+'</p></section>'+
+ '<section class="property-overview-section"><h2 class="serif">Property Overview</h2>'+
+ '<div class="detail-copy property-markdown">'+
+ (window.BrickIvyMarkdown?window.BrickIvyMarkdown.render(overview):'<p>'+esc(overview)+'</p>')+
+ '</div></section>'+
  mapPreview+'</article>';
  if(galleryImages.length>1){
   let active=0;
