@@ -5,6 +5,11 @@ const config=window.BRICK_IVY_CONFIG||{};
 const byId=id=>document.getElementById(id);
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const numeric=v=>v===null||v===undefined||v===''?null:Number(v);
+const propertyTitle=p=>String(p?.address??'').trim()||String(p?.name??'').trim()||'Unnamed property';
+const propertyRoad=p=>{
+ const road=String(p?.name??'').trim();
+ return road&&road.toLocaleLowerCase()!==propertyTitle(p).toLocaleLowerCase()?road:'';
+};
 // Keep OPFW property_type codes as saved keys; change labels only.
 const OPFW_INTERIORS=Object.freeze({
  '1':'Motel',
@@ -271,7 +276,7 @@ function propertyCard(p){
    '</form>':'<p class="property-private-subtle">Weekly rent editing requires Owner permission.</p>';
  return '<article class="property-private-card">'+
    '<header class="property-private-card-head"><div><span class="eyebrow">Property #'+safe(p.id)+'</span>'+
-   '<h3>'+safe(p.name||'Unnamed property')+'</h3><p>'+safe(p.address||'Address not supplied')+'</p></div>'+
+   '<h3>'+safe(propertyTitle(p))+'</h3>'+(propertyRoad(p)?'<p>'+safe(propertyRoad(p))+'</p>':'')+'</div>'+
    '<div class="property-private-card-tags">'+photoBadge(p)+
    '<span class="property-private-rental-tag '+rentalClass+'">'+safe(rentalLabel)+'</span></div></header>'+
    (isOwner?'<div class="property-private-map-action"><span>Location preview · Owner-only</span><a class="map-view-link" href="manage-map.html?property='+encodeURIComponent(String(p.id))+'">⌖ View on map ↗</a></div>':'')+
