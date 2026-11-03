@@ -557,7 +557,25 @@ async function setup(){
      if(!input.reportValidity())return;
      await saveCost(id,input.value.trim());
    });
+   byId('propertyStaffGrid')?.addEventListener('input',event=>{
+     const textarea=event.target.closest('[data-description-input]');
+     if(textarea)refreshOverviewPreview(textarea.closest('[data-description-form]'));
+   });
+   byId('propertyStaffGrid')?.addEventListener('keydown',event=>{
+     const textarea=event.target.closest('[data-description-input]');
+     if(!textarea||!(event.ctrlKey||event.metaKey)||event.altKey)return;
+     const key=event.key.toLowerCase();
+     if(key!=='b'&&key!=='i')return;
+     event.preventDefault();
+     applyOverviewFormatting(textarea.closest('[data-description-form]'),key==='b'?'bold':'italic');
+   });
    byId('propertyStaffGrid')?.addEventListener('click',async event=>{
+     const formatter=event.target.closest('[data-markdown-action]');
+     if(formatter){
+       event.preventDefault();
+       applyOverviewFormatting(formatter.closest('[data-description-form]'),formatter.dataset.markdownAction);
+       return;
+     }
      const publish=event.target.closest('[data-publish-property]');
      if(publish&&allowed('can_publish')&&!busy){
        const id=publish.dataset.publishProperty,p=roster.find(x=>x.id===id);
