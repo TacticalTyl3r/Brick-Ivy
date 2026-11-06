@@ -1,55 +1,87 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#182d25"><meta name="description" content="Brick & Ivy staff portal for authorized Owners and Realtors."><meta name="robots" content="noindex,nofollow"><title>Staff Portal | Brick & Ivy Real Estate</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><script src="assets/theme.js?v=20261022-dark1"></script>
 <link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1"><link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261106-recent1"><link rel="stylesheet" href="assets/brickivy-staff-directory.css?v=20261106-payment-label4"><script defer src="assets/site.js"></script><script>
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1"><link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261106-recent1"><link rel="stylesheet" href="assets/brickivy-staff-directory.css?v=20261106-payment-label4"><link rel="stylesheet" href="assets/brickivy-staff-portal.css?v=20261106-layout1"><script defer src="assets/site.js"></script><script>
 window.BRICK_IVY_CONFIG = Object.freeze({
   supabaseUrl: "https://rcbbnzqmfvapwuqmpmhk.supabase.co",
   publishableKey: "sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",
   discordAuthReady: true
 });
-</script><script type="module" src="assets/brickivy-staff.js?v=20261106-payment-label4"></script></head>
+</script><script type="module" src="assets/brickivy-staff.js?v=20261106-layout1"></script></head>
 <body>
 <header class="site-header"><div class="container header-inner"><a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a><nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="index.html#our-story">About us</a></nav><div class="header-actions"><a class="link-button" href="properties.html">View listings <span aria-hidden="true">↗</span></a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="primary-nav" aria-expanded="false"><span aria-hidden="true"></span></button></div></div></header>
-<main class="container page-spacer"><section class="admin-note" aria-labelledby="portalTitle">
-<div class="eyebrow" style="justify-content:center">Brick &amp; Ivy staff portal</div>
-<h1 id="portalTitle" class="section-heading">Your management tools, <em>in one place.</em></h1>
-<p class="section-copy" style="margin:0 auto 20px">Secure access for the Brick &amp; Ivy team. Sign in with Discord to manage your listings and team directory.</p>
-<p class="staff-auth-message" id="staffMessage" role="status" aria-live="polite">Checking sign-in setup…</p>
-<div id="staffLogin" hidden><button class="button dark" id="staffSignIn" type="button">Sign in with Discord ↗</button></div>
-<div id="staffSession" hidden><button class="button outline" id="staffSignOut" type="button">Sign out</button></div>
-<section id="staffInquirySummary" class="bi-portal-pulse" aria-label="Property inquiry summary" hidden></section>
-<div id="staffOwnerContent" hidden>
- <div class="admin-tool-grid">
-  <a class="admin-tool-card" href="manage-realtors.html"><span class="admin-tool-arrow" aria-hidden="true">♟</span><strong>Realtor Management →</strong><span>Add, edit or remove Realtor profiles and control which ones are publicly visible.</span></a>
-  <a class="admin-tool-card" href="manage-map.html"><span class="admin-tool-arrow" aria-hidden="true">⌖</span><strong>Property Location Map (Private Preview) →</strong><span>Plot homes on the San Andreas map, save exact in-game locations, and prepare pins before public launch.</span></a>
-  <a class="admin-tool-card" href="manage-properties.html"><span class="admin-tool-arrow" aria-hidden="true">⌂</span><strong>Property Management &amp; Owner Dashboard →</strong><span>Review company income, all-property maintenance, renters, publishing, photos and weekly prices.</span></a>
-  <a class="admin-tool-card" href="manage-permissions.html"><span class="admin-tool-arrow" aria-hidden="true">⚙</span><strong>Realtor Permissions →</strong><span>Grant property, photo, and financial snapshot permissions to individual Realtors.</span></a>
-  <a class="admin-tool-card" href="manage-homepage.html"><span class="admin-tool-arrow" aria-hidden="true">✦</span><strong>Homepage Editor →</strong><span>Upload images, change layouts, colors and section order, preview drafts and publish when ready.</span></a>
-  <a class="admin-tool-card" href="manage-inquiries.html"><span class="admin-tool-arrow" aria-hidden="true">✉</span><strong>Property Inquiries →</strong><span>Manage visitor questions, Realtor assignments, and follow-up status.</span></a>
-  <a class="admin-tool-card" href="manage-history.html"><span class="admin-tool-arrow" aria-hidden="true">◷</span><strong>Website Change History →</strong><span>Review homepage, property, pricing and Realtor permission changes; restore older homepage designs to a draft.</span></a>
+<main class="container page-spacer bi-staff-page">
+ <section class="bi-staff-welcome" aria-labelledby="portalTitle">
+  <div class="bi-staff-welcome-copy">
+   <span class="eyebrow">BRICK &amp; IVY / PRIVATE STAFF WORKSPACE</span>
+   <h1 id="portalTitle" class="section-heading">Your workspace, <em>organized.</em></h1>
+   <p>One place for inquiries, property rentals, your Realtor team, and website management.</p>
+  </div>
+  <div class="bi-staff-auth-box">
+   <div class="bi-staff-auth-top"><span class="bi-staff-secure">● Staff access</span><span id="staffRoleChip" class="bi-staff-role" hidden></span></div>
+   <p class="staff-auth-message" id="staffMessage" role="status" aria-live="polite">Checking sign-in setup…</p>
+   <div id="staffLogin" hidden><button class="button dark" id="staffSignIn" type="button">Sign in with Discord ↗</button></div>
+   <div id="staffSession" hidden><button class="button outline" id="staffSignOut" type="button">Sign out</button></div>
+  </div>
+ </section>
+ <div id="staffWorkspace" class="bi-staff-workspace" hidden>
+  <div class="bi-staff-tabbar" role="tablist" aria-label="Staff Portal sections" id="staffTabNav">
+   <button type="button" role="tab" id="staffTabOverview" class="bi-staff-tab is-active" data-staff-tab="overview" aria-controls="staffPanelOverview" aria-selected="true" tabindex="0"><span class="bi-staff-tab-symbol" aria-hidden="true">◫</span><span>Overview</span></button>
+   <button type="button" role="tab" id="staffTabProperties" class="bi-staff-tab" data-staff-tab="properties" aria-controls="staffPanelProperties" aria-selected="false" tabindex="-1"><span class="bi-staff-tab-symbol" aria-hidden="true">⌂</span><span>Properties &amp; Renters</span></button>
+   <button type="button" role="tab" id="staffTabTools" class="bi-staff-tab" data-staff-tab="tools" aria-controls="staffPanelTools" aria-selected="false" tabindex="-1"><span class="bi-staff-tab-symbol" aria-hidden="true">⚙</span><span>Management</span></button>
+  </div>
+  <section class="bi-staff-view" id="staffPanelOverview" data-staff-panel="overview" role="tabpanel" aria-labelledby="staffTabOverview" tabindex="0">
+   <div class="bi-staff-view-header"><div><span class="eyebrow">Daily dashboard</span><h2 class="serif">At a glance</h2><p>Your most useful information and shortcuts, without the clutter.</p></div><button type="button" class="button outline bi-staff-switch" data-staff-go="properties">Browse all properties ↗</button></div>
+   <div id="staffPortfolioStats" class="bi-staff-stat-grid" aria-label="Property portfolio overview" hidden></div>
+   <section id="staffInquirySummary" class="bi-portal-pulse" aria-label="Property inquiry summary" hidden></section>
+   <div id="staffInquiryUnavailable" class="bi-staff-notice" hidden>Inquiry statistics are available to staff with the Manage Inquiries permission. Use the Management tab for your other tools.</div>
+   <div class="bi-staff-shortcuts"><div><span class="eyebrow">Quick access</span><h3 class="serif">Jump right in</h3></div>
+    <div class="bi-staff-shortcut-links"><a href="manage-properties.html" class="bi-staff-shortcut"><span aria-hidden="true">⌂</span><strong>Property management</strong><small>Pricing, rentals &amp; listings</small></a><a href="manage-inquiries.html" class="bi-staff-shortcut"><span aria-hidden="true">✉</span><strong>Inquiry inbox</strong><small>Follow-ups &amp; assignments</small></a><button type="button" class="bi-staff-shortcut" data-staff-go="tools"><span aria-hidden="true">⚙</span><strong>All staff tools</strong><small>Organized by category</small></button></div>
+   </div>
+  </section>
+  <section class="bi-staff-view" id="staffPanelProperties" data-staff-panel="properties" role="tabpanel" aria-labelledby="staffTabProperties" tabindex="0" hidden>
+   <section class="bi-dir-section" id="staffPropertyDirectory" aria-labelledby="staffDirectoryTitle" hidden>
+    <div class="bi-dir-heading">
+     <div><span class="eyebrow">Private company portfolio</span><h2 class="serif" id="staffDirectoryTitle">Properties &amp; renters</h2><p>All company properties in one image-free list. Renter information and rental figures are only visible to verified staff.</p></div>
+     <a class="button outline" href="manage-properties.html">Edit property listings ↗</a>
+    </div>
+    <div class="bi-dir-controls">
+     <label for="staffPropertySearch">Search properties<input type="search" id="staffPropertySearch" placeholder="Address, renter, CID, block or ID"></label>
+     <label for="staffPropertyFilter">Occupancy<select id="staffPropertyFilter"><option value="">All properties</option><option value="rented">Rented</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="unknown">Unknown</option></select></label>
+     <button class="button outline" type="button" id="staffPropertyRefresh">Refresh ↻</button>
+    </div>
+    <p id="staffPropertyMessage" class="bi-dir-caption" role="status" aria-live="polite">Loading properties…</p>
+    <div class="bi-dir-table-scroll"><table class="bi-dir-table"><thead><tr><th>Property / Block</th><th>Area / Interior</th><th>Occupancy</th><th>Renter / CID</th><th>Weekly rent</th><th>Maintenance</th><th>Total profit / week</th><th>Paid Until (ET)</th></tr></thead><tbody id="staffPropertyRows"></tbody></table></div>
+    <p id="staffPropertyCount" class="bi-dir-count" aria-live="polite"></p>
+   </section>
+  </section>
+  <section class="bi-staff-view" id="staffPanelTools" data-staff-panel="tools" role="tabpanel" aria-labelledby="staffTabTools" tabindex="0" hidden>
+   <div class="bi-staff-view-header"><div><span class="eyebrow">Staff resources</span><h2 class="serif">Management tools</h2><p>Find the right tool by category, with the same permissions as before.</p></div></div>
+   <div id="staffOwnerContent" hidden>
+    <section class="bi-staff-tool-group" aria-labelledby="staffToolsProperty"><div class="bi-staff-group-heading"><h3 id="staffToolsProperty">Properties &amp; listings</h3><p>Control your portfolio and property locations.</p></div><div class="admin-tool-grid">
+     <a class="admin-tool-card" href="manage-properties.html"><span class="admin-tool-arrow" aria-hidden="true">⌂</span><strong>Property Management →</strong><span>Manage rent, maintenance, availability, listings and photos.</span></a>
+     <a class="admin-tool-card" href="manage-map.html"><span class="admin-tool-arrow" aria-hidden="true">⌖</span><strong>Property Map →</strong><span>View and manage private map pins and in-game property locations.</span></a>
+    </div></section>
+    <section class="bi-staff-tool-group" aria-labelledby="staffToolsPeople"><div class="bi-staff-group-heading"><h3 id="staffToolsPeople">Team &amp; inquiries</h3><p>Support Realtors and stay on top of customer requests.</p></div><div class="admin-tool-grid">
+     <a class="admin-tool-card" href="manage-inquiries.html"><span class="admin-tool-arrow" aria-hidden="true">✉</span><strong>Property Inquiries →</strong><span>Claims, assignments, messages, follow-ups and status tracking.</span></a>
+     <a class="admin-tool-card" href="manage-realtors.html"><span class="admin-tool-arrow" aria-hidden="true">♙</span><strong>Realtor Management →</strong><span>Manage Realtor profiles, positions and visibility.</span></a>
+     <a class="admin-tool-card" href="manage-permissions.html"><span class="admin-tool-arrow" aria-hidden="true">⚙</span><strong>Realtor Permissions →</strong><span>Control each Realtor's staff access and editing abilities.</span></a>
+    </div></section>
+    <section class="bi-staff-tool-group" aria-labelledby="staffToolsSite"><div class="bi-staff-group-heading"><h3 id="staffToolsSite">Website &amp; history</h3><p>Update your storefront and review changes.</p></div><div class="admin-tool-grid">
+     <a class="admin-tool-card" href="manage-homepage.html"><span class="admin-tool-arrow" aria-hidden="true">✦</span><strong>Homepage Editor →</strong><span>Edit homepage sections, images, text and appearance.</span></a>
+     <a class="admin-tool-card" href="manage-history.html"><span class="admin-tool-arrow" aria-hidden="true">◷</span><strong>Website Change History →</strong><span>Review and restore supported site changes.</span></a>
+    </div></section>
+   </div>
+   <div id="staffTeamContent" hidden>
+    <p class="bi-staff-team-note">Your Realtor access is active. Editing features depend on the permissions granted by the Owner.</p>
+    <div class="admin-tool-grid">
+     <a class="admin-tool-card" href="manage-properties.html"><span class="admin-tool-arrow" aria-hidden="true">⌂</span><strong>Property Management →</strong><span>View rentals and edit details where you have permission.</span></a>
+     <a class="admin-tool-card" href="manage-inquiries.html"><span class="admin-tool-arrow" aria-hidden="true">✉</span><strong>Property Inquiries →</strong><span>Handle inquiries if you have the Manage Inquiries permission.</span></a>
+     <a class="admin-tool-card" href="properties.html"><span class="admin-tool-arrow" aria-hidden="true">↗</span><strong>Public Listings →</strong><span>Preview the homes customers can see.</span></a>
+    </div>
+   </div>
+  </section>
  </div>
-</div>
-<div id="staffTeamContent" hidden>
- <p class="section-copy" style="margin:15px auto">Your Realtor access has been verified. In Property Management, you can use the editing tools your Owner has granted to your Discord account.</p>
- <a class="button dark" href="manage-properties.html">View property rentals and values →</a>
- <a class="button outline" href="manage-inquiries.html">Property inquiries (with permission) →</a>
- <a class="button outline" href="properties.html">Explore public listings →</a>
-</div>
-</section>
-<section class="bi-dir-section" id="staffPropertyDirectory" aria-labelledby="staffDirectoryTitle" hidden>
- <div class="bi-dir-heading">
-  <div><span class="eyebrow">Private company portfolio</span><h2 class="serif" id="staffDirectoryTitle">All properties &amp; renters</h2>
-   <p>One complete, image-free list of company properties. Renter names, CIDs and financial details are visible only to verified staff.</p></div>
-  <a class="button outline" href="manage-properties.html">Open Property Management →</a>
- </div>
- <div class="bi-dir-controls">
-  <label for="staffPropertySearch">Search properties<input type="search" id="staffPropertySearch" placeholder="Address, renter, CID, block or ID"></label>
-  <label for="staffPropertyFilter">Occupancy<select id="staffPropertyFilter"><option value="">All properties</option><option value="rented">Rented</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="unknown">Unknown</option></select></label>
-  <button class="button outline" type="button" id="staffPropertyRefresh">Refresh ↻</button>
- </div>
- <p id="staffPropertyMessage" class="bi-dir-caption" role="status" aria-live="polite">Loading properties…</p>
- <div class="bi-dir-table-scroll"><table class="bi-dir-table"><thead><tr><th>Property / Block</th><th>Area / Interior</th><th>Occupancy</th><th>Renter / CID</th><th>Weekly rent</th><th>Maintenance</th><th>Total profit / week</th><th>Paid Until (ET)</th></tr></thead><tbody id="staffPropertyRows"></tbody></table></div>
- <p id="staffPropertyCount" class="bi-dir-count" aria-live="polite"></p>
-</section></main>
+</main>
 <footer class="site-footer"><div class="container"><div class="footer-grid"><div><div class="footer-brand">BRICK &amp; IVY<small>REAL ESTATE</small></div><p class="footer-text">Discover your next home in San Andreas. Built for the Legendary Roleplay community.</p></div><div><div class="footer-title">Explore</div><div class="footer-links"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a></div></div><div><div class="footer-title">Brick &amp; Ivy</div><div class="footer-links"><a href="realtors.html">Contact a Realtor</a><a href="https://legendary-roleplay.com/" target="_blank" rel="noopener noreferrer">Legendary Roleplay ↗</a></div></div></div><div class="footer-bottom"><span>© <span data-year>2026</span> Brick &amp; Ivy Real Estate. All rights reserved.</span><span>An independent in-game business within Legendary Roleplay.</span><span class="footer-visitor-counter" title="Estimated unique browsers since visitor tracking began"><span class="visitor-indicator" aria-hidden="true"></span><span class="visitor-label">Site visitors</span><strong data-visitor-total>—</strong></span></div></div></footer>
 <script defer src="assets/brickivy-visitors.js?v=20261023-visitors1"></script></body></html>
