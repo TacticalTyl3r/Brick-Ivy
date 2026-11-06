@@ -48,10 +48,15 @@ function render(){
  if(!items.length){target.innerHTML='<div class="bi-inbox-empty">No inquiries match the selected filters.</div>';return;}
  target.innerHTML=items.map(item=>{
   const age=new Date(item.created_at).toLocaleString();
-  const assignee=item.assigned_discord_id;
-  const assigned=assignee?names[assignee]||"Assigned Realtor":"Unassigned";
-  const assignment='<option value="">Unassigned</option>'+realtors.map(r=>
-   '<option value="'+safe(r.discordId)+'"'+(r.discordId===assignee?' selected':'')+'>'+safe(r.name)+'</option>').join("");
+  const assignee=String(item.assigned_discord_id||"");
+  const assigned=assignee?names[assignee]||"Assigned team member":"Unassigned";
+  // Always preserve the saved assignee as a selectable value. Owners can claim
+  // inquiries, and previously assigned staff may later become unpublished.
+  // A missing option would show "Unassigned" and a normal save could erase it.
+  const knownAssignee=realtors.some(r=>r.discordId===assignee);
+  const assignment='<option value=""'+(!assignee?' selected':'')+'>Unassigned</option>'+
+   realtors.map(r=>'<option value="'+safe(r.discordId)+'"'+(r.discordId===assignee?' selected':'')+'>'+safe(r.name)+'</option>').join("")+
+   (assignee&&!knownAssignee?'<option value="'+safe(assignee)+'" selected>'+safe(assigned)+' (currently assigned)</option>':'');
   const options=Object.entries(statuses).map(([value,label])=>
    '<option value="'+value+'"'+(item.status===value?' selected':'')+'>'+label+'</option>').join("");
   const status=String(item.status||"new");
@@ -74,7 +79,7 @@ function render(){
    '<p><strong>Discord contact</strong>'+safe(item.discord_contact||"Not provided")+'</p></div>'+
    '<div class="bi-inbox-message"><strong>Visitor message</strong><p>'+safe(item.message)+'</p></div>'+
    '<div class="bi-inbox-actions"><label>Status<select data-inquiry-status>'+options+'</select></label>'+
-   '<label>Assigned Realtor<select data-inquiry-assignee>'+assignment+'</select></label>'+
+   '<label>Assigned Realtor / Owner<select data-inquiry-assignee>'+assignment+'</select></label>'+
    '<label class="bi-inbox-note">Private follow-up notes<textarea data-inquiry-note maxlength="2000" rows="3" placeholder="Call result, next steps or appointment details…">'+safe(item.internal_note||"")+'</textarea></label>'+
    '<button type="button" class="button dark" data-inquiry-save>Save inquiry →</button>'+
    '<button type="button" class="button outline" data-history-toggle>View activity history</button>'+
