@@ -67,7 +67,8 @@ html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-positive{color:#92d7a
 html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-negative{color:#edaaa6}
 html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-unknown{color:#b4c5b7}
 
-/* Show overdue rent clearly; never extend OPFW's Paid Until deadline. */
+/* Prominent payment state based on last payment + seven days, with the exact
+   paid-through date shown underneath. */
 .bi-dir-table td.bi-dir-payment{min-width:172px}
 .bi-dir-table td.bi-dir-payment.is-overdue{background:#fff1bf;color:#654b09}
 .bi-dir-table td.bi-dir-payment.is-evictable{background:#ffe0de;color:#82272d}
@@ -80,3 +81,11 @@ html[data-ui-theme="dark"] .bi-dir-table td.bi-dir-payment.is-overdue{background
 html[data-ui-theme="dark"] .bi-dir-table td.bi-dir-payment.is-evictable{background:#5b2c30;color:#ffd2ce}
 html[data-ui-theme="dark"] .bi-dir-payment-status.is-overdue{background:#765c20;border-color:#b99a48;color:#fff0be}
 html[data-ui-theme="dark"] .bi-dir-payment-status.is-evictable{background:#863a40;border-color:#bb6469;color:#ffe4df}
+
+/* Keep OVERDUE / EVICTABLE above the date rather than hiding the warning below it. */
+.bi-dir-table .bi-dir-payment-status{display:table;width:max-content;max-width:100%;
+ margin:0 0 7px;padding:6px 10px;font-size:12px;font-weight:900;
+ letter-spacing:.045em;line-height:1.25;text-transform:uppercase}
+.bi-dir-table .bi-dir-payment-date{font-size:11px;line-height:1.5;white-space:normal}
+.bi-dir-table td.bi-dir-payment.is-overdue,
+.bi-dir-table td.bi-dir-payment.is-evictable{font-weight:700}
