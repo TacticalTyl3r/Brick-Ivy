@@ -30,6 +30,17 @@ async function api(action,extra={}) {
   return result;
 }
 
+/* Show the original inquiry creation time in Eastern Time, regardless
+ * of the visitor's browser zone. Older rows with missing timestamps remain usable. */
+function inquiryCreatedAt(value){
+ if(typeof value!=='string'||!value.trim())return 'Date unavailable';
+ const time=new Date(value);
+ if(!Number.isFinite(time.getTime()))return 'Date unavailable';
+ return new Intl.DateTimeFormat('en-US',{
+  timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',
+  hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'
+ }).format(time);
+}
 /* Staff Portal inquiry pulse. Denied Realtors see no private metrics. */
 async function loadInquirySummary(){
  const box=element('staffInquirySummary');
@@ -43,8 +54,16 @@ async function loadInquirySummary(){
    [['New inquiries',m.new],['Needs attention · 24h',m.needsAttention24h],['Urgent · 48h',m.urgent48h],['Unassigned',m.unassignedOpen],['Awaiting customer',m.awaitingCustomer],['Closed',m.closed]]
     .map(([label,value])=>'<div><strong>'+safe(Number(value||0).toLocaleString())+'</strong><span>'+safe(label)+'</span></div>').join('')+'</div>'+
    '<div class="bi-portal-recent"><strong>Recent inquiries</strong>'+
-   (recent.length?recent.map(x=>'<a href="manage-inquiries.html">'+safe(x.property_name)+
-    ' <span>'+safe(String(x.status||'').replaceAll('_',' '))+'</span></a>').join(''):'<p>No inquiries yet.</p>')+'</div>';
+   (recent.length?recent.map((x,index)=>{
+    const address=String(x.property_address||'').trim()||String(x.property_name||'').trim()||'Address unavailable';
+    const number=String(index+1).padStart(2,'0');
+    const status=String(x.status||'unknown').replaceAll('_',' ');
+    return '<a class="bi-portal-recent-item" href="manage-inquiries.html" aria-label="Inquiry '+number+' for '+safe(address)+', '+safe(status)+', submitted '+safe(inquiryCreatedAt(x.created_at))+'">'+
+     '<span class="bi-portal-recent-number" aria-hidden="true">'+number+'</span>'+
+     '<span class="bi-portal-recent-details"><strong class="bi-portal-recent-address">'+safe(address)+'</strong>'+
+     '<small class="bi-portal-recent-date">Submitted '+safe(inquiryCreatedAt(x.created_at))+'</small></span>'+
+     '<span class="bi-portal-recent-status">'+safe(status)+'</span></a>';
+   }).join(''):'<p>No inquiries yet.</p>')+'</div>';
   show(box,true);
  }catch{box.innerHTML='';show(box,false);}
 }
