@@ -14,7 +14,7 @@
 .bi-dir-controls .button{padding:11px 15px;min-height:39px}
 .bi-dir-caption{font-size:12px;color:#59705e;margin:7px 0 14px;text-align:left}
 .bi-dir-table-scroll{overflow-x:auto;border:1px solid #d2ddcf;background:#fff}
-.bi-dir-table{border-collapse:collapse;width:100%;min-width:1020px;font-size:12px;line-height:1.4;text-align:left}
+.bi-dir-table{border-collapse:collapse;width:100%;min-width:1050px;font-size:12px;line-height:1.4;text-align:left}
 .bi-dir-table thead{background:#e8efe8}
 .bi-dir-table th{padding:12px 11px;white-space:nowrap;color:#365843;font-size:10px;
  text-transform:uppercase;letter-spacing:.055em;border-bottom:1px solid #cbd9ca}
@@ -56,3 +56,13 @@ html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="unknown"]{background:#2
  .bi-dir-controls label,.bi-dir-controls label:first-child{max-width:none;flex:1 1 100%}
  .bi-dir-controls .button{flex:1 1 100%}
 }
+
+/* Weekly net profit per property, including maintenance on vacant homes. */
+.bi-dir-table .bi-dir-profit{font-weight:800}
+.bi-dir-table .bi-dir-profit.is-positive{color:#207a45}
+.bi-dir-table .bi-dir-profit.is-negative{color:#ad4848}
+.bi-dir-table .bi-dir-profit.is-unknown{color:#697b70;font-weight:500}
+.bi-dir-table .bi-dir-payment{min-width:165px;font-variant-numeric:tabular-nums;white-space:nowrap}
+html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-positive{color:#92d7a9}
+html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-negative{color:#edaaa6}
+html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-unknown{color:#b4c5b7}
