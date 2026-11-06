@@ -304,7 +304,7 @@ Deno.serve(async request => {
         return json({history:history||[],names:Object.fromEntries(realtorNames)},200,cors);
       }
       const {data:before,error:beforeError}=await admin.from("brickivy_property_inquiries")
-        .select("id,property_id,property_name,character_name,status,assigned_discord_id,internal_note,updated_at,claimed_at,contacted_at,closed_at")
+        .select("id,property_id,property_name,property_address,character_name,status,assigned_discord_id,internal_note,updated_at,claimed_at,contacted_at,closed_at")
         .eq("id",inquiryId).maybeSingle();
       if(beforeError)throw Error("Unable to load selected inquiry");
       if(!before)return json({error:"Inquiry not found"},404,cors);
@@ -317,7 +317,7 @@ Deno.serve(async request => {
             status:before.status==="new"?"in_progress":before.status,
             updated_at:now,updated_by:user.id})
           .eq("id",inquiryId).is("assigned_discord_id",null).neq("status","closed")
-          .select("id").maybeSingle();
+          .select("id,assigned_discord_id,status,claimed_at,updated_at").maybeSingle();
         if(claimError)throw Error("Unable to claim this inquiry");
         if(!claimed)return json({error:"This inquiry was already claimed. Refresh your inbox."},409,cors);
         const {error:auditError}=await admin.from("brickivy_inquiry_activity").insert({
@@ -339,7 +339,7 @@ Deno.serve(async request => {
             description:"You have claimed this inquiry. Open the Brick & Ivy inquiry dashboard to follow up.",
             color:0x285640,
             fields:[
-              {name:"Property",value:String(before.property_name).replace(/[@<>]/g,"").slice(0,160),inline:true},
+              {name:"Address",value:String(before.property_address||before.property_name).replace(/[@<>]/g,"").slice(0,160),inline:true},
               {name:"Customer",value:String(before.character_name).replace(/[@<>]/g,"").slice(0,80),inline:true},
               {name:"Claimed by",value:String(realtorNames.get(providerId)||"Brick & Ivy staff").replace(/[@<>]/g,"").slice(0,80)}
             ],
@@ -347,7 +347,7 @@ Deno.serve(async request => {
             timestamp:now
           }]
         });
-        return json({success:true,auditRecorded:!auditError,notification:delivery.sent?"sent":"failed"},200,cors);
+        return json({success:true,inquiry:claimed,assigneeName:realtorNames.get(providerId)||(isOwner?"Owner":"Realtor"),auditRecorded:!auditError,notification:delivery.sent?"sent":"failed"},200,cors);
       }
       const status=string(body.status,30);
       if(!validStatuses.includes(status)||typeof body.note!=="string"||body.note.length>2000)
@@ -400,7 +400,7 @@ Deno.serve(async request => {
       if(auditError)console.warn("Inquiry change activity could not be recorded");
       let notification:"none"|"sent"|"failed"="none";
       if(changedAssignee&&assignee){
-        const safeProperty=String(before.property_name).replace(/[@<>]/g,"").slice(0,150);
+        const safeProperty=String(before.property_address||before.property_name).replace(/[@<>]/g,"").slice(0,150);
         const target=assignee;
         const result=await sendInquiryAsBot({
           content:"🏡 New property inquiry assigned to <@"+target+">",
@@ -452,7 +452,7 @@ Deno.serve(async request => {
             description:chosen.message,
             color:chosen.color,
             fields:[
-              {name:"Property",value:clean(before.property_name,160),inline:true},
+              {name:"Address",value:clean(before.property_address||before.property_name,160),inline:true},
               {name:"Customer",value:clean(before.character_name,80),inline:true},
               {name:"Previous Status",value:clean(validStatuses.includes(before.status)?before.status.replaceAll("_"," "):"Unknown",70),inline:true},
               {name:"Current Status",value:chosen.label,inline:true},
