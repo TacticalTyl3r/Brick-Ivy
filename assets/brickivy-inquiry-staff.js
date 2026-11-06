@@ -43,7 +43,7 @@ function render(){
   &&(!mine||item.assigned_discord_id===currentDiscordId)
   &&(!unassigned||(!item.assigned_discord_id&&item.status!=="closed"))
   &&(!attention||followupHours(item)>=24)
-  &&(!term||[item.property_address,item.property_name,item.property_id,item.character_name,item.in_game_phone,item.message,item.discord_contact]
+  &&(!term||[item.inquiry_number,item.property_address,item.property_name,item.property_id,item.character_name,item.in_game_phone,item.message,item.discord_contact]
     .some(v=>String(v||"").toLowerCase().includes(term))));
  renderStats();
  if(!items.length){target.innerHTML='<div class="bi-inbox-empty">No inquiries match the selected filters.</div>';return;}
@@ -69,7 +69,7 @@ function render(){
   const sinceRetry=item.discord_last_retry_at?Date.now()-Date.parse(item.discord_last_retry_at):Infinity;
   const retryBlocked=sinceRetry<60000;
   return '<article class="bi-inbox-card" data-inquiry-id="'+safe(item.id)+'">'+
-   '<div class="bi-inbox-top"><div><span class="eyebrow">INQUIRY · '+safe(age)+'</span>'+
+   '<div class="bi-inbox-top"><div><span class="eyebrow">INQUIRY #'+safe(item.inquiry_number)+' · '+safe(age)+'</span>'+
    '<h2 class="serif">'+safe(inquiryAddress(item))+'</h2>'+due+
    '<a href="property.html?id='+encodeURIComponent(item.property_id)+'" target="_blank" rel="noopener noreferrer">Open listing ↗</a></div>'+
    '<span class="bi-inbox-tag" data-status="'+safe(status)+'">'+safe(statuses[status]||status)+'</span></div>'+
