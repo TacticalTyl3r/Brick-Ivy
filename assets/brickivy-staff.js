@@ -130,7 +130,7 @@ function renderPropertyDirectory(){
     const payment=p.rented===true?directoryPaidUntil(p.lastPayment):
       {date:p.rented===null?'Unknown':'—',state:'unknown'};
     const paymentState=p.rented===true?payment.state:'unknown';
-    const paymentLabel=paymentState==='overdue'?'Overdue':paymentState==='evictable'?'Evictable':'';
+    const paymentLabel=paymentState==='overdue'?'OVERDUE':paymentState==='evictable'?'EVICTABLE':'';
     return '<tr><td class="bi-dir-address"><strong>'+safe(address)+'</strong>'+
       '<small>Block '+safe(p.blockId||'—')+' · ID '+safe(p.id||'—')+'</small></td>'+
       '<td>'+safe(p.area||'Unassigned')+'<small>'+safe(interiorLabels[String(p.type)]||p.type||'Unknown')+'</small></td>'+
@@ -139,9 +139,9 @@ function renderPropertyDirectory(){
       '<td class="bi-dir-money">'+safe(directoryMoney(weeklyRent))+'</td>'+
       '<td class="bi-dir-money">'+safe(directoryMoney(maintenance))+'</td>'+
       '<td class="bi-dir-money bi-dir-profit '+profitClass+'">'+safe(directoryProfitDisplay(profit))+'</td>'+
-      '<td class="bi-dir-payment is-'+safe(paymentState)+'">'+
-      '<span class="bi-dir-payment-date">'+safe(payment.date)+'</span>'+
+      '<td class="bi-dir-payment is-'+safe(paymentState)+'" aria-label="'+safe(paymentLabel?paymentLabel+' — paid until '+payment.date:'Paid until '+payment.date)+'">'+
       (paymentLabel?'<strong class="bi-dir-payment-status is-'+safe(paymentState)+'">'+safe(paymentLabel)+'</strong>':'')+
+      '<span class="bi-dir-payment-date">'+safe(payment.date)+'</span>'+
       '</td></tr>';
   }).join(''):'<tr><td colspan="8" class="bi-dir-empty">No properties match your filters.</td></tr>';
 }
