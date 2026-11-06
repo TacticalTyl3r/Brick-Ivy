@@ -265,7 +265,8 @@ Deno.serve(async request => {
       const metrics=analytics.data||{};
       if(action==="inquirySummary"){
         const {data:recent,error:recentError}=await admin.from("brickivy_property_inquiries")
-          .select("id,property_name,status,assigned_discord_id,created_at").order("created_at",{ascending:false}).limit(4);
+          .select("id,property_name,property_address,status,assigned_discord_id,created_at")
+          .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(4);
         if(recentError)throw Error("Could not load latest inquiries");
         return json({metrics,recent:recent||[]},200,cors);
       }
