@@ -33,17 +33,30 @@ function activateStaffTab(tab,focus=false){
 function renderPortfolioOverview(){
   const target=element('staffPortfolioStats');
   if(!target||!currentRole)return;
-  const occupied=rentalSnapshotAvailable?propertyDirectory.filter(p=>p.rented===true):[];
-  const alerts=rentalSnapshotAvailable?occupied.filter(p=>
-    ['overdue','evictable'].includes(directoryPaidUntil(p.lastPayment).state)).length:null;
+  const known=rentalSnapshotAvailable===true;
+  const available=known?propertyDirectory.filter(p=>p.rented===false&&p.reserved!==true).length:null;
+  const rented=known?propertyDirectory.filter(p=>p.rented===true):[];
+  const overdue=rented.filter(p=>directoryPaidUntil(p.lastPayment).state==='overdue').length;
+  const evictable=rented.filter(p=>directoryPaidUntil(p.lastPayment).state==='evictable').length;
+  const alerts=known?overdue+evictable:null;
   const stats=[
-    ['Portfolio',propertyDirectory.length,'Total properties'],
-    ['Rented',rentalSnapshotAvailable?occupied.length:'—','Confirmed occupants'],
-    ['Payment alerts',alerts===null?'—':alerts,'Overdue or evictable']
+    {label:'Total Properties',value:propertyDirectory.length,
+      sub:'All homes in your portfolio',kind:'total',filter:''},
+    {label:'Available Properties',value:available===null?'—':available,
+      sub:known?'Vacant and not reserved':'Rental information unavailable',
+      kind:'available',filter:'available'},
+    {label:'Overdue / Evictable',value:alerts===null?'—':alerts,
+      sub:known?overdue+' overdue · '+evictable+' evictable':'Payment information unavailable',
+      kind:'alerts',filter:'payment-alerts'}
   ];
-  target.innerHTML=stats.map(([label,value,detail])=>
-    '<div class="bi-staff-stat"><span>'+safe(label)+'</span>'+
-    '<strong>'+safe(value)+'</strong><small>'+safe(detail)+'</small></div>').join('');
+  target.innerHTML=stats.map(stat=>
+    '<button type="button" class="bi-staff-stat bi-staff-stat-'+safe(stat.kind)+'"'+
+    ' data-staff-summary="'+safe(stat.filter)+'" aria-label="'+safe(stat.label+': '+stat.value+'. '+stat.sub+'. View matching properties')+'">'+
+    '<span class="bi-staff-stat-title">'+safe(stat.label)+'</span>'+
+    '<strong class="bi-staff-stat-value">'+safe(stat.value)+'</strong>'+
+    '<span class="bi-staff-stat-bottom"><small>'+safe(stat.sub)+'</small>'+
+    '<span class="bi-staff-stat-arrow" aria-hidden="true">↗</span></span></button>'
+  ).join('');
   show(target,true);
 }
 
@@ -142,7 +155,9 @@ function renderPropertyDirectory(){
   const status=String(element('staffPropertyFilter')?.value||'');
   const filtered=propertyDirectory.filter(p=>{
     const occupancy=directoryOccupancy(p);
-    const matchStatus=!status||occupancy.toLowerCase()===status;
+    const matchStatus=!status||(status==='payment-alerts'&&p.rented===true&&
+      ['overdue','evictable'].includes(directoryPaidUntil(p.lastPayment).state))||
+      occupancy.toLowerCase()===status;
     const matchSearch=!search||[p.address,p.name,p.id,p.blockId,p.area,
       p.renterName,p.renterCharacterId,interiorLabels[String(p.type)]||p.type]
       .some(value=>String(value??'').toLowerCase().includes(search));
@@ -491,8 +506,18 @@ async function setup(){
       activateStaffTab(tabs[next].dataset.staffTab,true);
     });
     element('staffWorkspace')?.addEventListener('click',event=>{
+      if(!currentRole)return;
+      const summary=event.target.closest('[data-staff-summary]');
+      if(summary){
+        const filter=element('staffPropertyFilter'),search=element('staffPropertySearch');
+        if(filter)filter.value=summary.dataset.staffSummary||'';
+        if(search)search.value='';
+        renderPropertyDirectory();
+        activateStaffTab('properties');
+        return;
+      }
       const button=event.target.closest('[data-staff-go]');
-      if(button&&currentRole)activateStaffTab(button.dataset.staffGo);
+      if(button)activateStaffTab(button.dataset.staffGo);
     });
     // Keep deadline badges accurate while the Staff Portal is left open.
     setInterval(()=>{if(propertyDirectory.length&&currentRole)renderPropertyDirectory()},60000);
