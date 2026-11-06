@@ -58,18 +58,20 @@ const directoryPaidUntil=value=>{
   if(value===null||value===undefined||String(value).trim()===''||String(value).trim()==='0')
     return {date:'Not recorded',state:'unknown'};
   const raw=String(value).trim();
-  // OPFW's property_last_pay is used directly as the Paid Until deadline.
-  // It may be a Unix timestamp (seconds or milliseconds) or an ISO date.
+  // OPFW's property_last_pay is the last payment timestamp; coverage lasts
+  // seven days after that payment. Accept Unix seconds, milliseconds or ISO.
   let date;
   if(/^[0-9]{10}$/.test(raw))date=new Date(Number(raw)*1000);
   else if(/^[0-9]{13}$/.test(raw))date=new Date(Number(raw));
   else date=new Date(raw);
-  const deadline=date.getTime();
-  if(!Number.isFinite(deadline))return {date:'Date unavailable',state:'unknown'};
+  const lastPayment=date.getTime();
+  if(!Number.isFinite(lastPayment))return {date:'Date unavailable',state:'unknown'};
+  const deadline=lastPayment+7*24*60*60*1000;
+  const paidUntil=new Date(deadline);
   const formatted=new Intl.DateTimeFormat('en-US',{
     timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',
     hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'
-  }).format(date);
+  }).format(paidUntil);
   const lateBy=Date.now()-deadline;
   // Yellow as soon as the payment deadline passes; red at 7 full days late.
   const state=lateBy>=7*24*60*60*1000?'evictable':lateBy>0?'overdue':'current';
