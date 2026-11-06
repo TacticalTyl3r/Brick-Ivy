@@ -54,7 +54,7 @@ const directoryMoney=value=>{
   }).format(amount):'Not reported';
 };
 
-const directoryPayment=value=>{
+const directoryPaidUntil=value=>{
   if(value===null||value===undefined||String(value).trim()===''||String(value).trim()==='0')return 'Not recorded';
   const raw=String(value).trim();
   // OPFW property_last_pay may be a Unix timestamp in seconds or milliseconds.
@@ -63,10 +63,12 @@ const directoryPayment=value=>{
   else if(/^[0-9]{13}$/.test(raw))date=new Date(Number(raw));
   else date=new Date(raw);
   if(!Number.isFinite(date.getTime()))return 'Date unavailable';
+  // Brick & Ivy rent renews weekly; paid through seven days after last payment.
+  const paidUntil=new Date(date.getTime()+7*24*60*60*1000);
   return new Intl.DateTimeFormat('en-US',{
     timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',
     hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'
-  }).format(date);
+  }).format(paidUntil);
 };
 const directoryProfit=p=>{
   // Company net per property: rent revenue only when occupied, less the
@@ -126,7 +128,7 @@ function renderPropertyDirectory(){
       '<td class="bi-dir-money">'+safe(directoryMoney(weeklyRent))+'</td>'+
       '<td class="bi-dir-money">'+safe(directoryMoney(maintenance))+'</td>'+
       '<td class="bi-dir-money bi-dir-profit '+profitClass+'">'+safe(directoryProfitDisplay(profit))+'</td>'+
-      '<td class="bi-dir-payment">'+safe(p.rented===null?'Unknown':p.rented===true?directoryPayment(p.lastPayment):'—')+'</td></tr>';
+      '<td class="bi-dir-payment">'+safe(p.rented===null?'Unknown':p.rented===true?directoryPaidUntil(p.lastPayment):'—')+'</td></tr>';
   }).join(''):'<tr><td colspan="7" class="bi-dir-empty">No properties match your filters.</td></tr>';
 }
 async function loadPropertyDirectory(){
