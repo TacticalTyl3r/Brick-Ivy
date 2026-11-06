@@ -260,8 +260,13 @@ Deno.serve(async request => {
       if(team.error||analytics.error)throw Error("Unable to load inquiry dashboard data");
       const realtorNames=new Map((team.data||[]).filter(r=>/^\d{17,20}$/.test(r.discord_user_id||""))
         .map(r=>[r.discord_user_id,r.role_label==="Owner"?"Owner · "+r.name:r.name]));
-      const realtors=(team.data||[]).filter(r=>r.role_label==="Realtor"&&r.published===true&&/^\d{17,20}$/.test(r.discord_user_id||""))
-        .map(r=>({name:r.name,discordId:r.discord_user_id}));
+      // Owners can claim inquiries too. Return them as assignee options so
+      // the dropdown accurately reflects what was saved by claimInquiry.
+      const realtors=(team.data||[]).filter(r=>
+        (r.role_label==="Owner"||(r.role_label==="Realtor"&&r.published===true))&&
+        /^\d{17,20}$/.test(r.discord_user_id||""))
+        .map(r=>({name:r.role_label==="Owner"?"Owner · "+r.name:r.name,
+          discordId:r.discord_user_id,role:r.role_label}));
       const metrics=analytics.data||{};
       if(action==="inquirySummary"){
         const {data:recent,error:recentError}=await admin.from("brickivy_property_inquiries")
@@ -350,17 +355,26 @@ Deno.serve(async request => {
       const note=body.note.trim(),assignee=string(body.assignedDiscordId,20);
       if(assignee&&!/^\d{17,20}$/.test(assignee))
         return json({error:"Invalid assigned Realtor"},400,cors);
-      if(assignee&&!realtors.some(r=>r.discordId===assignee))
-        return json({error:"Assigned Realtor must be a published team member"},400,cors);
-      if(assignee!==before.assigned_discord_id&&assignee){
-        const {data:targetGrant,error:targetGrantError}=await admin.from("brickivy_realtor_permissions")
-          .select("can_manage_inquiries").eq("discord_user_id",assignee).maybeSingle();
-        if(targetGrantError)throw Error("Unable to verify assignee inquiry permission");
-        if(targetGrant?.can_manage_inquiries!==true)
-          return json({error:"Grant this Realtor Manage property inquiries permission before assigning them"},400,cors);
+      const changingAssignee=assignee!==(before.assigned_discord_id||"");
+      const target=assignee?realtors.find(r=>r.discordId===assignee):null;
+      // An unchanged assignment must not block unrelated status/notes edits
+      // if the originally assigned staff member was subsequently unpublished.
+      if(changingAssignee&&assignee&&!target)
+        return json({error:"Assigned team member must be an active Owner or published Realtor"},400,cors);
+      if(changingAssignee&&assignee&&target){
+        // Owner assignments use the live guild Owner role. Realtor assignments
+        // retain the per-user Manage Inquiries permission requirement.
+        if(target.role!=="Owner"){
+          const {data:targetGrant,error:targetGrantError}=await admin.from("brickivy_realtor_permissions")
+            .select("can_manage_inquiries").eq("discord_user_id",assignee).maybeSingle();
+          if(targetGrantError)throw Error("Unable to verify assignee inquiry permission");
+          if(targetGrant?.can_manage_inquiries!==true)
+            return json({error:"Grant this Realtor Manage property inquiries permission before assigning them"},400,cors);
+        }
         const targetRoles=await membership(assignee,botToken);
-        if(!targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID))
-          return json({error:"Assigned Realtor is not currently in Brick & Ivy Discord"},400,cors);
+        if(target.role==="Owner"?!targetRoles.includes(OWNER_ROLE_ID):
+          !targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID))
+          return json({error:"Assigned team member does not have the required Brick & Ivy Discord role"},400,cors);
       }
       const changedStatus=before.status!==status,changedAssignee=(before.assigned_discord_id||"")!==assignee,
         changedNote=before.internal_note!==note;
