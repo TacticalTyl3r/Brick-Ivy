@@ -1,0 +1,58 @@
+/* Brick & Ivy — image-free private property directory on the Staff Portal. */
+.bi-dir-section{margin:0 auto 70px;padding:28px 29px 20px;background:#f6f7f1;
+ border:1px solid #d8e2d7;box-shadow:0 10px 35px rgba(17,45,27,.06);color:#24392d}
+.bi-dir-heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:19px}
+.bi-dir-heading h2{margin:4px 0 8px;font-size:clamp(25px,2.8vw,34px)}
+.bi-dir-heading p{font-size:13px;line-height:1.55;color:#52665a;margin:0;max-width:650px}
+.bi-dir-heading .button{white-space:nowrap}
+.bi-dir-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:17px 0 12px}
+.bi-dir-controls label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#4b6252;flex:1 1 180px;max-width:320px;text-align:left}
+.bi-dir-controls label:first-child{flex:2 1 270px;max-width:470px}
+.bi-dir-controls input,.bi-dir-controls select{background:#fff;color:#263b2e;border:1px solid #c6d6c8;
+ padding:10px 11px;font:inherit;font-size:13px;width:100%;border-radius:3px;min-width:0}
+.bi-dir-controls input:focus,.bi-dir-controls select:focus{outline:2px solid #7b9d7b;outline-offset:1px}
+.bi-dir-controls .button{padding:11px 15px;min-height:39px}
+.bi-dir-caption{font-size:12px;color:#59705e;margin:7px 0 14px;text-align:left}
+.bi-dir-table-scroll{overflow-x:auto;border:1px solid #d2ddcf;background:#fff}
+.bi-dir-table{border-collapse:collapse;width:100%;min-width:1020px;font-size:12px;line-height:1.4;text-align:left}
+.bi-dir-table thead{background:#e8efe8}
+.bi-dir-table th{padding:12px 11px;white-space:nowrap;color:#365843;font-size:10px;
+ text-transform:uppercase;letter-spacing:.055em;border-bottom:1px solid #cbd9ca}
+.bi-dir-table td{padding:12px 11px;vertical-align:top;border-bottom:1px solid #e5ece4;color:#283e30}
+.bi-dir-table tbody tr:nth-child(even){background:#f8faf6}
+.bi-dir-table tbody tr:last-child td{border-bottom:0}
+.bi-dir-table .bi-dir-address strong{display:block;color:#234a30;font-weight:800}
+.bi-dir-table td small{display:block;color:#6a8170;font-size:10px;margin-top:3px}
+.bi-dir-table .bi-dir-money{font-variant-numeric:tabular-nums;white-space:nowrap}
+.bi-dir-state{display:inline-block;padding:4px 8px;font-weight:750;background:#e3f1e5;
+ border:1px solid #bcd8c2;color:#245e37;border-radius:3px;font-size:10px;white-space:nowrap}
+.bi-dir-state[data-occupancy="rented"]{background:#f1e4dd;color:#855039;border-color:#d8baa8}
+.bi-dir-state[data-occupancy="reserved"]{background:#f6edd8;color:#816026;border-color:#dfcb9f}
+.bi-dir-state[data-occupancy="unknown"]{background:#e9edf1;color:#606d79;border-color:#cad3dd}
+.bi-dir-count{font-size:11px;margin:12px 0 0;color:#536b58;text-align:right}
+.bi-dir-table .bi-dir-empty{text-align:center;padding:25px;font-size:13px;color:#62766a}
+html[data-ui-theme="dark"] .bi-dir-section{background:#172920;border-color:#3c5848;color:#e3eee4;box-shadow:none}
+html[data-ui-theme="dark"] .bi-dir-heading p,
+html[data-ui-theme="dark"] .bi-dir-caption,
+html[data-ui-theme="dark"] .bi-dir-count{color:#a9c5b0}
+html[data-ui-theme="dark"] .bi-dir-controls label{color:#bed4c4}
+html[data-ui-theme="dark"] .bi-dir-controls input,
+html[data-ui-theme="dark"] .bi-dir-controls select{background:#182d22;color:#f0f5ee;border-color:#50725a}
+html[data-ui-theme="dark"] .bi-dir-table-scroll{background:#15281e;border-color:#48604b}
+html[data-ui-theme="dark"] .bi-dir-table thead{background:#2a4332}
+html[data-ui-theme="dark"] .bi-dir-table th{color:#deeadf;border-color:#506d53}
+html[data-ui-theme="dark"] .bi-dir-table td{color:#d7e6d8;border-color:#344a3b}
+html[data-ui-theme="dark"] .bi-dir-table tbody tr:nth-child(even){background:#1c3224}
+html[data-ui-theme="dark"] .bi-dir-table .bi-dir-address strong{color:#e4f2df}
+html[data-ui-theme="dark"] .bi-dir-table td small{color:#a9c6af}
+html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="available"]{background:#23412d;border-color:#3e694d;color:#c0e5c6}
+html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="rented"]{background:#483427;border-color:#795641;color:#f0cbb4}
+html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="reserved"]{background:#423923;border-color:#73633c;color:#ebdda9}
+html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="unknown"]{background:#2e3c47;border-color:#54616b;color:#d4e0e9}
+@media(max-width:720px){
+ .bi-dir-section{padding:20px 14px}
+ .bi-dir-heading{align-items:start;flex-direction:column}
+ .bi-dir-heading .button{white-space:normal}
+ .bi-dir-controls label,.bi-dir-controls label:first-child{max-width:none;flex:1 1 100%}
+ .bi-dir-controls .button{flex:1 1 100%}
+}
