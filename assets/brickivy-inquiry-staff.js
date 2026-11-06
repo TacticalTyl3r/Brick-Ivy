@@ -4,6 +4,7 @@ const el=id=>document.getElementById(id);
 const safe=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const statuses={new:"New",in_progress:"In progress",contacted:"Contacted",awaiting_customer:"Awaiting customer",closed:"Closed"};
 const n=val=>Number(val||0).toLocaleString("en-US");
+const inquiryAddress=item=>String(item.property_address||"").trim()||String(item.property_name||"").trim()||"the property";
 const followupHours=item=>{
  if(!["new","in_progress"].includes(item.status)||item.contacted_at)return 0;
  const started=Date.parse(item.created_at);
@@ -42,7 +43,7 @@ function render(){
   &&(!mine||item.assigned_discord_id===currentDiscordId)
   &&(!unassigned||(!item.assigned_discord_id&&item.status!=="closed"))
   &&(!attention||followupHours(item)>=24)
-  &&(!term||[item.property_name,item.property_id,item.character_name,item.in_game_phone,item.message,item.discord_contact]
+  &&(!term||[item.property_address,item.property_name,item.property_id,item.character_name,item.in_game_phone,item.message,item.discord_contact]
     .some(v=>String(v||"").toLowerCase().includes(term))));
  renderStats();
  if(!items.length){target.innerHTML='<div class="bi-inbox-empty">No inquiries match the selected filters.</div>';return;}
@@ -69,7 +70,7 @@ function render(){
   const retryBlocked=sinceRetry<60000;
   return '<article class="bi-inbox-card" data-inquiry-id="'+safe(item.id)+'">'+
    '<div class="bi-inbox-top"><div><span class="eyebrow">INQUIRY · '+safe(age)+'</span>'+
-   '<h2 class="serif">'+safe(item.property_name)+'</h2>'+due+
+   '<h2 class="serif">'+safe(inquiryAddress(item))+'</h2>'+due+
    '<a href="property.html?id='+encodeURIComponent(item.property_id)+'" target="_blank" rel="noopener noreferrer">Open listing ↗</a></div>'+
    '<span class="bi-inbox-tag" data-status="'+safe(status)+'">'+safe(statuses[status]||status)+'</span></div>'+
    '<p class="bi-inbox-assigned"><strong>Assigned to:</strong> '+safe(assigned)+
@@ -132,7 +133,7 @@ function renderActivity(history,element,named={}){
  }).join("")+'</ol>';
 }
 function responseText(item,kind){
- const customer=String(item.character_name||"there"),property=String(item.property_name||"the property");
+ const customer=String(item.character_name||"there"),property=inquiryAddress(item);
  const scripts={
   initial:"Hello "+customer+", this is Brick & Ivy Real Estate. We received your inquiry about "+property+". A Realtor will be happy to answer your questions. When would be a good time to talk?",
   viewing:"Hello "+customer+", this is Brick & Ivy following up about "+property+". Would you like to arrange a viewing? Let us know when you're available.",
@@ -198,6 +199,12 @@ async function actionClick(event){
  try{
   if(button.hasAttribute("data-inquiry-claim")){
    info("Claiming inquiry…");const result=await api("claimInquiry",{id:item.id});
+    // Show the persisted assignment immediately in both assignee displays.
+    if(result.inquiry?.assigned_discord_id){
+     Object.assign(item,result.inquiry);
+     if(result.assigneeName)names[item.assigned_discord_id]=result.assigneeName;
+     render();
+    }
    successMessage="Inquiry claimed."+(result.notification==="failed"?" The Discord mention for the Realtor who claimed this inquiry could not be delivered.":"");
   }else{
    const data={id:item.id,status:card.querySelector("[data-inquiry-status]").value,
