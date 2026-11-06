@@ -8,6 +8,8 @@ let supabase = null;
 let currentRole = null;
 let roster = [];
 let editingId = null;
+let propertyDirectory = [];
+let rentalSnapshotAvailable = false;
 
 function message(txt) { const el=element('staffMessage');if(el)el.textContent=txt; }
 function safe(v) {return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
@@ -41,6 +43,100 @@ function inquiryCreatedAt(value){
   hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'
  }).format(time);
 }
+
+/* Compact private property directory. Uses the same live OPFW-backed staff
+ * endpoint as Property Management; it never makes renter data public. */
+const directoryMoney=value=>{
+  if(value===null||value===undefined||value==='')return 'Not reported';
+  const amount=Number(value);
+  return Number.isFinite(amount)?new Intl.NumberFormat('en-US',{
+    style:'currency',currency:'USD',maximumFractionDigits:0
+  }).format(amount):'Not reported';
+};
+const directoryPayment=value=>{
+  if(!value)return 'Not recorded';
+  const date=new Date(value);
+  return Number.isFinite(date.getTime())?
+    new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric'}).format(date):
+    String(value).slice(0,40);
+};
+const interiorLabels={'1':'Motel','2':"Trevor's Trailer",'3':'Janitor Apartment',
+  '4':'Low-End Apartment','5':"Lester's House",'6':"Franklin's House",
+  '7':'Mid-End Apartment','8':"Trevor's Beach House",'9':"Michael's Mansion",
+  '10':"Franklin's Mansion",'11':'High-End Apartment'};
+const directoryOccupancy=p=>p.rented===null?'Unknown':p.rented===true?'Rented':p.reserved===true?'Reserved':'Available';
+function renderPropertyDirectory(){
+  const body=element('staffPropertyRows'),count=element('staffPropertyCount');
+  if(!body||!count)return;
+  const search=String(element('staffPropertySearch')?.value||'').trim().toLowerCase();
+  const status=String(element('staffPropertyFilter')?.value||'');
+  const filtered=propertyDirectory.filter(p=>{
+    const occupancy=directoryOccupancy(p);
+    const matchStatus=!status||occupancy.toLowerCase()===status;
+    const matchSearch=!search||[p.address,p.name,p.id,p.blockId,p.area,
+      p.renterName,p.renterCharacterId,interiorLabels[String(p.type)]||p.type]
+      .some(value=>String(value??'').toLowerCase().includes(search));
+    return matchStatus&&matchSearch;
+  });
+  count.textContent=filtered.length+' of '+propertyDirectory.length+' properties'+
+    (rentalSnapshotAvailable?'':' · renter details unavailable');
+  body.innerHTML=filtered.length?filtered.map(p=>{
+    const address=String(p.address||p.name||'Unknown address').trim();
+    const occupancy=directoryOccupancy(p);
+    const tenant=p.rented===null?'Unknown':p.rented===false?'—':
+      String(p.renterName||('CID '+(p.renterCharacterId||'Not recorded')));
+    const cid=p.rented===true&&p.renterCharacterId?'CID '+p.renterCharacterId:'';
+    const weeklyRent=p.weeklyCost;
+    const maintenance=p.sourceWeeklyCost;
+    return '<tr><td class="bi-dir-address"><strong>'+safe(address)+'</strong>'+
+      '<small>Block '+safe(p.blockId||'—')+' · ID '+safe(p.id||'—')+'</small></td>'+
+      '<td>'+safe(p.area||'Unassigned')+'<small>'+safe(interiorLabels[String(p.type)]||p.type||'Unknown')+'</small></td>'+
+      '<td><span class="bi-dir-state" data-occupancy="'+safe(occupancy.toLowerCase())+'">'+safe(occupancy)+'</span></td>'+
+      '<td>'+safe(tenant)+(cid?'<small>'+safe(cid)+'</small>':'')+'</td>'+
+      '<td class="bi-dir-money">'+safe(directoryMoney(weeklyRent))+'</td>'+
+      '<td class="bi-dir-money">'+safe(directoryMoney(maintenance))+'</td>'+
+      '<td>'+safe(p.rented===null?'Unknown':p.rented===true?directoryPayment(p.lastPayment):'—')+'</td>'+
+      '<td>'+safe(p.published===false?'Hidden':'Published')+'</td></tr>';
+  }).join(''):'<tr><td colspan="8" class="bi-dir-empty">No properties match your filters.</td></tr>';
+}
+async function loadPropertyDirectory(){
+  const section=element('staffPropertyDirectory'),messageBox=element('staffPropertyMessage');
+  if(!section||!messageBox)return;
+  show(section,false);
+  if(!currentRole||!supabase){propertyDirectory=[];return;}
+  messageBox.textContent='Loading the live company portfolio…';
+  show(section,true);
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    if(!session?.access_token)throw Error('Please sign in again.');
+    const res=await fetch(cfg.supabaseUrl.replace(/\\/$/,'')+'/functions/v1/brickivy-property-staff',{
+      method:'POST',credentials:'omit',
+      headers:{'Content-Type':'application/json',apikey:cfg.publishableKey,
+        Authorization:'Bearer '+session.access_token},
+      body:JSON.stringify({action:'list'})
+    });
+    const result=await res.json().catch(()=>({}));
+    if(!res.ok)throw Error(result.error||'Property information could not be loaded.');
+    if(!Array.isArray(result.properties))throw Error('Unexpected property data.');
+    // Do not show a stale directory if the session changed while fetching.
+    const {data:{session:active}}=await supabase.auth.getSession();
+    if(!active?.access_token||!currentRole){show(section,false);return;}
+    propertyDirectory=result.properties.sort((a,b)=>
+      String(a.address||a.name||'').localeCompare(String(b.address||b.name||''),'en',{numeric:true}));
+    rentalSnapshotAvailable=result.rentalAvailable===true;
+    messageBox.textContent=rentalSnapshotAvailable?
+      'Live rental and renter details. Updated when you refresh this list.':
+      'Rental details could not be verified from OPFW; occupancy is shown as Unknown.';
+    renderPropertyDirectory();
+  }catch(err){
+    propertyDirectory=[];
+    element('staffPropertyRows').innerHTML='<tr><td colspan="8" class="bi-dir-empty">'+
+      safe(err.message||'Unable to load the property directory.')+'</td></tr>';
+    element('staffPropertyCount').textContent='Property directory unavailable';
+    messageBox.textContent='Private property information requires an authorized Brick & Ivy staff session.';
+  }
+}
+
 /* Staff Portal inquiry pulse. Denied Realtors see no private metrics. */
 async function loadInquirySummary(){
  const box=element('staffInquirySummary');
@@ -56,7 +152,7 @@ async function loadInquirySummary(){
    '<div class="bi-portal-recent"><strong>Recent inquiries</strong>'+
    (recent.length?recent.map((x,index)=>{
     const address=String(x.property_address||'').trim()||String(x.property_name||'').trim()||'Address unavailable';
-    const number=String(index+1).padStart(2,'0');
+    const number='#'+String(x.inquiry_number||'—');
     const status=String(x.status||'unknown').replaceAll('_',' ');
     return '<a class="bi-portal-recent-item" href="manage-inquiries.html" aria-label="Inquiry '+number+' for '+safe(address)+', '+safe(status)+', submitted '+safe(inquiryCreatedAt(x.created_at))+'">'+
      '<span class="bi-portal-recent-number" aria-hidden="true">'+number+'</span>'+
@@ -75,6 +171,8 @@ async function checkRole() {
   show(element('staffTeamContent'),false);
   show(element('staffManagementContent'),false);
   show(element('staffInquirySummary'),false);
+  show(element('staffPropertyDirectory'),false);
+  propertyDirectory=[];
   if(!session){currentRole=null;message('Sign in with Discord to continue.');return;}
   message('Checking your Brick & Ivy Discord permissions…');
   try {
@@ -83,7 +181,7 @@ async function checkRole() {
     message(currentRole==='owner'?'Signed in as Brick & Ivy Owner.':currentRole==='realtor'?'Signed in as a Brick & Ivy Realtor.':'Access restricted.');
     show(element('staffOwnerContent'),currentRole==='owner');
     show(element('staffTeamContent'),currentRole==='realtor');
-    await loadInquirySummary();
+    await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
     if(currentRole==='owner'&&element('staffManagementContent')){
       await loadRoster();
       show(element('staffManagementContent'),true);
@@ -279,6 +377,9 @@ async function setup(){
       if(error)message(error.message);
     });
     logout?.addEventListener('click',async()=>{await supabase.auth.signOut();await checkRole()});
+    element('staffPropertySearch')?.addEventListener('input',renderPropertyDirectory);
+    element('staffPropertyFilter')?.addEventListener('change',renderPropertyDirectory);
+    element('staffPropertyRefresh')?.addEventListener('click',loadPropertyDirectory);
     await checkRole();
     if(form){
       form.addEventListener('submit',async e=>{
