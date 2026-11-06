@@ -251,7 +251,7 @@ Deno.serve(async request => {
         if(grant?.can_manage_inquiries!==true)return json({error:"Inquiry management permission required"},403,cors);
       }
       const validStatuses=["new","in_progress","contacted","awaiting_customer","closed"];
-      const inboxFields="id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at,claimed_at,contacted_at,closed_at";
+      const inboxFields="id,inquiry_number,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at,claimed_at,contacted_at,closed_at";
       const now=new Date().toISOString();
       const [team,analytics]=await Promise.all([
         admin.from("brickivy_realtors").select("name,discord_user_id,role_label,published").order("display_order",{ascending:true}),
@@ -270,8 +270,8 @@ Deno.serve(async request => {
       const metrics=analytics.data||{};
       if(action==="inquirySummary"){
         const {data:recent,error:recentError}=await admin.from("brickivy_property_inquiries")
-          .select("id,property_name,property_address,status,assigned_discord_id,created_at")
-          .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(4);
+          .select("id,inquiry_number,property_name,property_address,status,assigned_discord_id,created_at")
+          .order("inquiry_number",{ascending:false}).limit(4);
         if(recentError)throw Error("Could not load latest inquiries");
         return json({metrics,recent:recent||[]},200,cors);
       }
@@ -284,7 +284,7 @@ Deno.serve(async request => {
       }
       if(action==="listInquiries"){
         const {data:inquiries,error:e}=await admin.from("brickivy_property_inquiries")
-          .select(inboxFields).order("created_at",{ascending:false}).limit(150);
+          .select(inboxFields).order("inquiry_number",{ascending:false}).limit(150);
         if(e)throw Error("Unable to load inquiries");
         return json({inquiries:inquiries||[],realtors,metrics,
           currentDiscordId:providerId,names:Object.fromEntries(realtorNames),
@@ -304,7 +304,7 @@ Deno.serve(async request => {
         return json({history:history||[],names:Object.fromEntries(realtorNames)},200,cors);
       }
       const {data:before,error:beforeError}=await admin.from("brickivy_property_inquiries")
-        .select("id,property_id,property_name,property_address,character_name,status,assigned_discord_id,internal_note,updated_at,claimed_at,contacted_at,closed_at")
+        .select("id,inquiry_number,property_id,property_name,property_address,character_name,status,assigned_discord_id,internal_note,updated_at,claimed_at,contacted_at,closed_at")
         .eq("id",inquiryId).maybeSingle();
       if(beforeError)throw Error("Unable to load selected inquiry");
       if(!before)return json({error:"Inquiry not found"},404,cors);
@@ -334,7 +334,7 @@ Deno.serve(async request => {
           allowed_mentions:{parse:[],users:[assignee]},
           embeds:[{
             author:{name:"BRICK & IVY · REAL ESTATE"},
-            title:"🏡 Property Inquiry Claimed",
+            title:"🏡 Inquiry #"+before.inquiry_number+" Claimed",
             url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
             description:"You have claimed this inquiry. Open the Brick & Ivy inquiry dashboard to follow up.",
             color:0x285640,
@@ -405,7 +405,7 @@ Deno.serve(async request => {
         const result=await sendInquiryAsBot({
           content:"🏡 New property inquiry assigned to <@"+target+">",
           allowed_mentions:{parse:[],users:[target]},
-          embeds:[{title:"🏡 Property Inquiry Assigned",
+          embeds:[{title:"🏡 Inquiry #"+before.inquiry_number+" Assigned",
             url:"https://brickandivyhomes.com/manage-inquiries.html",
             description:"**"+safeProperty+"** has been assigned to you.\n\nOpen the Brick & Ivy Inquiry Dashboard to follow up.",
             color:0x285640,
@@ -447,7 +447,7 @@ Deno.serve(async request => {
           allowed_mentions:{parse:[]},
           embeds:[{
             author:{name:"BRICK & IVY · REAL ESTATE"},
-            title:chosen.title,
+            title:chosen.title+" · Inquiry #"+before.inquiry_number,
             url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(before.property_id),
             description:chosen.message,
             color:chosen.color,
@@ -474,7 +474,7 @@ Deno.serve(async request => {
       const id=string(body.id,36);
       if(!uuid.test(id))return json({error:"Invalid inquiry ID"},400,cors);
       const {data:inquiry,error:lookupError}=await admin.from("brickivy_property_inquiries")
-        .select("id,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,discord_notification,discord_retry_count,discord_last_retry_at")
+        .select("id,inquiry_number,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,discord_notification,discord_retry_count,discord_last_retry_at")
         .eq("id",id).maybeSingle();
       if(lookupError)throw Error("Unable to load inquiry retry state");
       if(!inquiry)return json({error:"Inquiry not found"},404,cors);
@@ -530,7 +530,7 @@ Deno.serve(async request => {
         allowed_mentions:{parse:[],roles:[REALTOR_INQUIRY_ROLE_ID]},
         embeds:[{
           author:{name:"BRICK & IVY · REAL ESTATE"},
-          title:"🏡 Property Inquiry • Delivery Retry",
+          title:"🏡 Inquiry #"+inquiry.inquiry_number+" • Delivery Retry",
           url:"https://brickandivyhomes.com/property.html?id="+encodeURIComponent(inquiry.property_id),
           description:"**Inquiry Message**\n"+clean(inquiry.message,1500),
           color:0x285640,
