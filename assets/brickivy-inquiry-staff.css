@@ -164,3 +164,53 @@ html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(5){
 html[data-ui-theme="dark"] .bi-portal-pulse-grid>div:nth-child(6){
   --pulse-bg:#273b2d;--pulse-border:#49634c;--pulse-accent:#90b791;--pulse-number:#c3e4c4
 }
+
+
+/* Numbered inquiry pulse rows: address, submission time, and status. */
+.bi-portal-recent>a.bi-portal-recent-item{
+ display:grid;grid-template-columns:35px minmax(0,1fr) auto;align-items:center;gap:12px;
+ min-height:70px;padding:12px 14px;text-decoration:none;border-radius:4px;
+ background:rgba(88,131,94,.045);transition:background .15s,border-color .15s
+}
+.bi-portal-recent>a.bi-portal-recent-item:hover{
+ background:rgba(88,131,94,.1);border-color:#94b79a
+}
+.bi-portal-recent>a.bi-portal-recent-item:focus-visible{
+ outline:2px solid #aa8b52;outline-offset:2px
+}
+.bi-portal-recent>a .bi-portal-recent-number{
+ display:grid;place-items:center;width:32px;height:32px;border:1px solid #b6cbb7;
+ background:#e7f0e7;border-radius:4px;color:#3b6646;
+ font-size:11px;font-weight:800;font-variant-numeric:tabular-nums
+}
+.bi-portal-recent>a .bi-portal-recent-details{display:flex;min-width:0;flex-direction:column;gap:5px}
+.bi-portal-recent .bi-portal-recent-address{
+ display:block;font-size:13px;font-weight:750;color:#254934;line-height:1.3;overflow-wrap:anywhere
+}
+.bi-portal-recent .bi-portal-recent-date{
+ display:block;font-size:10px;line-height:1.5;color:#6a826e;letter-spacing:.01em
+}
+.bi-portal-recent>a .bi-portal-recent-status{
+ justify-self:end;white-space:nowrap;padding:5px 8px;
+ border-radius:3px;background:#e6efe5;border:1px solid #bad1bd;
+ color:#3d6548;font-weight:750;font-size:10px;text-transform:capitalize
+}
+html[data-ui-theme="dark"] .bi-portal-recent>a.bi-portal-recent-item{
+ background:#1c3327;border-color:#526d57
+}
+html[data-ui-theme="dark"] .bi-portal-recent>a.bi-portal-recent-item:hover{
+ background:#2b4937;border-color:#8aaa91
+}
+html[data-ui-theme="dark"] .bi-portal-recent>a .bi-portal-recent-number{
+ background:#31523c;color:#def3df;border-color:#72987a
+}
+html[data-ui-theme="dark"] .bi-portal-recent .bi-portal-recent-address{color:#e7f5e9}
+html[data-ui-theme="dark"] .bi-portal-recent .bi-portal-recent-date{color:#bdd2c1}
+html[data-ui-theme="dark"] .bi-portal-recent>a .bi-portal-recent-status{
+ background:#345740;color:#e5f5e6;border-color:#6f9477
+}
+@media(max-width:480px){
+ .bi-portal-recent>a.bi-portal-recent-item{grid-template-columns:29px minmax(0,1fr);gap:10px;padding:11px}
+ .bi-portal-recent>a .bi-portal-recent-number{width:28px;height:28px}
+ .bi-portal-recent>a .bi-portal-recent-status{grid-column:2;justify-self:start}
+}
