@@ -109,7 +109,7 @@ async function loadPropertyDirectory(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     if(!session?.access_token)throw Error('Please sign in again.');
-    const res=await fetch(cfg.supabaseUrl.replace(/\\/$/,'')+'/functions/v1/brickivy-property-staff',{
+    const res=await fetch(cfg.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-property-staff',{
       method:'POST',credentials:'omit',
       headers:{'Content-Type':'application/json',apikey:cfg.publishableKey,
         Authorization:'Bearer '+session.access_token},
