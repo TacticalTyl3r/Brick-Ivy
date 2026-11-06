@@ -66,3 +66,17 @@ html[data-ui-theme="dark"] .bi-dir-state[data-occupancy="unknown"]{background:#2
 html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-positive{color:#92d7a9}
 html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-negative{color:#edaaa6}
 html[data-ui-theme="dark"] .bi-dir-table .bi-dir-profit.is-unknown{color:#b4c5b7}
+
+/* Show overdue rent clearly; never extend OPFW's Paid Until deadline. */
+.bi-dir-table td.bi-dir-payment{min-width:172px}
+.bi-dir-table td.bi-dir-payment.is-overdue{background:#fff1bf;color:#654b09}
+.bi-dir-table td.bi-dir-payment.is-evictable{background:#ffe0de;color:#82272d}
+.bi-dir-payment-date{display:block;font-size:11px;font-weight:650;line-height:1.45}
+.bi-dir-payment-status{display:inline-block;margin-top:6px;padding:3px 8px;border:1px solid;
+ border-radius:3px;font-size:10px;font-weight:850;letter-spacing:.02em}
+.bi-dir-payment-status.is-overdue{color:#654b09;background:#ffe49b;border-color:#cfac53}
+.bi-dir-payment-status.is-evictable{color:#91242d;background:#ffb7b5;border-color:#dc8588}
+html[data-ui-theme="dark"] .bi-dir-table td.bi-dir-payment.is-overdue{background:#564620;color:#ffe4a3}
+html[data-ui-theme="dark"] .bi-dir-table td.bi-dir-payment.is-evictable{background:#5b2c30;color:#ffd2ce}
+html[data-ui-theme="dark"] .bi-dir-payment-status.is-overdue{background:#765c20;border-color:#b99a48;color:#fff0be}
+html[data-ui-theme="dark"] .bi-dir-payment-status.is-evictable{background:#863a40;border-color:#bb6469;color:#ffe4df}
