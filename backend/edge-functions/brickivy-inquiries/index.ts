@@ -166,7 +166,7 @@ Deno.serve(async request=>{
  const {count,error:limitError}=await db.from("brickivy_property_inquiries").select("id",{count:"exact",head:true}).eq("source_hash",sourceHash).gte("created_at",new Date(Date.now()-3600000).toISOString());
  if(limitError)return reply({error:"Unable to verify rate limit"},503);
  if((count||0)>=4)return reply({error:"Please wait before sending another inquiry"},429);
- const {data:insert,error}=await db.from("brickivy_property_inquiries").insert({property_id:id,property_name:String(property.property_name||id).slice(0,160),property_address:String(property.property_address||"").slice(0,200),character_name:name,in_game_phone:phone,discord_contact:String(data.discordContact||"").slice(0,80),message,source_hash:sourceHash}).select("id").single();
+ const {data:insert,error}=await db.from("brickivy_property_inquiries").insert({property_id:id,property_name:String(property.property_name||id).slice(0,160),property_address:String(property.property_address||"").slice(0,200),character_name:name,in_game_phone:phone,discord_contact:String(data.discordContact||"").slice(0,80),message,source_hash:sourceHash}).select("id,inquiry_number").single();
  if(error||!insert)return reply({error:"Could not save inquiry"},503);
 
  const safe=(v:string)=>v.replace(/@/g,"＠").replace(/</g,"‹").replace(/>/g,"›");
@@ -177,11 +177,11 @@ Deno.serve(async request=>{
  const listingUrl="https://brickandivyhomes.com/property.html?id="+encodeURIComponent(id);
  const inquiryPayload={
   // Explicitly allow only the trusted Brick & Ivy Realtor role to ping.
-  content:"🏡 **New housing inquiry for Brick & Ivy!** <@&"+REALTOR_ROLE_ID+">",
+  content:"🏡 **New Brick & Ivy inquiry #"+insert.inquiry_number+"!** <@&"+REALTOR_ROLE_ID+">",
   allowed_mentions:{parse:[],roles:[REALTOR_ROLE_ID]},
   embeds:[{
    author:{name:"BRICK & IVY  ·  REAL ESTATE"},
-   title:"🏡 New Property Inquiry",
+   title:"🏡 New Property Inquiry #"+insert.inquiry_number,
    url:listingUrl,
    description:"**Inquiry Message**\n"+safe(message),
    color:0x285640,
@@ -205,5 +205,5 @@ Deno.serve(async request=>{
 
  const {error:statusError}=await db.from("brickivy_property_inquiries").update({discord_notification:notification}).eq("id",insert.id);
  if(statusError)console.warn("Inquiry notification status could not be recorded");
- return reply({success:true,reference:insert.id},201);
+ return reply({success:true,reference:insert.id,inquiryNumber:insert.inquiry_number},201);
 });
