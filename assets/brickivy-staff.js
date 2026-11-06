@@ -55,20 +55,25 @@ const directoryMoney=value=>{
 };
 
 const directoryPaidUntil=value=>{
-  if(value===null||value===undefined||String(value).trim()===''||String(value).trim()==='0')return 'Not recorded';
+  if(value===null||value===undefined||String(value).trim()===''||String(value).trim()==='0')
+    return {date:'Not recorded',state:'unknown'};
   const raw=String(value).trim();
-  // OPFW property_last_pay may be a Unix timestamp in seconds or milliseconds.
+  // OPFW's property_last_pay is used directly as the Paid Until deadline.
+  // It may be a Unix timestamp (seconds or milliseconds) or an ISO date.
   let date;
   if(/^[0-9]{10}$/.test(raw))date=new Date(Number(raw)*1000);
   else if(/^[0-9]{13}$/.test(raw))date=new Date(Number(raw));
   else date=new Date(raw);
-  if(!Number.isFinite(date.getTime()))return 'Date unavailable';
-  // Brick & Ivy rent renews weekly; paid through seven days after last payment.
-  const paidUntil=new Date(date.getTime()+7*24*60*60*1000);
-  return new Intl.DateTimeFormat('en-US',{
+  const deadline=date.getTime();
+  if(!Number.isFinite(deadline))return {date:'Date unavailable',state:'unknown'};
+  const formatted=new Intl.DateTimeFormat('en-US',{
     timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',
     hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'
-  }).format(paidUntil);
+  }).format(date);
+  const lateBy=Date.now()-deadline;
+  // Yellow as soon as the payment deadline passes; red at 7 full days late.
+  const state=lateBy>=7*24*60*60*1000?'evictable':lateBy>0?'overdue':'current';
+  return {date:formatted,state};
 };
 const directoryProfit=p=>{
   // Company net per property: rent revenue only when occupied, less the
@@ -120,6 +125,10 @@ function renderPropertyDirectory(){
     const maintenance=p.sourceWeeklyCost;
     const profit=directoryProfit(p);
     const profitClass=profit===null?'is-unknown':profit>0?'is-positive':profit<0?'is-negative':'is-zero';
+    const payment=p.rented===true?directoryPaidUntil(p.lastPayment):
+      {date:p.rented===null?'Unknown':'—',state:'unknown'};
+    const paymentState=p.rented===true?payment.state:'unknown';
+    const paymentLabel=paymentState==='overdue'?'Overdue':paymentState==='evictable'?'Evictable':'';
     return '<tr><td class="bi-dir-address"><strong>'+safe(address)+'</strong>'+
       '<small>Block '+safe(p.blockId||'—')+' · ID '+safe(p.id||'—')+'</small></td>'+
       '<td>'+safe(p.area||'Unassigned')+'<small>'+safe(interiorLabels[String(p.type)]||p.type||'Unknown')+'</small></td>'+
@@ -128,8 +137,11 @@ function renderPropertyDirectory(){
       '<td class="bi-dir-money">'+safe(directoryMoney(weeklyRent))+'</td>'+
       '<td class="bi-dir-money">'+safe(directoryMoney(maintenance))+'</td>'+
       '<td class="bi-dir-money bi-dir-profit '+profitClass+'">'+safe(directoryProfitDisplay(profit))+'</td>'+
-      '<td class="bi-dir-payment">'+safe(p.rented===null?'Unknown':p.rented===true?directoryPaidUntil(p.lastPayment):'—')+'</td></tr>';
-  }).join(''):'<tr><td colspan="7" class="bi-dir-empty">No properties match your filters.</td></tr>';
+      '<td class="bi-dir-payment is-'+safe(paymentState)+'">'+
+      '<span class="bi-dir-payment-date">'+safe(payment.date)+'</span>'+
+      (paymentLabel?'<strong class="bi-dir-payment-status is-'+safe(paymentState)+'">'+safe(paymentLabel)+'</strong>':'')+
+      '</td></tr>';
+  }).join(''):'<tr><td colspan="8" class="bi-dir-empty">No properties match your filters.</td></tr>';
 }
 async function loadPropertyDirectory(){
   const section=element('staffPropertyDirectory'),messageBox=element('staffPropertyMessage');
@@ -162,7 +174,7 @@ async function loadPropertyDirectory(){
     renderPropertyDirectory();
   }catch(err){
     propertyDirectory=[];
-    element('staffPropertyRows').innerHTML='<tr><td colspan="7" class="bi-dir-empty">'+
+    element('staffPropertyRows').innerHTML='<tr><td colspan="8" class="bi-dir-empty">'+
       safe(err.message||'Unable to load the property directory.')+'</td></tr>';
     element('staffPropertyCount').textContent='Property directory unavailable';
     messageBox.textContent='Private property information requires an authorized Brick & Ivy staff session.';
@@ -412,6 +424,8 @@ async function setup(){
     element('staffPropertySearch')?.addEventListener('input',renderPropertyDirectory);
     element('staffPropertyFilter')?.addEventListener('change',renderPropertyDirectory);
     element('staffPropertyRefresh')?.addEventListener('click',loadPropertyDirectory);
+    // Keep deadline badges accurate while the Staff Portal is left open.
+    setInterval(()=>{if(propertyDirectory.length&&currentRole)renderPropertyDirectory()},60000);
     await checkRole();
     if(form){
       form.addEventListener('submit',async e=>{
