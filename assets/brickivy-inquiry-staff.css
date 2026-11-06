@@ -214,3 +214,258 @@ html[data-ui-theme="dark"] .bi-portal-recent>a .bi-portal-recent-status{
  .bi-portal-recent>a .bi-portal-recent-number{width:28px;height:28px}
  .bi-portal-recent>a .bi-portal-recent-status{grid-column:2;justify-self:start}
 }
+
+
+/* Staff workspace styles are kept with the established, loaded inquiry
+   stylesheet to avoid missing new stylesheet assets on the live site. */
+/* Brick & Ivy private staff workspace — scoped to the staff portal only. */
+.bi-staff-page{padding-top:32px;padding-bottom:70px;max-width:1220px}
+.bi-staff-page [hidden]{display:none!important}
+.bi-staff-welcome{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,335px);
+ gap:28px;align-items:center;padding:34px 38px;background:linear-gradient(117deg,#1b3629,#2e4c37);
+ border:1px solid #3f6049;border-radius:9px;box-shadow:0 15px 40px rgba(18,37,24,.12);color:#f5f5ea}
+.bi-staff-welcome-copy .eyebrow{display:block;color:#d7c5a0;font-size:10px;letter-spacing:.16em;font-weight:800}
+.bi-staff-welcome-copy .section-heading{color:#fff;font-size:clamp(32px,3.4vw,47px);line-height:1.13;
+ letter-spacing:-.035em;margin:11px 0 15px}
+.bi-staff-welcome-copy .section-heading em{font-style:normal;color:#d5be90}
+.bi-staff-welcome-copy p{color:#d3e0d3;font-size:14px;line-height:1.7;max-width:590px;margin:0}
+.bi-staff-auth-box{padding:20px 22px;background:rgba(255,255,255,.08);border:1px solid rgba(222,236,218,.22);
+ border-radius:6px;min-width:0;text-align:left}
+.bi-staff-auth-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.bi-staff-secure{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#bfd5c0}
+.bi-staff-role{font-size:10px;padding:5px 8px;background:#d6c399;color:#1b3727;border-radius:3px;font-weight:800}
+.bi-staff-auth-box .staff-auth-message{font-size:12px;color:#e3ece1;margin:12px 0 17px;line-height:1.6}
+.bi-staff-auth-box .button{min-height:40px;padding:9px 16px;font-size:10px}
+.bi-staff-auth-box .button.dark{background:#f0ecdd;color:#183926}
+.bi-staff-auth-box .button.outline{border-color:#a5bca6;color:#f0f6ea;background:transparent}
+.bi-staff-auth-box .button.outline:hover{background:rgba(255,255,255,.13)}
+.bi-staff-workspace{margin-top:23px}
+.bi-staff-tabbar{display:flex;gap:7px;flex-wrap:wrap;padding:8px;background:#e7ebe2;border:1px solid #d3ddd0;
+ border-radius:8px;margin-bottom:19px}
+.bi-staff-tab{appearance:none;flex:1 1 175px;display:flex;justify-content:center;align-items:center;gap:12px;
+ padding:14px 18px;min-height:49px;font-size:12px;font-weight:800;letter-spacing:.018em;
+ border:1px solid transparent;border-radius:5px;background:transparent;color:#466150;
+ cursor:pointer;transition:background .15s,border-color .15s,color .15s,box-shadow .15s}
+.bi-staff-tab:hover{background:#f2f5ef;color:#224632}
+.bi-staff-tab.is-active{background:#fffdf6;color:#1e4930;border-color:#c6d5c3;
+ box-shadow:0 3px 12px rgba(27,57,32,.08)}
+.bi-staff-tab-symbol{font-size:18px;line-height:1;color:#6b8b72}
+.bi-staff-tab.is-active .bi-staff-tab-symbol{color:#315b3e}
+.bi-staff-tab:focus-visible,.bi-staff-shortcut:focus-visible,.bi-staff-switch:focus-visible{
+ outline:3px solid #c9a45a;outline-offset:2px}
+.bi-staff-view{background:#f6f7f2;border:1px solid #dce3d8;border-radius:8px;
+ padding:clamp(21px,3vw,32px);min-height:270px}
+.bi-staff-view-header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:22px}
+.bi-staff-view-header .eyebrow,.bi-staff-shortcuts .eyebrow{font-size:10px;font-weight:800;color:#768c78;letter-spacing:.13em}
+.bi-staff-view-header .serif{font-size:clamp(26px,3vw,36px);margin:7px 0 8px;color:#264731;letter-spacing:-.025em}
+.bi-staff-view-header p{margin:0;font-size:13px;line-height:1.6;color:#647969}
+.bi-staff-view-header .button{white-space:nowrap;font-size:10px;min-height:41px;padding:10px 16px}
+.bi-staff-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.bi-staff-stat{padding:20px;background:#fffefa;border:1px solid #d8e3d5;border-radius:5px;
+ display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left}
+.bi-staff-stat span{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#607764}
+.bi-staff-stat strong{font-family:'Playfair Display',Georgia,serif;font-size:33px;line-height:1.1;color:#234b32}
+.bi-staff-stat small{font-size:11px;color:#718677}
+.bi-staff-page .bi-portal-pulse{margin:0 0 24px;max-width:none;border-color:#d8e3d5;
+ border-radius:5px;background:#fffefa;padding:22px}
+.bi-staff-page .bi-portal-pulse-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.bi-staff-page .bi-portal-pulse-head h2{font-size:25px}
+.bi-staff-page .bi-portal-pulse-head .button{font-size:10px;min-height:41px;padding:10px 14px}
+.bi-staff-notice{padding:24px;color:#64796c;border:1px dashed #b9cbbc;background:#fffefa;
+ border-radius:5px;font-size:13px;line-height:1.6;margin-bottom:20px}
+.bi-staff-shortcuts{background:#edf1e9;border:1px solid #dce5d8;border-radius:6px;padding:23px}
+.bi-staff-shortcuts h3{font-size:25px;margin:6px 0 17px;color:#294c35}
+.bi-staff-shortcut-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.bi-staff-shortcut{appearance:none;display:grid;grid-template-columns:32px minmax(0,1fr);column-gap:12px;
+ row-gap:4px;align-content:center;min-height:85px;text-align:left;text-decoration:none;cursor:pointer;
+ padding:15px;border:1px solid #cfdccd;border-radius:5px;background:#fffefa;color:#284b36;font:inherit}
+.bi-staff-shortcut:hover{border-color:#7e9e83;background:#f8fbf6;box-shadow:0 5px 13px rgba(24,50,33,.07)}
+.bi-staff-shortcut>span{grid-row:1/3;align-self:center;font-size:24px;color:#64856c}
+.bi-staff-shortcut strong{font-size:12px;line-height:1.5}
+.bi-staff-shortcut small{color:#6a806c;font-size:10px;line-height:1.5}
+.bi-staff-tool-group{border-top:1px solid #d8e2d6;padding:21px 0 27px}
+.bi-staff-tool-group:first-child{border-top:0;padding-top:0}
+.bi-staff-group-heading{display:flex;align-items:baseline;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:14px}
+.bi-staff-group-heading h3{font-size:16px;font-weight:800;color:#284936;margin:0}
+.bi-staff-group-heading p{font-size:12px;color:#6b816e;margin:0}
+.bi-staff-page .admin-tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0}
+.bi-staff-page .admin-tool-card{min-height:160px;padding:20px;border:1px solid #d7e1d4;border-radius:5px;
+ background:#fffefa;gap:8px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.bi-staff-page .admin-tool-card:hover{border-color:#8caa90;transform:translateY(-2px)}
+.bi-staff-page .admin-tool-card strong{font-size:13px;line-height:1.5;color:#285139}
+.bi-staff-page .admin-tool-card span{font-size:11px;line-height:1.55;color:#63796b}
+.bi-staff-page .admin-tool-card .admin-tool-arrow{font-size:24px;line-height:1;margin-bottom:5px;color:#6f9278}
+.bi-staff-team-note{padding:15px 18px;background:#edf1e9;border-left:3px solid #799d80;
+ color:#4c6555;font-size:13px;line-height:1.6;margin:0 0 22px}
+.bi-staff-page .bi-dir-section{margin:0;box-shadow:none;border-radius:6px}
+html[data-ui-theme="dark"] .bi-staff-welcome{background:linear-gradient(117deg,#193126,#254331);border-color:#446550}
+html[data-ui-theme="dark"] .bi-staff-tabbar{background:#1b2d23;border-color:#385541}
+html[data-ui-theme="dark"] .bi-staff-tab{color:#bdd2bf}
+html[data-ui-theme="dark"] .bi-staff-tab-symbol{color:#a8c6ae}
+html[data-ui-theme="dark"] .bi-staff-tab:hover{background:#2e4435;color:#eef7eb}
+html[data-ui-theme="dark"] .bi-staff-tab.is-active{background:#33523d;color:#f4f8ef;border-color:#63826a;box-shadow:none}
+html[data-ui-theme="dark"] .bi-staff-view{background:#1a2a20;border-color:#3d5542}
+html[data-ui-theme="dark"] .bi-staff-view-header .serif,html[data-ui-theme="dark"] .bi-staff-shortcuts h3{color:#e4efe0}
+html[data-ui-theme="dark"] .bi-staff-view-header p,html[data-ui-theme="dark"] .bi-staff-group-heading p{color:#acc5b1}
+html[data-ui-theme="dark"] .bi-staff-stat{background:#25382b;border-color:#465e4a}
+html[data-ui-theme="dark"] .bi-staff-stat strong{color:#e3eddb}
+html[data-ui-theme="dark"] .bi-staff-stat span,html[data-ui-theme="dark"] .bi-staff-stat small{color:#b2cbb5}
+html[data-ui-theme="dark"] .bi-staff-page .bi-portal-pulse{background:#23382b;border-color:#4a674f}
+html[data-ui-theme="dark"] .bi-staff-shortcuts{background:#23392b;border-color:#4a674f}
+html[data-ui-theme="dark"] .bi-staff-shortcut{background:#1f3025;border-color:#48624c;color:#e4efe5}
+html[data-ui-theme="dark"] .bi-staff-shortcut:hover{background:#2b4533;border-color:#6b9072}
+html[data-ui-theme="dark"] .bi-staff-shortcut>span{color:#a2c2a7}
+html[data-ui-theme="dark"] .bi-staff-shortcut small{color:#b7cbb9}
+html[data-ui-theme="dark"] .bi-staff-notice{background:#273b2e;color:#c7dbc9;border-color:#668069}
+html[data-ui-theme="dark"] .bi-staff-tool-group{border-color:#3d5844}
+html[data-ui-theme="dark"] .bi-staff-group-heading h3{color:#edf4e8}
+html[data-ui-theme="dark"] .bi-staff-page .admin-tool-card{background:#253a2c;border-color:#4e6752}
+html[data-ui-theme="dark"] .bi-staff-page .admin-tool-card:hover{border-color:#8aaa91}
+html[data-ui-theme="dark"] .bi-staff-page .admin-tool-card strong{color:#e5f1e3}
+html[data-ui-theme="dark"] .bi-staff-page .admin-tool-card span{color:#bcd0bf}
+html[data-ui-theme="dark"] .bi-staff-page .admin-tool-card .admin-tool-arrow{color:#9bc09c}
+html[data-ui-theme="dark"] .bi-staff-team-note{background:#253b2c;color:#d0e3d0}
+@media(max-width:940px){
+ .bi-staff-welcome{grid-template-columns:1fr;gap:20px}
+ .bi-staff-auth-box{max-width:530px}
+ .bi-staff-shortcut-links,.bi-staff-page .admin-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:670px){
+ .bi-staff-page{padding-top:18px;padding-bottom:35px}
+ .bi-staff-welcome{padding:25px 21px}
+ .bi-staff-welcome-copy .section-heading{font-size:34px}
+ .bi-staff-tabbar{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px}
+ .bi-staff-tab{flex:1 0 125px;padding:12px 10px;font-size:11px;gap:6px;min-height:45px}
+ .bi-staff-tab-symbol{font-size:16px}
+ .bi-staff-view{padding:17px}
+ .bi-staff-view-header{align-items:flex-start;flex-direction:column}
+ .bi-staff-view-header .button{width:100%}
+ .bi-staff-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bi-staff-page .bi-portal-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bi-staff-shortcut-links,.bi-staff-page .admin-tool-grid{grid-template-columns:1fr}
+ .bi-staff-stat{padding:15px}
+ .bi-staff-group-heading{display:block}
+ .bi-staff-group-heading p{margin-top:5px}
+ .bi-staff-shortcuts{padding:17px}
+ .bi-staff-shortcut{min-height:76px}
+ .bi-staff-page .bi-dir-section{padding:18px 12px}
+}
+
+
+/* Staff dashboard refinement: three large, clickable portfolio summaries. */
+.bi-staff-page .bi-staff-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0 0 24px}
+.bi-staff-page button.bi-staff-stat{
+ -webkit-appearance:none;appearance:none;position:relative;display:flex;flex-direction:column;
+ align-items:stretch;justify-content:space-between;gap:18px;width:100%;min-width:0;
+ min-height:188px;padding:25px 25px 21px;text-align:left;cursor:pointer;font-family:inherit;
+ border-radius:9px;border:1px solid #cbdacb;background:#fefefa;color:#244532;
+ box-shadow:0 6px 20px rgba(33,59,39,.05);overflow:hidden;
+ transition:transform .16s,border-color .16s,box-shadow .16s}
+.bi-staff-page button.bi-staff-stat:before{
+ content:"";position:absolute;top:0;left:0;right:0;height:5px;background:#658e76}
+.bi-staff-page button.bi-staff-stat:hover{
+ border-color:#85a78c;transform:translateY(-2px);
+ box-shadow:0 12px 25px rgba(31,61,38,.12)}
+.bi-staff-page button.bi-staff-stat:focus-visible{outline:3px solid #c8a660;outline-offset:3px}
+.bi-staff-page button.bi-staff-stat-available:before{background:#56a273}
+.bi-staff-page button.bi-staff-stat-alerts:before{background:#c49650}
+.bi-staff-page .bi-staff-stat-title{
+ display:block;color:#486b52;font-size:12px;font-weight:850;letter-spacing:.085em;
+ text-transform:uppercase;line-height:1.5}
+.bi-staff-page .bi-staff-stat-value{
+ display:block;margin-top:0;font:600 clamp(38px,4vw,51px)/1.05 'Playfair Display',Georgia,serif;
+ color:#203e2c;letter-spacing:-.045em}
+.bi-staff-page .bi-staff-stat-available .bi-staff-stat-value{color:#2b7048}
+.bi-staff-page .bi-staff-stat-alerts .bi-staff-stat-value{color:#895c26}
+.bi-staff-page .bi-staff-stat-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.bi-staff-page .bi-staff-stat-bottom small{
+ color:#5f7565;font-size:12px;line-height:1.45;font-weight:550;overflow-wrap:anywhere}
+.bi-staff-page .bi-staff-stat-arrow{
+ display:grid;flex:0 0 31px;place-items:center;width:31px;height:31px;
+ border-radius:50%;background:#ecf1e9;color:#467454;font-size:17px;font-weight:800}
+.bi-staff-page .bi-staff-shortcuts{padding:24px;border-radius:9px}
+.bi-staff-page .bi-staff-shortcut-links{gap:16px}
+.bi-staff-page .bi-staff-shortcut{
+ display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;
+ gap:4px 13px;padding:20px 19px;min-height:103px;border-radius:8px;
+ background:#fefefa;color:#294934;border:1px solid #d0decc;
+ white-space:normal;text-align:left;line-height:1.4;text-transform:none;letter-spacing:normal}
+.bi-staff-page .bi-staff-shortcut > span{
+ display:grid;grid-row:1/3;place-items:center;align-self:center;
+ width:39px;height:39px;background:#eaf0e8;border-radius:8px;color:#416b4e;
+ font-size:23px}
+.bi-staff-page .bi-staff-shortcut strong{display:block;font-size:13px;font-weight:800;color:#254733}
+.bi-staff-page .bi-staff-shortcut small{display:block;font-size:11px;color:#687d6d;line-height:1.5}
+.bi-staff-page .bi-staff-tabbar{gap:11px;padding:9px;border-radius:9px}
+.bi-staff-page button.bi-staff-tab{
+ -webkit-appearance:none;appearance:none;opacity:1;display:flex;align-items:center;
+ justify-content:center;gap:11px;border:1px solid transparent;border-radius:6px;
+ background:#edf2e9;color:#375442;font-size:13px;font-weight:800;
+ min-height:53px;padding:13px 18px;line-height:1.3;letter-spacing:.01em;text-transform:none}
+.bi-staff-page button.bi-staff-tab.is-active{
+ background:#254c35;border-color:#254c35;color:#fff;
+ box-shadow:0 4px 13px rgba(16,46,23,.12)}
+.bi-staff-page button.bi-staff-tab.is-active .bi-staff-tab-symbol{color:#e0eddb}
+.bi-staff-page button.bi-staff-tab:hover:not(.is-active){background:#f9fbf6;border-color:#c6d9c5}
+.bi-staff-page .bi-staff-view-header .bi-staff-switch{
+ background:#eaf2e7;color:#244e32;border:1px solid #a8c6ab}
+.bi-staff-page .bi-staff-view-header .bi-staff-switch:hover{background:#dcebdd;color:#214531}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-tabbar{
+ background:#1b2d22;border-color:#3d5944}
+html[data-ui-theme="dark"] .bi-staff-page button.bi-staff-tab{
+ background:#24382b;border-color:#415b47;color:#e1eee0;
+ box-shadow:none}
+html[data-ui-theme="dark"] .bi-staff-page button.bi-staff-tab.is-active{
+ background:#416e51;border-color:#7aa087;color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.13)}
+html[data-ui-theme="dark"] .bi-staff-page button.bi-staff-tab:hover:not(.is-active){
+ background:#34513d;border-color:#72937a;color:#f0f8ee}
+html[data-ui-theme="dark"] .bi-staff-page button.bi-staff-stat{
+ background:#253a2d;border-color:#507256;color:#e9f3e7;box-shadow:none}
+html[data-ui-theme="dark"] .bi-staff-page button.bi-staff-stat:hover{
+ background:#2c4534;border-color:#84aa8c;box-shadow:0 7px 22px rgba(0,0,0,.2)}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-title{color:#c9decf}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-value{color:#f3f9ef}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-available .bi-staff-stat-value{color:#a9e0ba}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-alerts .bi-staff-stat-value{color:#f1d29a}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-bottom small{color:#c0d2c0}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-stat-arrow{background:#3c5943;color:#f3f9ef}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcuts{
+ background:#213629;border-color:#49654c}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcut{
+ background:#2b4433;color:#e6f0e6;border-color:#527559}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcut:hover{
+ background:#35553f;border-color:#95b39c;color:#fff}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcut > span{
+ background:#385c43;color:#dceede}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcut strong{color:#f0f7ed}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-shortcut small{color:#c7dbc9}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-view-header .bi-staff-switch{
+ background:#2c4d37!important;color:#eff7ee!important;border-color:#73987b!important}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-view-header .bi-staff-switch:hover{
+ background:#416e51!important;color:#fff!important}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-auth-box .button.outline{
+ background:#2b4a37!important;color:#eaf5e8!important;border-color:#7d9b82!important}
+html[data-ui-theme="dark"] .bi-staff-page .bi-staff-auth-box .button.outline:hover{
+ background:#396247!important;color:#fff!important}
+@media(max-width:940px){
+ .bi-staff-page .bi-staff-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+ .bi-staff-page button.bi-staff-stat{padding:21px 17px 17px;min-height:185px}
+ .bi-staff-page .bi-staff-stat-bottom small{font-size:11px}
+ .bi-staff-page .bi-staff-shortcut-links{gap:10px}
+}
+@media(max-width:680px){
+ .bi-staff-page .bi-staff-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .bi-staff-page button.bi-staff-stat{min-height:158px;padding:18px}
+ .bi-staff-page .bi-staff-stat-title{font-size:10px}
+ .bi-staff-page .bi-staff-stat-value{font-size:36px}
+ .bi-staff-page .bi-staff-stat-bottom{align-items:flex-start}
+ .bi-staff-page .bi-staff-stat-bottom small{font-size:11px}
+ .bi-staff-page .bi-staff-shortcut-links{grid-template-columns:1fr;gap:10px}
+ .bi-staff-page .bi-staff-tabbar{gap:5px}
+ .bi-staff-page button.bi-staff-tab{padding:11px 9px;font-size:11px;min-height:49px}
+}
+@media(max-width:430px){
+ .bi-staff-page .bi-staff-stat-grid{grid-template-columns:1fr}
+ .bi-staff-page button.bi-staff-stat{min-height:137px}
+ .bi-staff-page .bi-staff-stat-bottom small{font-size:12px}
+}
