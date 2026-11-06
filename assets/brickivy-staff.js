@@ -10,10 +10,43 @@ let roster = [];
 let editingId = null;
 let propertyDirectory = [];
 let rentalSnapshotAvailable = false;
+let activeStaffTab = 'overview';
 
 function message(txt) { const el=element('staffMessage');if(el)el.textContent=txt; }
 function safe(v) {return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
 function show(el,visible) {if(el)el.hidden=!visible;}
+/* Navigate authorized sections without reloading the private property feed. */
+function activateStaffTab(tab,focus=false){
+  if(!['overview','properties','tools'].includes(tab))return;
+  activeStaffTab=tab;
+  document.querySelectorAll('#staffTabNav [data-staff-tab]').forEach(button=>{
+    const active=button.dataset.staffTab===tab;
+    button.classList.toggle('is-active',active);
+    button.setAttribute('aria-selected',String(active));
+    button.tabIndex=active?0:-1;
+    if(active&&focus)button.focus();
+  });
+  document.querySelectorAll('#staffWorkspace [data-staff-panel]').forEach(panel=>{
+    panel.hidden=panel.dataset.staffPanel!==tab;
+  });
+}
+function renderPortfolioOverview(){
+  const target=element('staffPortfolioStats');
+  if(!target||!currentRole)return;
+  const occupied=rentalSnapshotAvailable?propertyDirectory.filter(p=>p.rented===true):[];
+  const alerts=rentalSnapshotAvailable?occupied.filter(p=>
+    ['overdue','evictable'].includes(directoryPaidUntil(p.lastPayment).state)).length:null;
+  const stats=[
+    ['Portfolio',propertyDirectory.length,'Total properties'],
+    ['Rented',rentalSnapshotAvailable?occupied.length:'—','Confirmed occupants'],
+    ['Payment alerts',alerts===null?'—':alerts,'Overdue or evictable']
+  ];
+  target.innerHTML=stats.map(([label,value,detail])=>
+    '<div class="bi-staff-stat"><span>'+safe(label)+'</span>'+
+    '<strong>'+safe(value)+'</strong><small>'+safe(detail)+'</small></div>').join('');
+  show(target,true);
+}
+
 function isConfigured() {return cfg.discordAuthReady === true && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(cfg.supabaseUrl||'')&&/^(sb_publishable_|eyJ)/.test(cfg.publishableKey||'');}
 async function api(action,extra={}) {
   const {data:{session}}=await supabase.auth.getSession();
@@ -117,6 +150,7 @@ function renderPropertyDirectory(){
   });
   count.textContent=filtered.length+' of '+propertyDirectory.length+' properties'+
     (rentalSnapshotAvailable?'':' · renter details unavailable');
+  renderPortfolioOverview();
   body.innerHTML=filtered.length?filtered.map(p=>{
     const address=String(p.address||p.name||'Unknown address').trim();
     const occupancy=directoryOccupancy(p);
@@ -176,6 +210,7 @@ async function loadPropertyDirectory(){
     renderPropertyDirectory();
   }catch(err){
     propertyDirectory=[];
+    show(element('staffPortfolioStats'),false);
     element('staffPropertyRows').innerHTML='<tr><td colspan="8" class="bi-dir-empty">'+
       safe(err.message||'Unable to load the property directory.')+'</td></tr>';
     element('staffPropertyCount').textContent='Property directory unavailable';
@@ -207,7 +242,11 @@ async function loadInquirySummary(){
      '<span class="bi-portal-recent-status">'+safe(status)+'</span></a>';
    }).join(''):'<p>No inquiries yet.</p>')+'</div>';
   show(box,true);
- }catch{box.innerHTML='';show(box,false);}
+  show(element('staffInquiryUnavailable'),false);
+ }catch{
+  box.innerHTML='';show(box,false);
+  if(currentRole)show(element('staffInquiryUnavailable'),true);
+ }
 }
 async function checkRole() {
   const {data:{session}}=await supabase.auth.getSession();
@@ -217,7 +256,11 @@ async function checkRole() {
   show(element('staffTeamContent'),false);
   show(element('staffManagementContent'),false);
   show(element('staffInquirySummary'),false);
+  show(element('staffInquiryUnavailable'),false);
   show(element('staffPropertyDirectory'),false);
+  show(element('staffPortfolioStats'),false);
+  show(element('staffWorkspace'),false);
+  show(element('staffRoleChip'),false);
   propertyDirectory=[];
   if(!session){currentRole=null;message('Sign in with Discord to continue.');return;}
   message('Checking your Brick & Ivy Discord permissions…');
@@ -227,6 +270,10 @@ async function checkRole() {
     message(currentRole==='owner'?'Signed in as Brick & Ivy Owner.':currentRole==='realtor'?'Signed in as a Brick & Ivy Realtor.':'Access restricted.');
     show(element('staffOwnerContent'),currentRole==='owner');
     show(element('staffTeamContent'),currentRole==='realtor');
+    const chip=element('staffRoleChip');
+    if(chip){chip.textContent=currentRole==='owner'?'Owner access':'Realtor access';show(chip,true);}
+    show(element('staffWorkspace'),true);
+    activateStaffTab('overview');
     await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
     if(currentRole==='owner'&&element('staffManagementContent')){
       await loadRoster();
@@ -234,6 +281,8 @@ async function checkRole() {
     }
   }catch(error){
     currentRole=null;
+    show(element('staffWorkspace'),false);
+    show(element('staffRoleChip'),false);
     message(error.message||'Discord role verification failed.');
   }
 }
@@ -426,6 +475,25 @@ async function setup(){
     element('staffPropertySearch')?.addEventListener('input',renderPropertyDirectory);
     element('staffPropertyFilter')?.addEventListener('change',renderPropertyDirectory);
     element('staffPropertyRefresh')?.addEventListener('click',loadPropertyDirectory);
+    const tabNav=element('staffTabNav');
+    tabNav?.addEventListener('click',event=>{
+      const button=event.target.closest('[data-staff-tab]');
+      if(button&&currentRole)activateStaffTab(button.dataset.staffTab);
+    });
+    tabNav?.addEventListener('keydown',event=>{
+      if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+      const tabs=Array.from(tabNav.querySelectorAll('[data-staff-tab]'));
+      const index=tabs.indexOf(document.activeElement);
+      if(index<0)return;
+      event.preventDefault();
+      const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:
+        (index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+      activateStaffTab(tabs[next].dataset.staffTab,true);
+    });
+    element('staffWorkspace')?.addEventListener('click',event=>{
+      const button=event.target.closest('[data-staff-go]');
+      if(button&&currentRole)activateStaffTab(button.dataset.staffGo);
+    });
     // Keep deadline badges accurate while the Staff Portal is left open.
     setInterval(()=>{if(propertyDirectory.length&&currentRole)renderPropertyDirectory()},60000);
     await checkRole();
