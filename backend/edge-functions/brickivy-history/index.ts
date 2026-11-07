@@ -72,7 +72,7 @@ Deno.serve(async req=>{
     .select("id,discord_role_id,actor,previous,updated,changed_at")
     .order("changed_at",{ascending:false}).limit(PAGE_LIMIT)
   ]);
-  if(homes.error||properties.error||prices.error||permissions.error||rolePermissions.errorthrow Error("Could not load audit history");
+  if(homes.error||properties.error||prices.error||permissions.error||rolePermissions.error)throw Error("Could not load audit history");
   const events=[
    ...(homes.data||[]).map(r=>({
     id:String(r.id),type:"homepage",action:r.action,time:r.created_at,actor:r.actor,
