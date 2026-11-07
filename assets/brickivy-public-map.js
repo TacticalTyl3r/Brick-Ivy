@@ -129,7 +129,7 @@
  }
  function beginCardButtons(){
   populateButtons();
-  for(const id of ["featuredGrid","resultsGrid"]){
+  for(const id of ["featuredGrid","resultsGrid","unavailableResultsGrid"]){
    const root=$(id);if(!root)continue;
    new MutationObserver(populateButtons).observe(root,{childList:true});
   }
