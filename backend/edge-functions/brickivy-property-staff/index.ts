@@ -134,29 +134,34 @@ Deno.serve(async(req:Request)=>{
     }
     const roles=await guildRoles(providerId,bot);
     const owner=roles.includes(OWNER_ROLE_ID);
-    // Live role membership is required for every private property request.
-    // No individual Discord user grants are consulted.
-    const ids=[...new Set(roles.filter(x=>/^[0-9]{17,20}$/.test(x)&&x!==OWNER_ROLE_ID))];
-    let permissions={...DEFAULT_PERMISSIONS};
-    if(owner)permissions={...OWNER_PERMISSIONS} as typeof DEFAULT_PERMISSIONS;
-    else {
-      const {data:rules,error:permissionError}=ids.length?
-        await db.from("brickivy_role_permissions")
-          .select("discord_role_id,"+Object.keys(DEFAULT_PERMISSIONS).join(","))
-          .in("discord_role_id",ids):
-        {data:[],error:null};
-      if(permissionError)throw Error("Unable to verify Discord role permissions");
-      const matches=rules||[];
-      const staff=ids.includes(REALTOR_ROLE_ID)||matches.length>0;
-      if(!staff)return response({error:"Brick & Ivy staff Discord role required"},403,cors);
-      // Defaults apply only to the Realtor role while it is not explicitly saved.
-      const realtorConfigured=matches.some(rule=>rule.discord_role_id===REALTOR_ROLE_ID);
-      permissions=Object.fromEntries(Object.keys(DEFAULT_PERMISSIONS).map(key=>[key,false])) as typeof DEFAULT_PERMISSIONS;
-      if(ids.includes(REALTOR_ROLE_ID)&&!realtorConfigured)
-        permissions={...DEFAULT_PERMISSIONS};
-      for(const rule of matches)for(const key of Object.keys(DEFAULT_PERMISSIONS) as Array<keyof typeof DEFAULT_PERMISSIONS>)
-        permissions[key]=permissions[key]||rule[key]===true;
+    // Grant permissions exclusively from live Discord roles, never individual
+    // user ID settings. Every permission is checked against server-side roles.
+    const effective={...DEFAULT_PERMISSIONS};
+    if(owner){
+      Object.assign(effective,OWNER_PERMISSIONS);
+    }else{
+      const selectedRoles=roles.filter(role=>role!==OWNER_ROLE_ID&&/^[0-9]{17,20}$/.test(role));
+      if(selectedRoles.length===0)
+        return response({error:"Brick & Ivy staff Discord role required"},403,cors);
+      const {data:roleRules,error:roleError}=await db.from("brickivy_role_permissions")
+        .select("discord_role_id,"+Object.keys(DEFAULT_PERMISSIONS).join(","))
+        .in("discord_role_id",selectedRoles);
+      if(roleError)throw Error("Unable to read role permissions");
+      const rows=roleRules||[];
+      const hasBaseRealtor=selectedRoles.includes(REALTOR_ROLE_ID);
+      if(!hasBaseRealtor&&rows.length===0)
+        return response({error:"Brick & Ivy staff Discord role required"},403,cors);
+      // Until Owner customizes the base Realtor role, preserve its default
+      // reservation-management permission without sharing individual grants.
+      if(hasBaseRealtor&&!rows.some(row=>row.discord_role_id===REALTOR_ROLE_ID))
+        effective.can_manage_reservations=true;
+      for(const row of rows){
+        for(const key of Object.keys(DEFAULT_PERMISSIONS)){
+          if(row[key]===true)effective[key]=true;
+        }
+      }
     }
+    const permissions=effective;
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
     const action=(input as Record<string,unknown>).action;
