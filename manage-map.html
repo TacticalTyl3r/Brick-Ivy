@@ -7,8 +7,8 @@
 <title>Property Map Preview | Brick & Ivy</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <script src="assets/theme.js?v=20261022-dark1"></script>
-<link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="assets/styles.css?v=20261107-staff-suite1">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261107-staff-suite1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-focus1">
@@ -31,6 +31,26 @@
  <p>Explore the San Andreas map, find each home, and save exact property locations. This map is being tested privately and is not available to customers.</p>
 </div></section>
 <div class="container map-workspace">
+<nav class="bi-tools-nav" aria-label="Brick and Ivy staff management pages">
+ <div class="bi-tools-nav-header"><div><span class="bi-tools-nav-kicker">BRICK &amp; IVY / STAFF WORKSPACE</span>
+ <strong>Management center</strong><p>Switch between tools without returning to the dashboard.</p></div>
+ <a class="bi-tools-nav-back" href="admin.html">← Back to Staff Portal</a></div>
+ <div class="bi-tools-nav-groups">
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Daily operations</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-properties.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Properties</span><span class="bi-tools-nav-detail">Rentals &amp; listings</span></a>
+ <a href="manage-inquiries.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Inquiries</span><span class="bi-tools-nav-detail">Customer follow-ups</span></a>
+ <a href="manage-realtors.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Realtors</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Team directory</span></a>
+ <a href="manage-permissions.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Permissions</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Discord role access</span></a>
+ </div></div>
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Website &amp; reporting</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-homepage.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Homepage</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Content &amp; design</span></a>
+ <a href="manage-map.html" class="bi-tools-nav-link is-current" aria-current="page"><span class="bi-tools-nav-link-text">Property Map</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Private map editor</span></a>
+ <a href="manage-history.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">History</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Changes &amp; restore</span></a>
+ </div></div>
+ </div></nav>
+
  <div class="map-private-notice"><span class="map-draft-dot"></span><div><strong>Owner-only testing · Not published</strong><p>Locations you save here remain private. The public Properties page does not show these pins.</p></div></div>
  <div class="manage-auth-gate map-auth-gate"><p class="staff-auth-message" id="mapStatus" role="status" aria-live="polite">Checking your Owner session…</p>
   <div id="mapLogin" hidden><button id="mapSignIn" class="button dark" type="button">Sign in with Discord ↗</button></div>
