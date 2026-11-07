@@ -692,3 +692,69 @@ html[data-ui-theme="dark"] .bi-tools-nav-link.is-current .bi-tools-nav-owner{
 html[data-ui-theme="dark"] .bi-tools-nav :is(a,button):focus-visible{
  outline:3px solid #dec18a;outline-offset:3px;
 }
+
+
+
+/* PUBLIC PRESENTATION POLISH / dark-mode pairing / 2026-11-07 */
+html[data-ui-theme="dark"] .site-header{
+ border-bottom-color:#3c5744;box-shadow:0 2px 14px rgba(0,0,0,.15);
+}
+html[data-ui-theme="dark"] .primary-nav>a:after{background:#d8b784}
+html[data-ui-theme="dark"] body[data-page="home"] .quick-search .search-form :is(input,select),
+html[data-ui-theme="dark"] body[data-page="properties"] .filter-panel :is(input,select){
+ background:#152b1f;color:#f0f7ed;border-color:#55735d;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .filter-panel{
+ background:#1c3024;border-color:#45634c;box-shadow:none;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .filter-panel h2{color:#edf7eb}
+html[data-ui-theme="dark"] body[data-page="properties"] .filter-panel .field label{color:#c0d6c4}
+html[data-ui-theme="dark"] body[data-page="properties"] .results-toolbar{
+ background:#223b2b;border-color:#4a6b51;color:#edf6e9;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .results-toolbar strong{color:#e8f6e7}
+html[data-ui-theme="dark"] body[data-page="properties"] .results-toolbar small{color:#bfd1c0}
+html[data-ui-theme="dark"] body[data-page="properties"] #resultsCount{
+ background:#31513b;border-color:#55785e;color:#eaf7e9;
+}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-card{
+ background:#1d3225;border-color:#47694c;box-shadow:none;
+}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-card:hover{
+ border-color:#80a589;box-shadow:0 13px 32px rgba(0,0,0,.22);
+}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-title{color:#f1f7ef}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-address{color:#bcd0bd}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-topline{color:#b0c8b5}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-price{color:#e2eddb}
+html[data-ui-theme="dark"] :is(.property-grid,.results-grid) .property-bottom{
+ border-color:#435f4a;color:#c1d5c1;
+}
+html[data-ui-theme="dark"] body[data-page="home"] .value{
+ border-color:#3f5e46;
+}
+html[data-ui-theme="dark"] body[data-page="detail"] .detail-shell{
+ background:#1a2d22;border-color:#45604b;box-shadow:none;
+}
+html[data-ui-theme="dark"] body[data-page="detail"] .back-link{
+ background:#284332;border-color:#557b5e;color:#dcf2e2;
+}
+html[data-ui-theme="dark"] body[data-page="detail"] .back-link:hover{
+ background:#35573e;border-color:#80aa89;
+}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-card{
+ background:#1a2f22;border-color:#48664c;
+}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-card:hover{
+ border-color:#81a588;box-shadow:0 12px 27px rgba(0,0,0,.2);
+}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-name{color:#f0f7eb}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-bio{color:#c3d2c5}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-contact-label{color:#aec8b1}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-contact-value{color:#e1f0de}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-actions .button.outline{
+ background:#274431;color:#e6f2e5;border-color:#63866d;
+}
+html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-actions .button.outline:hover{
+ background:#365b43;color:#fff;
+}
