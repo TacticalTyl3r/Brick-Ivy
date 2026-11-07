@@ -11,6 +11,8 @@ const followupHours=item=>{
  return Number.isFinite(started)?Math.max(0,(Date.now()-started)/3600000):0;
 };
 let client=null,inquiries=[],realtors=[],names={},metrics={},currentDiscordId="",role="",busy=false;
+// Preserve expanded closed inquiries across search, filtering and refreshes.
+const expandedClosedInquiries=new Set();
 const info=msg=>{el("inquiryStaffStatus").textContent=msg;};
 async function api(action,extra={}){
  const {data:{session}}=await client.auth.getSession();
@@ -61,6 +63,18 @@ function render(){
   const options=Object.entries(statuses).map(([value,label])=>
    '<option value="'+value+'"'+(item.status===value?' selected':'')+'>'+label+'</option>').join("");
   const status=String(item.status||"new");
+  const isClosed=status==="closed";
+  const closedDate=item.closed_at&&Number.isFinite(Date.parse(item.closed_at))?
+    new Date(item.closed_at).toLocaleDateString():"";
+  const closedSummary=isClosed?
+   '<summary class="bi-inbox-closed-summary">'+
+   '<span class="bi-inbox-closed-main">'+
+   '<span class="bi-inbox-closed-reference">INQUIRY #'+safe(item.inquiry_number||"—")+'</span>'+
+   '<strong class="bi-inbox-closed-address">'+safe(inquiryAddress(item))+'</strong>'+
+   '<span class="bi-inbox-closed-meta">'+safe(item.character_name||"Unknown customer")+
+   ' · '+safe(assigned)+(closedDate?' · Closed '+safe(closedDate):'')+'</span></span>'+
+   '<span class="bi-inbox-closed-side"><span class="bi-inbox-tag" data-status="closed">Closed</span>'+
+   '<span class="bi-inbox-closed-chevron" aria-hidden="true">⌄</span></span></summary>':"";
   const canClaim=!assignee&&status!=="closed";
   const wait=followupHours(item);
   const due=wait>=48?'<span class="bi-followup-tag is-urgent">Urgent · No contact for 48+ hours</span>':
@@ -68,7 +82,9 @@ function render(){
   const retryable=role==="owner"&&["failed","not_configured"].includes(item.discord_notification);
   const sinceRetry=item.discord_last_retry_at?Date.now()-Date.parse(item.discord_last_retry_at):Infinity;
   const retryBlocked=sinceRetry<60000;
-  return '<article class="bi-inbox-card" data-inquiry-id="'+safe(item.id)+'">'+
+  return (isClosed?'<details class="bi-inbox-closed" data-closed-inquiry-id="'+safe(item.id)+'"'+
+   (expandedClosedInquiries.has(String(item.id))?' open':'')+'>'+closedSummary:'')+
+   '<article class="bi-inbox-card" data-inquiry-id="'+safe(item.id)+'">'+
    '<div class="bi-inbox-top"><div><span class="eyebrow">INQUIRY #'+safe(item.inquiry_number)+' · '+safe(age)+'</span>'+
    '<h2 class="serif">'+safe(inquiryAddress(item))+'</h2>'+due+
    '<a href="property.html?id='+encodeURIComponent(item.property_id)+'" target="_blank" rel="noopener noreferrer">Open listing ↗</a></div>'+
@@ -92,7 +108,8 @@ function render(){
    (retryable?'<button type="button" class="button outline" data-inquiry-retry'+(retryBlocked?' disabled':'')+
    ' aria-label="Retry failed notification for '+safe(item.property_name)+'">Retry Discord notification</button>':'')+
    (retryBlocked&&retryable?'<small>Retry available one minute after the previous attempt.</small>':'')+'</div>'+
-   '<div class="bi-inbox-history" data-inquiry-history hidden></div></div></article>';
+   '<div class="bi-inbox-history" data-inquiry-history hidden></div></div></article>'+
+   (isClosed?'</details>':'');
  }).join("");
 }
 function formatHours(value){return value===null||value===undefined?"Not enough closed inquiries":n(value)+" hours";}
@@ -152,6 +169,9 @@ async function reload(){
  try{
   const result=await api("listInquiries");
   inquiries=result.inquiries||[];realtors=result.realtors||[];names=result.names||{};
+  // Discard expansion state if an inquiry is reopened or no longer returned.
+  const closedIds=new Set(inquiries.filter(x=>x.status==="closed").map(x=>String(x.id)));
+  for(const id of expandedClosedInquiries)if(!closedIds.has(id))expandedClosedInquiries.delete(id);
   metrics=result.metrics||{};currentDiscordId=result.currentDiscordId||"";role=result.role||"realtor";
   el("inquiryStaffContent").hidden=false;
   el("inquiryDiscordTestArea").hidden=role!=="owner";
@@ -236,6 +256,15 @@ async function init(){
   el("inquiryStaffUnassigned").addEventListener("change",render);
   el("inquiryStaffNeedsAttention").addEventListener("change",render);
   el("inquiryStaffList").addEventListener("click",actionClick);
+  // Native details elements handle click and keyboard accessibility; the
+  // capture listener keeps each expanded row open through future rerenders.
+  el("inquiryStaffList").addEventListener("toggle",event=>{
+   const details=event.target;
+   if(!details?.matches?.("details[data-closed-inquiry-id]"))return;
+   const id=details.dataset.closedInquiryId;
+   if(details.open)expandedClosedInquiries.add(id);
+   else expandedClosedInquiries.delete(id);
+  },true);
   el("inquiryDiscordCheck").addEventListener("click",async()=>{
    const button=el("inquiryDiscordCheck"),output=el("inquiryDiscordDiagnostic");
    button.disabled=true;output.hidden=false;output.textContent="Checking bot identity and channel…";
