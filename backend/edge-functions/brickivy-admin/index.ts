@@ -277,7 +277,7 @@ Deno.serve(async request => {
 
     const body: Record<string, unknown> = await request.json();
     const action = body.action;
-    if (action === "me") return json({role:isOwner?"owner":"realtor",displayName:account.user.user_metadata?.full_name || "Team member"},200,cors);
+    if (action === "me") return json({role:isOwner?"owner":"realtor",staffLabel:isOwner?"Owner":roles.includes(REALTOR_ROLE_ID)?"Realtor":"Staff",displayName:account.user.user_metadata?.full_name || "Team member"},200,cors);
 
     // All inquiry actions are checked against live Discord guild roles, plus
     // explicit per-Realtor permissions; never expose private inquiry tables.
