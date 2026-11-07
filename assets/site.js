@@ -258,27 +258,45 @@ function filterItems(items,form){
  return filtered
 }
 async function propertiesPage(){
- const form=$('#filters'),grid=$('#resultsGrid'),count=$('#resultsCount');if(!form||!grid)return;
+ const form=$('#filters'),grid=$('#resultsGrid'),count=$('#resultsCount');
+ const availableCount=$('#activeListingsCount'),unavailableSection=$('#unavailableListingsSection');
+ const unavailableGrid=$('#unavailableResultsGrid'),unavailableCount=$('#unavailableListingsCount');
+ if(!form||!grid||!count||!availableCount||!unavailableSection||!unavailableGrid||!unavailableCount)return;
  let all;
  try{all=await getProperties();}
  catch(error){
-   console.warn('Live properties unavailable:',error);
-   count.textContent='Unavailable';
-   grid.innerHTML=emptyMarkup('Property feed is temporarily unavailable.','Our live property connection could not be reached. Please try refreshing the page later.');
-   return;
+  console.warn('Live properties unavailable:',error);
+  count.textContent='Unavailable';
+  availableCount.textContent='Unavailable';
+  unavailableSection.hidden=true;
+  unavailableGrid.innerHTML='';
+  grid.innerHTML=emptyMarkup('Property feed is temporarily unavailable.','Our live property connection could not be reached. Please try refreshing the page later.');
+  return;
  }
  // Both the homepage and Properties tab use the same live OPFW property types.
  populatePropertyTypes(form.elements.namedItem('type'),all);
  const params=new URLSearchParams(location.search);
  for(const name of ['area','type','max','search','sort']){const field=form.elements.namedItem(name);if(field&&params.has(name))field.value=params.get(name)}
  function render(){
- const matches=filterItems(all,form);
- count.textContent=matches.length===1?'1 property':matches.length+' properties';
- grid.innerHTML=matches.length?matches.map(cardMarkup).join(''):emptyMarkup(all.length?'No matches found.':'Properties are coming soon.',all.length?'Try adjusting your filters to find another home.':'Brick & Ivy currently has no company properties in its live feed.');
+  // Apply the same filters and sort to both groups. Only status "unavailable"
+  // moves below the main collection; reserved homes stay alongside available.
+  const matches=filterItems(all,form);
+  const available=matches.filter(p=>statusOrder(p)===0);
+  const unavailable=matches.filter(p=>statusOrder(p)===1);
+  const label=n=>n===1?'1 property':n+' properties';
+  count.textContent=label(matches.length);
+  availableCount.textContent=label(available.length);
+  unavailableCount.textContent=label(unavailable.length);
+  grid.innerHTML=available.length?available.map(cardMarkup).join(''):
+   matches.length?emptyMarkup('No available or reserved homes match these filters.','You can browse the unavailable properties below or adjust your search.'):
+   emptyMarkup(all.length?'No matches found.':'Properties are coming soon.',
+    all.length?'Try adjusting your filters to find another home.':'Brick & Ivy currently has no company properties in its live feed.');
+  unavailableSection.hidden=unavailable.length===0;
+  unavailableGrid.innerHTML=unavailable.map(cardMarkup).join('');
  }
  form.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(form),url=new URL(location.href);url.search='';for(const [k,v] of data){if(safeText(v))url.searchParams.set(k,String(v))}history.replaceState(null,'',url);render()});
  $('#resetFilters')?.addEventListener('click',()=>{form.reset();history.replaceState(null,'',location.pathname);render()});
- render()
+ render();
 }
 async function detailPage(){
  const container=$('#detailContent');if(!container)return;
