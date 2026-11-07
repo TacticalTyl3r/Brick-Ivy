@@ -55,7 +55,7 @@ Deno.serve(async req=>{
   if(!body||typeof body!=="object"||body.action!=="list")return reply({error:"Unsupported history action"},400,origin);
   // Return a bounded recent history; do not expose unrestricted database access.
   const PAGE_LIMIT=100;
-  const [homes,properties,prices,permissions]=await Promise.all([
+  const [homes,properties,prices,permissions,rolePermissions]=await Promise.all([
    db.from("brickivy_homepage_audit")
     .select("id,actor,action,before_content,after_content,created_at")
     .order("created_at",{ascending:false}).limit(PAGE_LIMIT),
@@ -67,9 +67,12 @@ Deno.serve(async req=>{
     .order("changed_at",{ascending:false}).limit(PAGE_LIMIT),
    db.from("brickivy_realtor_permission_audit")
     .select("id,discord_user_id,actor,previous,updated,changed_at")
+    .order("changed_at",{ascending:false}).limit(PAGE_LIMIT),
+   db.from("brickivy_role_permission_audit")
+    .select("id,discord_role_id,actor,previous,updated,changed_at")
     .order("changed_at",{ascending:false}).limit(PAGE_LIMIT)
   ]);
-  if(homes.error||properties.error||prices.error||permissions.error)throw Error("Could not load audit history");
+  if(homes.error||properties.error||prices.error||permissions.error||rolePermissions.errorthrow Error("Could not load audit history");
   const events=[
    ...(homes.data||[]).map(r=>({
     id:String(r.id),type:"homepage",action:r.action,time:r.created_at,actor:r.actor,
@@ -88,8 +91,12 @@ Deno.serve(async req=>{
    })),
    ...(permissions.data||[]).map(r=>({
     id:String(r.id),type:"permissions",action:"permissions",time:r.changed_at,actor:r.actor,
-    subject:"Realtor Discord "+r.discord_user_id,
+    subject:"Legacy individual Discord permissions",
     changes:diffs(r.previous,r.updated)
+   })),
+   ...(rolePermissions.data||[]).map(r=>({
+    id:"role-"+String(r.id),type:"permissions",action:"role_permissions",time:r.changed_at,actor:r.actor,
+    subject:"Discord role "+r.discord_role_id,changes:diffs(r.previous,r.updated)
    }))
   ].sort((a,b)=>Date.parse(b.time)-Date.parse(a.time)).slice(0,250);
   const actorIds=[...new Set(events.map(e=>e.actor).filter((x):x is string=>typeof x==="string"))].slice(0,30);
