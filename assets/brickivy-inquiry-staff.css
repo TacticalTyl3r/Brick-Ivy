@@ -469,3 +469,90 @@ html[data-ui-theme="dark"] .bi-staff-page .bi-staff-auth-box .button.outline:hov
  .bi-staff-page button.bi-staff-stat{min-height:137px}
  .bi-staff-page .bi-staff-stat-bottom small{font-size:12px}
 }
+
+
+
+/* Compact closed inquiry summaries / 2026-11-07 */
+.bi-inbox-closed{
+ border:1px solid #d4ded6;border-radius:7px;overflow:hidden;
+ background:#f8faf6;box-shadow:0 4px 15px rgba(24,54,33,.035);
+}
+.bi-inbox-closed[open]{border-color:#a8bea9;background:#fffefa}
+.bi-inbox-closed-summary{
+ display:flex;align-items:center;justify-content:space-between;gap:18px;
+ padding:16px 20px;cursor:pointer;list-style:none;
+ color:#284934;user-select:none;transition:background .16s,border-color .16s;
+}
+.bi-inbox-closed-summary::-webkit-details-marker{display:none}
+.bi-inbox-closed-summary::marker{content:""}
+.bi-inbox-closed-summary:hover{background:#eff5ed}
+.bi-inbox-closed-summary:focus-visible{outline:3px solid #bda06b;outline-offset:-3px}
+.bi-inbox-closed[open] > .bi-inbox-closed-summary{
+ background:#eef4e9;border-bottom:1px solid #d7e4d5;
+}
+.bi-inbox-closed-main{display:flex;flex:1;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
+.bi-inbox-closed-reference{
+ color:#627d68;flex:0 0 auto;white-space:nowrap;
+ font-size:10px;font-weight:850;letter-spacing:.095em;
+}
+.bi-inbox-closed-address{
+ display:block;min-width:0;overflow-wrap:anywhere;color:#294c35;
+ font-size:15px;font-weight:800;line-height:1.45;
+}
+.bi-inbox-closed-meta{
+ color:#69816e;flex:1 1 100%;font-size:11px;line-height:1.55;
+}
+.bi-inbox-closed-side{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.bi-inbox-closed-side .bi-inbox-tag{
+ display:inline-flex;align-items:center;justify-content:center;
+ background:#e9eeeb;border:1px solid #a9b9ad;color:#456d54;
+ border-radius:4px;padding:6px 10px;font-size:9px;font-weight:850;
+ letter-spacing:.085em;line-height:1.4;
+}
+.bi-inbox-closed-chevron{
+ display:grid;place-items:center;width:29px;height:29px;flex-shrink:0;
+ border:1px solid #c6d6c9;border-radius:50%;
+ background:#fffefa;color:#3c6746;font-size:20px;line-height:1;
+ transition:transform .18s,background .18s;
+}
+.bi-inbox-closed[open] .bi-inbox-closed-chevron{transform:rotate(180deg);background:#dfeadd}
+.bi-inbox-closed > .bi-inbox-card{
+ margin:0;background:#fffefa;border:0;box-shadow:none;border-radius:0;
+}
+.bi-inbox-help{font-size:12px;color:#64796a;line-height:1.7;margin:-9px 0 18px}
+html[data-ui-theme="dark"] .bi-inbox-closed{
+ background:#1c3024;border-color:#48664e;box-shadow:none;
+}
+html[data-ui-theme="dark"] .bi-inbox-closed[open]{background:#21382a;border-color:#678773}
+html[data-ui-theme="dark"] .bi-inbox-closed-summary{color:#eff7ed}
+html[data-ui-theme="dark"] .bi-inbox-closed-summary:hover{background:#2c4936}
+html[data-ui-theme="dark"] .bi-inbox-closed[open] > .bi-inbox-closed-summary{
+ background:#2b4735;border-bottom-color:#49684e;
+}
+html[data-ui-theme="dark"] .bi-inbox-closed-reference{color:#b9d1bb}
+html[data-ui-theme="dark"] .bi-inbox-closed-address{color:#f2f8ee}
+html[data-ui-theme="dark"] .bi-inbox-closed-meta{color:#b3cab9}
+html[data-ui-theme="dark"] .bi-inbox-closed-side .bi-inbox-tag{
+ background:#294436;border-color:#688f75;color:#d7ecd9;
+}
+html[data-ui-theme="dark"] .bi-inbox-closed-chevron{
+ background:#31543d;border-color:#6d9474;color:#f1f8ee;
+}
+html[data-ui-theme="dark"] .bi-inbox-closed[open] .bi-inbox-closed-chevron{background:#3b6649}
+html[data-ui-theme="dark"] .bi-inbox-closed > .bi-inbox-card{
+ background:#1b2f22;border-color:#4d6d55;
+}
+html[data-ui-theme="dark"] .bi-inbox-help{color:#bad0bc}
+@media(max-width:660px){
+ .bi-inbox-closed-summary{align-items:flex-start;gap:11px;padding:14px}
+ .bi-inbox-closed-main{gap:5px 9px;align-items:flex-start}
+ .bi-inbox-closed-reference{flex-basis:100%}
+ .bi-inbox-closed-address{font-size:14px}
+ .bi-inbox-closed-meta{font-size:10px}
+ .bi-inbox-closed-side{gap:6px}
+ .bi-inbox-closed-side .bi-inbox-tag{font-size:9px;padding:5px 7px}
+ .bi-inbox-closed-chevron{width:25px;height:25px;font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bi-inbox-closed-chevron,.bi-inbox-closed-summary{transition:none}
+}
