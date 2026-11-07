@@ -758,3 +758,36 @@ html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-actions .button.o
 html[data-ui-theme="dark"] body[data-page="realtors"] .realtor-actions .button.outline:hover{
  background:#365b43;color:#fff;
 }
+
+
+/* Distinct unavailable listing section in dark mode. */
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-heading{
+ border-bottom-color:#435c4b;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-heading h2{
+ color:#f0f7ed;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-eyebrow{
+ color:#a8c7ad;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-heading p{
+ color:#b5ceba;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-count{
+ background:#284b35;border-color:#557b5c;color:#dff2dd;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-group.is-unavailable{
+ border-top-color:#5e544d;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-group.is-unavailable .public-listing-eyebrow{
+ color:#d6b29c;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-group.is-unavailable .public-listing-count{
+ background:#3d342f;border-color:#756052;color:#efcfbc;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-group.is-unavailable .property-card{
+ background:#2a2927;border-color:#61574e;
+}
+html[data-ui-theme="dark"] body[data-page="properties"] .public-listing-group.is-unavailable .property-card:hover{
+ border-color:#a08970;
+}
