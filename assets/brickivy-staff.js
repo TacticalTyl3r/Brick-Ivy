@@ -282,11 +282,12 @@ async function checkRole() {
   try {
     const me=await api('me');
     currentRole=me.role;
-    message(currentRole==='owner'?'Signed in as Brick & Ivy Owner.':currentRole==='realtor'?'Signed in as a Brick & Ivy Realtor.':'Access restricted.');
+    const accessLabel=me.staffLabel==='Owner'?'Owner':me.staffLabel==='Realtor'?'Realtor':'Staff';
+    message('Signed in with Brick & Ivy '+accessLabel+' access.');
     show(element('staffOwnerContent'),currentRole==='owner');
     show(element('staffTeamContent'),currentRole==='realtor');
     const chip=element('staffRoleChip');
-    if(chip){chip.textContent=currentRole==='owner'?'Owner access':'Realtor access';show(chip,true);}
+    if(chip){chip.textContent=accessLabel+' access';show(chip,true);}
     show(element('staffWorkspace'),true);
     activateStaffTab('overview');
     await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
