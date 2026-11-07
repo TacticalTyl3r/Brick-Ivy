@@ -171,6 +171,43 @@ async function membership(discordUserId: string, botToken: string) {
     return member.roles.filter((role: unknown) => typeof role === "string");
   } finally { clearTimeout(timer); }
 }
+
+/** Live Discord roles are the sole source of staff permissions. Grants combine
+ * additively, with the Owner role checked separately. Legacy per-user records
+ * are intentionally ignored to prevent user-specific privilege inheritance. */
+async function resolveRoleGrants(db:ReturnType<typeof createClient>,roles:string[]){
+ const ids=[...new Set(roles.filter(id=>/^\d{17,20}$/.test(id)&&id!==OWNER_ROLE_ID))];
+ const permissions=Object.fromEntries(PERMISSION_FIELDS.map(key=>[key,false])) as Record<string,boolean>;
+ if(!ids.length)return {isStaff:false,permissions};
+ const {data,error}=await db.from("brickivy_role_permissions")
+  .select("discord_role_id,"+PERMISSION_FIELDS.join(",")).in("discord_role_id",ids);
+ if(error)throw Error("Unable to read Discord role permissions");
+ const configured=(data||[]) as Array<Record<string,unknown>>;
+ if(ids.includes(REALTOR_ROLE_ID)&&!configured.some(r=>r.discord_role_id===REALTOR_ROLE_ID))
+  Object.assign(permissions,DEFAULT_PERMISSIONS);
+ for(const row of configured)for(const key of PERMISSION_FIELDS)
+  permissions[key]=permissions[key]||row[key]===true;
+ return {isStaff:ids.includes(REALTOR_ROLE_ID)||configured.length>0,permissions};
+}
+async function guildPermissionRoles(botToken:string){
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
+ try{
+  const res=await fetch("https://discord.com/api/v10/guilds/"+GUILD_ID+"/roles",{
+   headers:{Authorization:"Bot "+botToken,Accept:"application/json"},signal:ctrl.signal
+  });
+  if(!res.ok)throw Error("Discord server roles unavailable");
+  const data=await res.json();
+  if(!Array.isArray(data))throw Error("Unexpected Discord role list");
+  return data.filter((r:Record<string,unknown>)=>
+    /^\d{17,20}$/.test(String(r.id||""))&&r.id!==OWNER_ROLE_ID&&
+    r.id!==GUILD_ID&&r.managed!==true)
+   .map((r:Record<string,unknown>)=>({
+     id:String(r.id),name:String(r.name||"Unnamed role").slice(0,100),
+     color:Number(r.color)||0,position:Number(r.position)||0
+   })).sort((a:{position:number},b:{position:number})=>b.position-a.position);
+ }finally{clearTimeout(timer)}
+}
+
 function parseBody(body: Record<string, unknown>) {
   if (!validCID(body.characterId)) throw new Error("Enter a valid CID");
   const name = string(body.name, 80);
@@ -234,8 +271,9 @@ Deno.serve(async request => {
     // Guild role membership is checked live on EVERY request, including saves.
     const roles = await membership(providerId,botToken);
     const isOwner = roles.includes(OWNER_ROLE_ID);
-    const isRealtor = isOwner || roles.includes(REALTOR_ROLE_ID);
-    if (!isRealtor) return json({error:"Brick & Ivy staff membership required"},403,cors);
+    const roleGrants=isOwner?null:await resolveRoleGrants(admin,roles);
+    if(!isOwner&&!roleGrants?.isStaff)
+      return json({error:"Brick & Ivy staff Discord role required"},403,cors);
 
     const body: Record<string, unknown> = await request.json();
     const action = body.action;
@@ -244,12 +282,8 @@ Deno.serve(async request => {
     // All inquiry actions are checked against live Discord guild roles, plus
     // explicit per-Realtor permissions; never expose private inquiry tables.
     if (["listInquiries","claimInquiry","updateInquiry","inquiryActivity","inquirySummary","inquiryAnalytics"].includes(String(action))) {
-      if (!isOwner) {
-        const {data:grant,error:grantError}=await admin.from("brickivy_realtor_permissions")
-          .select("can_manage_inquiries").eq("discord_user_id",providerId).maybeSingle();
-        if(grantError)throw Error("Unable to check inquiry access");
-        if(grant?.can_manage_inquiries!==true)return json({error:"Inquiry management permission required"},403,cors);
-      }
+      if(!isOwner&&roleGrants?.permissions.can_manage_inquiries!==true)
+        return json({error:"Inquiry management permission required"},403,cors);
       const validStatuses=["new","in_progress","contacted","awaiting_customer","closed"];
       const inboxFields="id,inquiry_number,property_id,property_name,property_address,character_name,in_game_phone,discord_contact,message,status,internal_note,assigned_discord_id,discord_notification,created_at,updated_at,claimed_at,contacted_at,closed_at";
       const now=new Date().toISOString();
@@ -362,19 +396,16 @@ Deno.serve(async request => {
       if(changingAssignee&&assignee&&!target)
         return json({error:"Assigned team member must be an active Owner or published Realtor"},400,cors);
       if(changingAssignee&&assignee&&target){
-        // Owner assignments use the live guild Owner role. Realtor assignments
-        // retain the per-user Manage Inquiries permission requirement.
-        if(target.role!=="Owner"){
-          const {data:targetGrant,error:targetGrantError}=await admin.from("brickivy_realtor_permissions")
-            .select("can_manage_inquiries").eq("discord_user_id",assignee).maybeSingle();
-          if(targetGrantError)throw Error("Unable to verify assignee inquiry permission");
-          if(targetGrant?.can_manage_inquiries!==true)
-            return json({error:"Grant this Realtor Manage property inquiries permission before assigning them"},400,cors);
-        }
+        // Assignments use the target's live guild roles and effective grants.
         const targetRoles=await membership(assignee,botToken);
-        if(target.role==="Owner"?!targetRoles.includes(OWNER_ROLE_ID):
-          !targetRoles.includes(REALTOR_ROLE_ID)&&!targetRoles.includes(OWNER_ROLE_ID))
-          return json({error:"Assigned team member does not have the required Brick & Ivy Discord role"},400,cors);
+        if(target.role==="Owner"){
+          if(!targetRoles.includes(OWNER_ROLE_ID))
+            return json({error:"Assigned Owner no longer has the Owner Discord role"},400,cors);
+        }else{
+          const grants=await resolveRoleGrants(admin,targetRoles);
+          if(!grants.isStaff||!grants.permissions.can_manage_inquiries)
+            return json({error:"Assigned team member needs a Discord role with Manage Inquiries permission"},400,cors);
+        }
       }
       const changedStatus=before.status!==status,changedAssignee=(before.assigned_discord_id||"")!==assignee,
         changedNote=before.internal_note!==note;
