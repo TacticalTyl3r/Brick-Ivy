@@ -133,17 +133,29 @@ Deno.serve(async(req:Request)=>{
       return response({error:"Discord sign-in required"},403,cors);
     }
     const roles=await guildRoles(providerId,bot);
-    const owner=roles.includes(OWNER_ROLE_ID),realtor=owner||roles.includes(REALTOR_ROLE_ID);
-    if(!realtor)return response({error:"Brick & Ivy staff role required"},403,cors);
-    // Permissions are attached to the server-verified Discord identity, never
-    // client metadata, a public Realtor title, or a client-supplied role.
+    const owner=roles.includes(OWNER_ROLE_ID);
+    // Live role membership is required for every private property request.
+    // No individual Discord user grants are consulted.
+    const ids=[...new Set(roles.filter(x=>/^[0-9]{17,20}$/.test(x)&&x!==OWNER_ROLE_ID))];
     let permissions={...DEFAULT_PERMISSIONS};
     if(owner)permissions={...OWNER_PERMISSIONS} as typeof DEFAULT_PERMISSIONS;
     else {
-      const {data:record,error:e}=await db.from("brickivy_realtor_permissions")
-        .select(Object.keys(DEFAULT_PERMISSIONS).join(",")).eq("discord_user_id",providerId).maybeSingle();
-      if(e)throw Error("Unable to verify Realtor permissions");
-      permissions={...DEFAULT_PERMISSIONS,...(record||{})};
+      const {data:rules,error:permissionError}=ids.length?
+        await db.from("brickivy_role_permissions")
+          .select("discord_role_id,"+Object.keys(DEFAULT_PERMISSIONS).join(","))
+          .in("discord_role_id",ids):
+        {data:[],error:null};
+      if(permissionError)throw Error("Unable to verify Discord role permissions");
+      const matches=rules||[];
+      const staff=ids.includes(REALTOR_ROLE_ID)||matches.length>0;
+      if(!staff)return response({error:"Brick & Ivy staff Discord role required"},403,cors);
+      // Defaults apply only to the Realtor role while it is not explicitly saved.
+      const realtorConfigured=matches.some(rule=>rule.discord_role_id===REALTOR_ROLE_ID);
+      permissions=Object.fromEntries(Object.keys(DEFAULT_PERMISSIONS).map(key=>[key,false])) as typeof DEFAULT_PERMISSIONS;
+      if(ids.includes(REALTOR_ROLE_ID)&&!realtorConfigured)
+        permissions={...DEFAULT_PERMISSIONS};
+      for(const rule of matches)for(const key of Object.keys(DEFAULT_PERMISSIONS) as Array<keyof typeof DEFAULT_PERMISSIONS>)
+        permissions[key]=permissions[key]||rule[key]===true;
     }
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
