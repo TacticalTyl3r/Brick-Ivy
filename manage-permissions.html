@@ -4,8 +4,8 @@
 <title>Discord Role Permissions | Brick &amp; Ivy</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <script src="assets/theme.js?v=20261022-dark1"></script>
-<link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="assets/styles.css?v=20261107-staff-suite1">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261107-staff-suite1">
 <script defer src="assets/site.js?v=20261103-address1"></script>
 <script>window.BRICK_IVY_CONFIG=Object.freeze({supabaseUrl:"https://rcbbnzqmfvapwuqmpmhk.supabase.co",publishableKey:"sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",discordAuthReady:true});</script>
 <script type="module" src="assets/brickivy-permissions.js?v=20261107-role-permissions1"></script>
@@ -39,6 +39,26 @@ html[data-ui-theme="dark"] .perm-role-guide{background:#274330;color:#dfeddf}
 <div class="eyebrow">Brick &amp; Ivy / Owner access</div><h1 class="section-heading">Discord role <em>permissions.</em></h1>
 <p>Configure permissions once for each role in your Brick &amp; Ivy Discord server. All members with that role receive its permissions automatically, with membership checked live on each request.</p></div></section>
 <div class="container manage-workspace">
+<nav class="bi-tools-nav" aria-label="Brick and Ivy staff management pages">
+ <div class="bi-tools-nav-header"><div><span class="bi-tools-nav-kicker">BRICK &amp; IVY / STAFF WORKSPACE</span>
+ <strong>Management center</strong><p>Switch between tools without returning to the dashboard.</p></div>
+ <a class="bi-tools-nav-back" href="admin.html">← Back to Staff Portal</a></div>
+ <div class="bi-tools-nav-groups">
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Daily operations</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-properties.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Properties</span><span class="bi-tools-nav-detail">Rentals &amp; listings</span></a>
+ <a href="manage-inquiries.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Inquiries</span><span class="bi-tools-nav-detail">Customer follow-ups</span></a>
+ <a href="manage-realtors.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Realtors</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Team directory</span></a>
+ <a href="manage-permissions.html" class="bi-tools-nav-link is-current" aria-current="page"><span class="bi-tools-nav-link-text">Permissions</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Discord role access</span></a>
+ </div></div>
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Website &amp; reporting</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-homepage.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Homepage</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Content &amp; design</span></a>
+ <a href="manage-map.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Property Map</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Private map editor</span></a>
+ <a href="manage-history.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">History</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Changes &amp; restore</span></a>
+ </div></div>
+ </div></nav>
+
 <div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span><div><strong>Owner-only role permissions</strong><p>The Discord Owner role always has full access. The Realtor role starts with reservation management only; additional access must be granted here. Permissions from multiple roles combine. These settings do not assign Discord roles or change who holds them. Previous individual settings are retained for history but no longer apply.</p></div></div>
 <div class="manage-auth-gate"><p id="permissionsStatus" class="staff-auth-message" role="status" aria-live="polite">Checking your session…</p>
 <div id="permissionsLogin" hidden><button class="button dark" type="button" id="permissionsSignIn">Sign in with Discord ↗</button></div>
