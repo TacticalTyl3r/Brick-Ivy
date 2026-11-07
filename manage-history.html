@@ -4,8 +4,8 @@
 <title>Change History | Brick &amp; Ivy</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <script src="assets/theme.js?v=20261022-dark1"></script>
-<link rel="stylesheet" href="assets/styles.css?v=20261023-visitors1">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261023-contrast1">
+<link rel="stylesheet" href="assets/styles.css?v=20261107-staff-suite1">
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261107-staff-suite1">
 <script defer src="assets/site.js?v=20261103-address1"></script>
 <script defer src="assets/brickivy-config.js"></script>
 <script type="module" src="assets/brickivy-history.js?v=20261022-history1"></script>
@@ -17,7 +17,27 @@
 <main><section class="page-header admin-management-hero"><div class="container">
 <div class="eyebrow">Brick &amp; Ivy / Owner tools</div><h1 class="section-heading">Website change <em>history.</em></h1>
 <p>Review edits to the homepage, property details, weekly prices, and Realtor permissions. Restore a prior published homepage version into your private draft without changing the live site.</p></div></section>
-<div class="container manage-workspace"><div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span>
+<div class="container manage-workspace">
+<nav class="bi-tools-nav" aria-label="Brick and Ivy staff management pages">
+ <div class="bi-tools-nav-header"><div><span class="bi-tools-nav-kicker">BRICK &amp; IVY / STAFF WORKSPACE</span>
+ <strong>Management center</strong><p>Switch between tools without returning to the dashboard.</p></div>
+ <a class="bi-tools-nav-back" href="admin.html">← Back to Staff Portal</a></div>
+ <div class="bi-tools-nav-groups">
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Daily operations</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-properties.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Properties</span><span class="bi-tools-nav-detail">Rentals &amp; listings</span></a>
+ <a href="manage-inquiries.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Inquiries</span><span class="bi-tools-nav-detail">Customer follow-ups</span></a>
+ <a href="manage-realtors.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Realtors</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Team directory</span></a>
+ <a href="manage-permissions.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Permissions</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Discord role access</span></a>
+ </div></div>
+ <div class="bi-tools-nav-group"><span class="bi-tools-nav-label">Website &amp; reporting</span>
+ <div class="bi-tools-nav-links">
+ <a href="manage-homepage.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Homepage</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Content &amp; design</span></a>
+ <a href="manage-map.html" class="bi-tools-nav-link"><span class="bi-tools-nav-link-text">Property Map</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Private map editor</span></a>
+ <a href="manage-history.html" class="bi-tools-nav-link is-current" aria-current="page"><span class="bi-tools-nav-link-text">History</span><span class="bi-tools-nav-owner">Owner</span><span class="bi-tools-nav-detail">Changes &amp; restore</span></a>
+ </div></div>
+ </div></nav>
+<div class="manage-notice"><span class="manage-info-symbol" aria-hidden="true">ⓘ</span>
 <div><strong>Private Owner audit trail</strong><p>Only verified Brick &amp; Ivy Owners can read this history. Restoring a published homepage version loads it as a draft first; nothing changes for visitors until you publish from the Homepage Editor.</p></div></div>
 <div class="manage-auth-gate"><p id="historyStatus" role="status" aria-live="polite" class="staff-auth-message">Checking your Owner session…</p>
 <div id="historyLogin" hidden><button class="button dark" type="button" id="historySignIn">Sign in with Discord ↗</button></div>
