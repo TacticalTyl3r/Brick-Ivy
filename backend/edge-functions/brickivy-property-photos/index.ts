@@ -74,8 +74,15 @@ Deno.serve(async req=>{
       roles=record.roles.filter((r:unknown)=>typeof r==="string");
     }
   }finally{clearTimeout(t)}
-  const owner=roles.includes(OWNER),staff=owner||roles.includes(REALTOR);
-  if(!staff)return resp({error:"Brick & Ivy staff role required"},403,cors);
+  const owner=roles.includes(OWNER);
+  const ids=[...new Set(roles.filter(x=>/^[0-9]{17,20}$/.test(x)&&x!==OWNER))];
+  const {data:grants,error:grantsError}=!owner&&ids.length?
+    await db.from("brickivy_role_permissions")
+      .select("discord_role_id,can_manage_photos").in("discord_role_id",ids):
+    {data:[],error:null};
+  if(grantsError)throw Error("Unable to verify role photo permissions");
+  const staff=owner||ids.includes(REALTOR)||(grants||[]).length>0;
+  if(!staff)return resp({error:"Brick & Ivy staff Discord role required"},403,cors);
   let action="",propertyId="",file:File|null=null,body:Record<string,unknown>={};
   if(req.headers.get("content-type")?.includes("multipart/form-data")){
     const form=await req.formData();
@@ -87,14 +94,8 @@ Deno.serve(async req=>{
     body=input as Record<string,unknown>;action=String(body.action||"");propertyId=String(body.propertyId||"");
   }
   if(!["list","upload","delete","cover","reorder"].includes(action))return resp({error:"Unsupported photo action"},400,cors);
-  // Only a verified Realtor with an explicit Owner grant may mutate photos.
-  // A missing permissions row always denies photo edits.
-  if(action!=="list"&&!owner){
-    const {data:permission,error:e}=await db.from("brickivy_realtor_permissions")
-      .select("can_manage_photos").eq("discord_user_id",did).maybeSingle();
-    if(e)throw Error("Unable to verify gallery permissions");
-    if(permission?.can_manage_photos!==true)return resp({error:"Owner has not granted photo management access"},403,cors);
-  }
+  if(action!=="list"&&!owner&&!(grants||[]).some(r=>r.can_manage_photos===true))
+    return resp({error:"A Discord role with Manage Photos is required"},403,cors);
   if(!ID.test(propertyId))return resp({error:"Invalid property ID"},400,cors);
   // Check actual OPFW company membership before listing or mutating files.
   if(!await companyProperty(opfw,propertyId))return resp({error:"Property is not in Brick & Ivy company stock"},404,cors);
