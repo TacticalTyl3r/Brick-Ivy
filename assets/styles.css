@@ -1390,3 +1390,57 @@ body[data-page="realtors"] .team-empty{border-radius:9px}
 @media(prefers-reduced-motion:reduce){
  .primary-nav>a:after{transition:none}
 }
+
+
+/* Public listing availability sections, 2026-11-07. The full property feed
+   remains searchable; unavailable homes appear under their own heading. */
+body[data-page="properties"] .public-property-results{min-width:0}
+body[data-page="properties"] .public-listing-group{min-width:0;margin:26px 0 0}
+body[data-page="properties"] .public-listing-group.is-unavailable{
+ margin-top:44px;padding-top:33px;border-top:2px solid #d9e0d5;
+}
+body[data-page="properties"] .public-listing-group[hidden]{display:none!important}
+body[data-page="properties"] .public-listing-heading{
+ display:flex;align-items:end;justify-content:space-between;gap:18px;
+ padding:0 0 18px;margin-bottom:21px;border-bottom:1px solid #dbe5d8;
+}
+body[data-page="properties"] .public-listing-eyebrow{
+ display:block;font-size:10px;letter-spacing:.14em;font-weight:850;
+ text-transform:uppercase;color:#658369;margin-bottom:8px;
+}
+body[data-page="properties"] .public-listing-heading h2{
+ margin:0 0 7px;color:#294a34;font-size:clamp(24px,2.6vw,32px);
+ line-height:1.23;letter-spacing:-.025em;
+}
+body[data-page="properties"] .public-listing-heading p{
+ margin:0;max-width:580px;color:#677d6b;font-size:12px;line-height:1.65;
+}
+body[data-page="properties"] .public-listing-count{
+ flex:0 0 auto;align-self:center;white-space:nowrap;font-size:11px;
+ font-weight:800;color:#355e43;background:#eaf3e7;
+ border:1px solid #c9ddc8;border-radius:5px;padding:8px 11px;
+}
+body[data-page="properties"] .public-listing-group.is-unavailable .public-listing-heading{
+ border-bottom-color:#dedcd5;
+}
+body[data-page="properties"] .public-listing-group.is-unavailable .public-listing-eyebrow{
+ color:#906b54;
+}
+body[data-page="properties"] .public-listing-group.is-unavailable .public-listing-count{
+ color:#775d54;background:#f4eeea;border-color:#e2d3ca;
+}
+body[data-page="properties"] .public-listing-group.is-unavailable .property-card{
+ background:#fcfaf8;border-color:#e1dbd5;
+}
+body[data-page="properties"] .public-listing-group.is-unavailable .property-image img{
+ filter:saturate(.8);
+}
+@media(max-width:590px){
+ body[data-page="properties"] .public-listing-heading{
+  align-items:flex-start;flex-direction:column;gap:12px;
+ }
+ body[data-page="properties"] .public-listing-count{align-self:flex-start}
+ body[data-page="properties"] .public-listing-group.is-unavailable{
+  margin-top:34px;padding-top:26px;
+ }
+}
