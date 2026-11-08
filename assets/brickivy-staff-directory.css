@@ -89,3 +89,138 @@ html[data-ui-theme="dark"] .bi-dir-payment-status.is-evictable{background:#863a4
 .bi-dir-table .bi-dir-payment-date{font-size:11px;line-height:1.5;white-space:normal}
 .bi-dir-table td.bi-dir-payment.is-overdue,
 .bi-dir-table td.bi-dir-payment.is-evictable{font-weight:700}
+
+
+
+/* Brick & Ivy private tenant history panel / 2026-11-08 */
+.bi-staff-page .bi-staff-shortcut-links{grid-template-columns:repeat(4,minmax(0,1fr))}
+.bi-dir-history-link{
+ display:inline-block;margin-top:6px;padding:2px 0;border:0;background:transparent;
+ font:inherit;font-size:10px;font-weight:800;text-align:left;color:#33734a;
+ text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+}
+.bi-dir-history-link:hover{color:#145a2c}
+.bi-tenant-summary{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 24px;
+}
+.bi-tenant-stat{
+ display:flex;flex-direction:column;gap:7px;padding:19px 21px;
+ background:#fffefa;border:1px solid #d6e2d4;border-top:4px solid #7fa589;border-radius:6px;
+}
+.bi-tenant-stat span{
+ font-size:10px;font-weight:850;line-height:1.4;letter-spacing:.085em;
+ text-transform:uppercase;color:#4b6854;
+}
+.bi-tenant-stat strong{font:600 33px/1.1 'Playfair Display',Georgia,serif;color:#255036}
+.bi-tenant-stat small{font-size:11px;line-height:1.5;color:#64796a}
+.bi-tenant-controls{
+ display:grid;grid-template-columns:minmax(220px,1.6fr) minmax(190px,1fr) minmax(155px,.8fr);
+ gap:12px;align-items:end;margin-bottom:14px;
+}
+.bi-tenant-controls label,.bi-tenant-manual-grid label{
+ display:grid;align-content:start;gap:7px;min-width:0;
+ font-size:11px;font-weight:800;line-height:1.5;color:#45624c;
+}
+.bi-tenant-controls input,.bi-tenant-controls select,
+.bi-tenant-manual-grid input,.bi-tenant-manual-grid select,
+.bi-tenant-manual-grid textarea{
+ display:block;width:100%;min-width:0;min-height:43px;
+ padding:11px 12px;border:1px solid #bdcebf;border-radius:5px;
+ background:#fffefa;color:#244331;font:inherit;font-size:13px;font-weight:500;
+}
+.bi-tenant-manual-grid textarea{resize:vertical;min-height:90px;line-height:1.55}
+.bi-tenant-controls input:focus-visible,.bi-tenant-controls select:focus-visible,
+.bi-tenant-manual-grid :is(input,select,textarea):focus-visible{outline:3px solid #b9a074;outline-offset:2px}
+.bi-tenant-notice{font-size:12px;color:#5c7361;line-height:1.7;margin:0 0 20px}
+.bi-tenant-list{display:grid;gap:12px;margin-bottom:29px}
+.bi-tenant-record{
+ padding:19px 22px;background:#fffefa;border:1px solid #d8e3d7;
+ border-radius:7px;min-width:0;box-shadow:0 3px 12px rgba(20,50,33,.03);
+}
+.bi-tenant-record-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.bi-tenant-record-kicker{font-size:10px;color:#63816a;letter-spacing:.065em;font-weight:850;text-transform:uppercase;overflow-wrap:anywhere}
+.bi-tenant-record h3{font-size:20px;line-height:1.32;margin:6px 0;color:#244833}
+.bi-tenant-record-head p{font-size:11px;color:#728274;line-height:1.6;margin:0}
+.bi-tenant-status{
+ flex:0 0 auto;padding:5px 9px;border-radius:4px;
+ font-size:10px;font-weight:850;letter-spacing:.035em;white-space:nowrap;
+}
+.bi-tenant-status.is-past{color:#6c5c3f;background:#f3ebdd;border:1px solid #e1cfb0}
+.bi-tenant-status.is-current{color:#225e3c;background:#e5f1e5;border:1px solid #c0dac6}
+.bi-tenant-record-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:15px}
+.bi-tenant-record-meta span{font-size:11px;color:#546c5a;line-height:1.6}
+.bi-tenant-record-meta span+span:before{
+ content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+ margin-right:11px;vertical-align:middle;background:#a5bbab;
+}
+.bi-tenant-reason{margin:9px 0 0;color:#617763;font-size:11px;line-height:1.5}
+.bi-tenant-notes{margin-top:10px;border-top:1px solid #e1e9e0;padding-top:8px}
+.bi-tenant-notes summary{cursor:pointer;font-size:11px;font-weight:800;color:#42744d}
+.bi-tenant-notes p{white-space:pre-wrap;margin:8px 0;color:#4b6652;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+.bi-tenant-remove{
+ display:inline-block;margin-top:13px;border:1px solid #d9b6b6;
+ background:#faefed;color:#923f3b;border-radius:5px;padding:8px 11px;
+ font-size:10px;font-weight:850;cursor:pointer;
+}
+.bi-tenant-remove:hover{background:#f5dedd}
+.bi-tenant-remove:disabled{opacity:.5;cursor:not-allowed}
+.bi-tenant-empty{padding:31px 26px;border:1px dashed #cbd8c8;background:#f9fcf7;color:#57705c;border-radius:7px;line-height:1.7;font-size:13px}
+.bi-tenant-manual{
+ margin-top:29px;padding:24px;background:#edf3eb;border:1px solid #d1dfcf;
+ border-radius:8px;
+}
+.bi-tenant-manual-heading h3{font-size:26px;margin:8px 0 6px;color:#284b34}
+.bi-tenant-manual-heading p{color:#617863;font-size:12px;line-height:1.7;margin:0 0 19px}
+.bi-tenant-manual-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.bi-tenant-manual-notes,.bi-tenant-manual-actions{grid-column:1/-1}
+.bi-tenant-manual-actions{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.bi-tenant-manual-actions .button{min-height:43px;padding:10px 15px}
+.bi-tenant-manual-actions span{color:#426d4d;font-size:12px;line-height:1.5}
+html[data-ui-theme="dark"] .bi-dir-history-link{color:#b5e6c0}
+html[data-ui-theme="dark"] .bi-dir-history-link:hover{color:#def7df}
+html[data-ui-theme="dark"] .bi-tenant-stat{background:#243b2b;border-color:#507155;border-top-color:#8bad91}
+html[data-ui-theme="dark"] .bi-tenant-stat span{color:#c1dec6}
+html[data-ui-theme="dark"] .bi-tenant-stat strong{color:#f0f7ed}
+html[data-ui-theme="dark"] .bi-tenant-stat small{color:#bad0bc}
+html[data-ui-theme="dark"] .bi-tenant-controls label,
+html[data-ui-theme="dark"] .bi-tenant-manual-grid label{color:#c4ddc8}
+html[data-ui-theme="dark"] .bi-tenant-controls :is(input,select),
+html[data-ui-theme="dark"] .bi-tenant-manual-grid :is(input,select,textarea){
+ background:#152b1e;color:#eff7eb;border-color:#62846a;
+}
+html[data-ui-theme="dark"] .bi-tenant-notice{color:#b8d1bc}
+html[data-ui-theme="dark"] .bi-tenant-record{background:#23392b;border-color:#4d7055;box-shadow:none}
+html[data-ui-theme="dark"] .bi-tenant-record-kicker{color:#b4d3bc}
+html[data-ui-theme="dark"] .bi-tenant-record h3{color:#f0f9ec}
+html[data-ui-theme="dark"] .bi-tenant-record-head p,
+html[data-ui-theme="dark"] .bi-tenant-record-meta span,
+html[data-ui-theme="dark"] .bi-tenant-reason{color:#bbd2bd}
+html[data-ui-theme="dark"] .bi-tenant-status.is-past{background:#403726;color:#f5dfa8;border-color:#80704e}
+html[data-ui-theme="dark"] .bi-tenant-status.is-current{background:#2c5638;color:#cef1d4;border-color:#66916e}
+html[data-ui-theme="dark"] .bi-tenant-notes{border-color:#4f6853}
+html[data-ui-theme="dark"] .bi-tenant-notes summary{color:#c9edcf}
+html[data-ui-theme="dark"] .bi-tenant-notes p{color:#d2e5d5}
+html[data-ui-theme="dark"] .bi-tenant-remove{background:#4a2d2d;border-color:#9a6060;color:#f4d8d5}
+html[data-ui-theme="dark"] .bi-tenant-empty{background:#1d3124;color:#c2ddc5;border-color:#65836a}
+html[data-ui-theme="dark"] .bi-tenant-manual{background:#1d3527;border-color:#46634c}
+html[data-ui-theme="dark"] .bi-tenant-manual-heading h3{color:#f0f7e9}
+html[data-ui-theme="dark"] .bi-tenant-manual-heading p{color:#b5d0bb}
+html[data-ui-theme="dark"] .bi-tenant-manual-actions span{color:#b5dbbd}
+@media(max-width:990px){
+ .bi-staff-page .bi-staff-shortcut-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bi-tenant-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bi-tenant-controls label:first-child{grid-column:1/-1}
+ .bi-tenant-manual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:630px){
+ .bi-staff-page .bi-staff-shortcut-links{grid-template-columns:1fr}
+ .bi-tenant-summary{grid-template-columns:1fr}
+ .bi-tenant-controls,.bi-tenant-manual-grid{grid-template-columns:1fr}
+ .bi-tenant-controls label:first-child{grid-column:auto}
+ .bi-tenant-manual-notes,.bi-tenant-manual-actions{grid-column:auto}
+ .bi-tenant-record{padding:16px}
+ .bi-tenant-record-head{flex-direction:column;gap:10px}
+ .bi-tenant-record-meta{gap:8px;flex-direction:column}
+ .bi-tenant-record-meta span+span:before{display:none}
+ .bi-tenant-manual{padding:19px}
+}
