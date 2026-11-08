@@ -184,7 +184,8 @@ function renderPropertyDirectory(){
     const paymentState=p.rented===true?payment.state:'unknown';
     const paymentLabel=paymentState==='overdue'?'OVERDUE':paymentState==='evictable'?'EVICTABLE':'';
     return '<tr><td class="bi-dir-address"><strong>'+safe(address)+'</strong>'+
-      '<small>Block '+safe(p.blockId||'—')+' · ID '+safe(p.id||'—')+'</small></td>'+
+      '<small>Block '+safe(p.blockId||'—')+' · ID '+safe(p.id||'—')+'</small>'+
+      '<button type="button" class="bi-dir-history-link" data-tenant-property="'+safe(p.id)+'">View tenant history ↗</button></td>'+
       '<td>'+safe(p.area||'Unassigned')+'<small>'+safe(interiorLabels[String(p.type)]||p.type||'Unknown')+'</small></td>'+
       '<td><span class="bi-dir-state" data-occupancy="'+safe(occupancy.toLowerCase())+'">'+safe(occupancy)+'</span></td>'+
       '<td>'+safe(tenant)+(cid?'<small>'+safe(cid)+'</small>':'')+'</td>'+
@@ -222,12 +223,18 @@ async function loadPropertyDirectory(){
     propertyDirectory=result.properties.sort((a,b)=>
       String(a.address||a.name||'').localeCompare(String(b.address||b.name||''),'en',{numeric:true}));
     rentalSnapshotAvailable=result.rentalAvailable===true;
+    tenantHistory=Array.isArray(result.tenantHistory)?result.tenantHistory:[];
+    tenantHistoryWarning=String(result.tenantHistoryWarning||'');
+    renderTenantHistory();
     messageBox.textContent=rentalSnapshotAvailable?
       'Live rental and renter details. Updated when you refresh this list.':
       'Rental details could not be verified from OPFW; occupancy is shown as Unknown.';
     renderPropertyDirectory();
   }catch(err){
     propertyDirectory=[];
+    tenantHistory=[];
+    tenantHistoryWarning='Private tenant history is temporarily unavailable.';
+    renderTenantHistory();
     show(element('staffPortfolioStats'),false);
     element('staffPropertyRows').innerHTML='<tr><td colspan="8" class="bi-dir-empty">'+
       safe(err.message||'Unable to load the property directory.')+'</td></tr>';
@@ -389,6 +396,9 @@ async function checkRole() {
   show(element('staffWorkspace'),false);
   show(element('staffRoleChip'),false);
   propertyDirectory=[];
+  tenantHistory=[];
+  tenantHistoryWarning='';
+  show(element('staffTenantManualSection'),false);
   if(!session){currentRole=null;message('Sign in with Discord to continue.');return;}
   message('Checking your Brick & Ivy Discord permissions…');
   try {
@@ -401,6 +411,7 @@ async function checkRole() {
     const chip=element('staffRoleChip');
     if(chip){chip.textContent=accessLabel+' access';show(chip,true);}
     show(element('staffWorkspace'),true);
+    show(element('staffTenantManualSection'),currentRole==='owner');
     activateStaffTab('overview');
     await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
     if(currentRole==='owner'&&element('staffManagementContent')){
