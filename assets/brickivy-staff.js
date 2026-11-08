@@ -412,7 +412,7 @@ async function checkRole() {
     if(chip){chip.textContent=accessLabel+' access';show(chip,true);}
     show(element('staffWorkspace'),true);
     show(element('staffTenantManualSection'),currentRole==='owner');
-    activateStaffTab('overview');
+    activateStaffTab(location.hash==='#tenants'?'tenants':'overview');
     await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
     if(currentRole==='owner'&&element('staffManagementContent')){
       await loadRoster();
