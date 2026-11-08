@@ -10,6 +10,9 @@ let roster = [];
 let editingId = null;
 let propertyDirectory = [];
 let rentalSnapshotAvailable = false;
+let tenantHistory = [];
+let tenantHistoryWarning = '';
+let tenantHistoryBusy = false;
 let activeStaffTab = 'overview';
 
 function message(txt) { const el=element('staffMessage');if(el)el.textContent=txt; }
@@ -17,7 +20,7 @@ function safe(v) {return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'
 function show(el,visible) {if(el)el.hidden=!visible;}
 /* Navigate authorized sections without reloading the private property feed. */
 function activateStaffTab(tab,focus=false){
-  if(!['overview','properties','tools'].includes(tab))return;
+  if(!['overview','properties','tenants','tools'].includes(tab))return;
   activeStaffTab=tab;
   document.querySelectorAll('#staffTabNav [data-staff-tab]').forEach(button=>{
     const active=button.dataset.staffTab===tab;
@@ -231,6 +234,115 @@ async function loadPropertyDirectory(){
     element('staffPropertyCount').textContent='Property directory unavailable';
     messageBox.textContent='Private property information requires an authorized Brick & Ivy staff session.';
   }
+}
+
+
+/* Past renters are kept in a service-role-only history table. This private
+ * view displays observed snapshots honestly: first seen != lease start and
+ * end detected != the actual move-out date. */
+function tenantDateTime(value){
+ if(!value)return 'Unknown';
+ const parsed=new Date(value);
+ if(!Number.isFinite(parsed.getTime()))return 'Unknown';
+ return new Intl.DateTimeFormat('en-US',{
+  timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',
+  hour:'numeric',minute:'2-digit',timeZoneName:'short'
+ }).format(parsed);
+}
+function tenantKnownDate(value){
+ if(!value||!/^(\d{4})-(\d{2})-(\d{2})$/.test(String(value)))return null;
+ return new Intl.DateTimeFormat('en-US',{
+   timeZone:'UTC',month:'short',day:'numeric',year:'numeric'
+ }).format(new Date(value+'T12:00:00Z'));
+}
+function renderTenantHistory(){
+ const list=element('staffTenantList'),statusBox=element('staffTenantMessage');
+ if(!list||!statusBox||!currentRole)return;
+ const all=tenantHistory;
+ const past=all.filter(t=>t.endedAt);
+ const active=all.filter(t=>!t.endedAt);
+ const summary=element('staffTenantSummary');
+ if(summary){
+  summary.innerHTML=[
+   ['Previous tenants',past.length,'Former occupants recorded'],
+   ['Currently observed',active.length,'Active OPFW observations'],
+   ['Properties with history',new Set(all.map(t=>String(t.propertyId))).size,'Distinct recorded properties']
+  ].map(([label,count,detail])=>
+   '<div class="bi-tenant-stat"><span>'+safe(label)+'</span><strong>'+safe(count)+'</strong><small>'+safe(detail)+'</small></div>').join('');
+ }
+ const propertySelect=element('staffTenantProperty');
+ const oldProperty=propertySelect?.value||'';
+ const known=new Map();
+ for(const p of propertyDirectory)known.set(String(p.id),String(p.address||p.name||p.id));
+ for(const t of all)if(!known.has(String(t.propertyId)))known.set(String(t.propertyId),String(t.propertyAddress||t.propertyId));
+ const choices=[...known.entries()].sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true}));
+ if(propertySelect){
+  propertySelect.innerHTML='<option value="">All properties</option>'+choices.map(([id,name])=>
+   '<option value="'+safe(id)+'">'+safe(name)+'</option>').join('');
+  propertySelect.value=known.has(oldProperty)?oldProperty:'';
+ }
+ const manualProperty=element('staffTenantManualProperty');
+ const manualOld=manualProperty?.value||'';
+ if(manualProperty){
+  manualProperty.innerHTML='<option value="">Select property</option>'+propertyDirectory
+   .map(p=>[String(p.id),String(p.address||p.name||p.id)])
+   .sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true}))
+   .map(([id,name])=>'<option value="'+safe(id)+'">'+safe(name)+'</option>').join('');
+  manualProperty.value=propertyDirectory.some(p=>String(p.id)===manualOld)?manualOld:'';
+ }
+ const term=String(element('staffTenantSearch')?.value||'').trim().toLowerCase();
+ const targetProperty=propertySelect?.value||'';
+ const mode=element('staffTenantView')?.value||'former';
+ const filtered=all.filter(t=>{
+  if(mode==='former'&&!t.endedAt)return false;
+  if(mode==='active'&&t.endedAt)return false;
+  if(mode==='manual'&&t.source!=='manual')return false;
+  if(targetProperty&&String(t.propertyId)!==targetProperty)return false;
+  return !term||[t.propertyAddress,t.propertyId,t.renterName,t.renterCid,t.notes]
+   .some(value=>String(value??'').toLowerCase().includes(term));
+ }).sort((a,b)=>Date.parse(b.endedAt||b.firstSeenAt||0)-Date.parse(a.endedAt||a.firstSeenAt||0));
+ const suffix=filtered.length===1?'record':'records';
+ statusBox.textContent=filtered.length+' of '+all.length+' '+suffix+
+  ' · Automatically tracked when an authorized staff member refreshes the property feed.'+
+  (tenantHistoryWarning?' '+tenantHistoryWarning:'');
+ list.innerHTML=filtered.length?filtered.map(t=>{
+  const isPast=!!t.endedAt,manual=t.source==='manual';
+  const name=t.renterName|| (t.renterCid?'CID '+t.renterCid:'Name not reported');
+  const property=t.propertyAddress||propertyDirectory.find(p=>String(p.id)===String(t.propertyId))?.address||t.propertyId;
+  const first=manual?'Entered into history '+tenantDateTime(t.firstSeenAt):
+   'First observed '+tenantDateTime(t.firstSeenAt);
+  const end=manual?(t.moveOutOn?'Move-out date: '+tenantKnownDate(t.moveOutOn):'Move-out date not recorded'):
+   isPast?'Departure/change detected '+tenantDateTime(t.endedAt):
+   'Last observed '+tenantDateTime(t.lastSeenAt);
+  const inDate=manual&&t.moveInOn?'<span>Move-in date: '+safe(tenantKnownDate(t.moveInOn))+'</span>':'';
+  const reason=!manual&&isPast?
+   (t.endedReason==='changed'?'Replaced by a different renter':'Property observed vacant'):'';
+  return '<article class="bi-tenant-record">'+
+   '<div class="bi-tenant-record-head"><div><span class="bi-tenant-record-kicker">'+safe(property)+'</span>'+
+   '<h3>'+safe(name)+'</h3><p>'+(t.renterCid?'CID '+safe(t.renterCid):'CID not recorded')+
+   ' · Property ID '+safe(t.propertyId)+'</p></div>'+
+   '<span class="bi-tenant-status '+(isPast?'is-past':'is-current')+'">'+
+   (isPast?'Former tenant':'Currently observed')+'</span></div>'+
+   '<div class="bi-tenant-record-meta"><span>'+safe(first)+'</span>'+
+   '<span>'+safe(end)+'</span>'+inDate+'</div>'+
+   (reason?'<p class="bi-tenant-reason">'+safe(reason)+'</p>':'')+
+   (t.notes?'<details class="bi-tenant-notes"><summary>Internal notes</summary><p>'+safe(t.notes)+'</p></details>':'')+
+   (manual&&currentRole==='owner'?'<button type="button" class="bi-tenant-remove" data-remove-tenant="'+safe(t.id)+'">Remove manual record</button>':'')+
+   '</article>';
+ }).join(''):'<div class="bi-tenant-empty">No tenant records match these filters. Older tenants can be added by the Owner, and future occupant changes will be recorded when the live property feed is refreshed.</div>';
+}
+async function privatePropertyAction(action,extra={}){
+ const {data:{session}}=await supabase.auth.getSession();
+ if(!session?.access_token)throw Error('Please sign in again.');
+ const res=await fetch(cfg.supabaseUrl.replace(/\/$/,'')+'/functions/v1/brickivy-property-staff',{
+  method:'POST',credentials:'omit',
+  headers:{'Content-Type':'application/json',apikey:cfg.publishableKey,
+   Authorization:'Bearer '+session.access_token},
+  body:JSON.stringify({action,...extra})
+ });
+ const body=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(body.error||'Unable to update tenant history.');
+ return body;
 }
 
 /* Staff Portal inquiry pulse. Denied Realtors see no private metrics. */
