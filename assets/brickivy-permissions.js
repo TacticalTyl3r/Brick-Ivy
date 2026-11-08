@@ -15,7 +15,8 @@ const fields=[
  ['can_feature','Feature homes','Choose which homes are promoted on the homepage'],
  ['can_manage_photos','Manage property photos','Upload, remove, reorder and set cover images'],
  ['can_view_financials','View Financial Snapshot','View the weekly company rent, total maintenance and net income dashboard'],
- ['can_manage_inquiries','Manage property inquiries','Read visitor inquiries and update their progress or internal notes']
+ ['can_manage_inquiries','Manage property inquiries','Read visitor inquiries and update their progress or internal notes'],
+ ['can_manage_tenant_history','Add past tenants','Add previous renters with known dates and notes. Removing history remains Owner-only']
 ];
 let client=null,roles=[],selectedRoleId="",saving=false;
 const STATUS=(txt)=>{const el=byId('permissionsStatus');if(el)el.textContent=txt};
