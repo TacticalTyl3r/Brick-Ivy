@@ -18,7 +18,7 @@ const STANDARD_INTERIOR_CODES=Array.from({length:11},(_,index)=>String(index+1))
 const DEFAULT_PERMISSIONS={
  can_edit_area:false,can_manage_reservations:true,can_edit_description:false,
  can_set_prices:false,can_manage_storage:false,can_publish:false,
- can_feature:false,can_manage_photos:false,can_view_financials:false
+ can_feature:false,can_manage_photos:false,can_view_financials:false,can_manage_tenant_history:false
 };
 const OWNER_PERMISSIONS=Object.fromEntries(Object.keys(DEFAULT_PERMISSIONS).map(k=>[k,true]));
 const idPattern=/^[a-zA-Z0-9_-]{1,80}$/;
@@ -169,16 +169,16 @@ Deno.serve(async(req:Request)=>{
     const actions:Record<string,keyof typeof DEFAULT_PERMISSIONS>={
       saveWeeklyCost:"can_set_prices",setArea:"can_edit_area",setReservation:"can_manage_reservations",
       setStorage:"can_manage_storage",setDescription:"can_edit_description",
-      setPublished:"can_publish",setFeatured:"can_feature"
+      setPublished:"can_publish",setFeatured:"can_feature",addPastTenant:"can_manage_tenant_history"
     };
     const required=actions[String(action)];
     if(required && !permissions[required])return response({error:"Permission denied for this action"},403,cors);
     // Each staff request fetches an up-to-date OPFW company snapshot.
     const {rows,rentalAvailable}=await stock(opfwToken);
     const properties=rows.filter(r=>pid(r.property_id)!=="");
-    // Older tenancies can be added manually by the Owner.
+    // Owner and Discord roles with Add Past Tenants may enter history.
+    // Deleting existing history remains Owner-only.
     if(action==="addPastTenant"){
-      if(!owner)return response({error:"Only the Owner may add previous tenants"},403,cors);
       const request=input as Record<string,unknown>,id=pid(request.propertyId);
       const stockProperty=properties.find(p=>pid(p.property_id)===id);
       if(!stockProperty)return response({error:"Select a current Brick & Ivy property"},404,cors);
