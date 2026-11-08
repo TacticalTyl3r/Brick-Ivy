@@ -7,7 +7,7 @@
 <title>Property Management | Brick & Ivy Real Estate</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <script src="assets/theme.js?v=20261022-dark1"></script>
-<link rel="stylesheet" href="assets/styles.css?v=20261107-site-suite2">
+<link rel="stylesheet" href="assets/styles.css?v=20261108-tenants-shortcut1">
 <link rel="stylesheet" href="assets/dark-mode.css?v=20261107-site-suite2">
 <link rel="stylesheet" href="assets/brickivy-markdown.css?v=20261103-md1">
 <link rel="stylesheet" href="assets/brickivy-property-map.css?v=20261030-map2">
@@ -90,6 +90,10 @@ window.BRICK_IVY_CONFIG=Object.freeze({
 <div class="field"><label for="propertyStaffFilter">Rental status</label><select id="propertyStaffFilter"><option value="">All rental statuses</option><option value="rented">Rented</option><option value="vacant">Not rented</option></select></div>
 <div class="field"><label for="propertyStaffVisibility">Website visibility</label><select id="propertyStaffVisibility"><option value="">All properties</option><option value="published">Published</option><option value="unpublished">Unpublished</option><option value="featured">Featured</option></select></div>
 <button type="button" id="propertyStaffRefresh" class="button outline">Refresh ↻</button>
+</div>
+<div class="bi-tenant-manager-shortcut" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px">
+ <a class="button outline" href="admin.html#tenants">View Tenant History ↗</a>
+ <span style="font-size:12px;line-height:1.6;color:var(--muted)">Search previous renters and review records for every property in the private Staff Portal.</span>
 </div>
 <p id="propertyStaffFeedback" class="manage-message" role="status" aria-live="polite"></p>
 <p id="propertyStaffRentalWarning" class="property-private-warning" hidden>OPFW did not allow the rental fields on this token. Rental status is unknown; contact an administrator to review this token's read permissions.</p>
