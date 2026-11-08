@@ -13,6 +13,7 @@ let rentalSnapshotAvailable = false;
 let tenantHistory = [];
 let tenantHistoryWarning = '';
 let tenantHistoryBusy = false;
+let canAddPastTenants = false;
 let activeStaffTab = 'overview';
 
 function message(txt) { const el=element('staffMessage');if(el)el.textContent=txt; }
@@ -223,6 +224,8 @@ async function loadPropertyDirectory(){
     propertyDirectory=result.properties.sort((a,b)=>
       String(a.address||a.name||'').localeCompare(String(b.address||b.name||''),'en',{numeric:true}));
     rentalSnapshotAvailable=result.rentalAvailable===true;
+    canAddPastTenants=currentRole==='owner'||result.permissions?.can_manage_tenant_history===true;
+    show(element('staffTenantManualSection'),canAddPastTenants);
     tenantHistory=Array.isArray(result.tenantHistory)?result.tenantHistory:[];
     tenantHistoryWarning=String(result.tenantHistoryWarning||'');
     renderTenantHistory();
@@ -233,6 +236,8 @@ async function loadPropertyDirectory(){
   }catch(err){
     propertyDirectory=[];
     tenantHistory=[];
+    canAddPastTenants=false;
+    show(element('staffTenantManualSection'),false);
     tenantHistoryWarning='Private tenant history is temporarily unavailable.';
     renderTenantHistory();
     show(element('staffPortfolioStats'),false);
@@ -398,6 +403,7 @@ async function checkRole() {
   propertyDirectory=[];
   tenantHistory=[];
   tenantHistoryWarning='';
+  canAddPastTenants=false;
   show(element('staffTenantManualSection'),false);
   if(!session){currentRole=null;message('Sign in with Discord to continue.');return;}
   message('Checking your Brick & Ivy Discord permissions…');
@@ -411,7 +417,7 @@ async function checkRole() {
     const chip=element('staffRoleChip');
     if(chip){chip.textContent=accessLabel+' access';show(chip,true);}
     show(element('staffWorkspace'),true);
-    show(element('staffTenantManualSection'),currentRole==='owner');
+    show(element('staffTenantManualSection'),false);
     activateStaffTab(location.hash==='#tenants'?'tenants':'overview');
     await Promise.all([loadInquirySummary(),loadPropertyDirectory()]);
     if(currentRole==='owner'&&element('staffManagementContent')){
@@ -620,7 +626,7 @@ async function setup(){
     element('staffTenantRefresh')?.addEventListener('click',loadPropertyDirectory);
     element('staffTenantManualForm')?.addEventListener('submit',async event=>{
       event.preventDefault();
-      if(currentRole!=='owner'||tenantHistoryBusy)return;
+      if(!canAddPastTenants||tenantHistoryBusy)return;
       const form=event.currentTarget;
       if(!form.reportValidity())return;
       const button=element('staffTenantManualSubmit'),feedback=element('staffTenantManualStatus');
