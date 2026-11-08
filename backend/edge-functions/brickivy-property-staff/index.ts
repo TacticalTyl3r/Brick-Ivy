@@ -165,7 +165,7 @@ Deno.serve(async(req:Request)=>{
     const input=await req.json();
     if(!input||typeof input!=="object"||Array.isArray(input))return response({error:"Invalid request"},400,cors);
     const action=(input as Record<string,unknown>).action;
-    if(!["list","saveWeeklyCost","setArea","setReservation","setStorage","setDescription","setPublished","setFeatured"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
+    if(!["list","saveWeeklyCost","setArea","setReservation","setStorage","setDescription","setPublished","setFeatured","addPastTenant","removePastTenant"].includes(String(action)))return response({error:"Unsupported action"},400,cors);
     const actions:Record<string,keyof typeof DEFAULT_PERMISSIONS>={
       saveWeeklyCost:"can_set_prices",setArea:"can_edit_area",setReservation:"can_manage_reservations",
       setStorage:"can_manage_storage",setDescription:"can_edit_description",
@@ -176,6 +176,49 @@ Deno.serve(async(req:Request)=>{
     // Each staff request fetches an up-to-date OPFW company snapshot.
     const {rows,rentalAvailable}=await stock(opfwToken);
     const properties=rows.filter(r=>pid(r.property_id)!=="");
+    // Older tenancies can be added manually by the Owner.
+    if(action==="addPastTenant"){
+      if(!owner)return response({error:"Only the Owner may add previous tenants"},403,cors);
+      const request=input as Record<string,unknown>,id=pid(request.propertyId);
+      const stockProperty=properties.find(p=>pid(p.property_id)===id);
+      if(!stockProperty)return response({error:"Select a current Brick & Ivy property"},404,cors);
+      const name=str(request.renterName,140),notes=str(request.notes,1000);
+      const cid=request.renterCid==null||request.renterCid===""?null:Number(request.renterCid);
+      if(name.length<2)return response({error:"Enter the former tenant's character name"},400,cors);
+      if(cid!==null&&(!Number.isSafeInteger(cid)||cid<=0))
+        return response({error:"CID must be a positive character ID or empty"},400,cors);
+      const checkDate=(x:unknown)=>{
+        if(x==null||x==="")return null;
+        if(typeof x!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(x))return "invalid";
+        const parsed=new Date(x+"T00:00:00Z");
+        return Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===x?x:"invalid";
+      };
+      const moveIn=checkDate(request.moveInOn),moveOut=checkDate(request.moveOutOn);
+      if(moveIn==="invalid"||moveOut==="invalid"||(moveIn&&moveOut&&moveIn>moveOut))
+        return response({error:"Check the move-in and move-out dates"},400,cors);
+      if(moveOut&&moveOut>new Date().toISOString().slice(0,10))
+        return response({error:"Move-out date cannot be in the future"},400,cors);
+      const now=new Date().toISOString();
+      const {data:created,error:insertError}=await db.from("brickivy_tenant_history").insert({
+        property_id:id,property_address:str(stockProperty.property_address,200)||str(stockProperty.property_name,200),
+        renter_cid:cid,renter_name:name,source:"manual",first_seen_at:now,last_seen_at:now,
+        ended_at:now,ended_reason:"historical_entry",move_in_on:moveIn,move_out_on:moveOut,
+        notes,created_by:user.id
+      }).select("id").single();
+      if(insertError)throw Error("Unable to add previous tenant");
+      return response({success:true,id:created.id},200,cors);
+    }
+    if(action==="removePastTenant"){
+      if(!owner)return response({error:"Only the Owner may remove manually added tenants"},403,cors);
+      const entryId=str((input as Record<string,unknown>).id,50);
+      if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(entryId))
+        return response({error:"Invalid previous tenant record"},400,cors);
+      const {data:deleted,error:deleteError}=await db.from("brickivy_tenant_history")
+        .delete().eq("id",entryId).eq("source","manual").select("id").maybeSingle();
+      if(deleteError)throw Error("Unable to remove previous tenant record");
+      if(!deleted)return response({error:"Only manually entered records can be removed"},404,cors);
+      return response({success:true},200,cors);
+    }
     const inputData=input as Record<string,unknown>;
     if(action==="setPublished"||action==="setFeatured"){
       const propertyId=pid(inputData.propertyId);
