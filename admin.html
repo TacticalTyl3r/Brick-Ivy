@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#182d25"><meta name="description" content="Brick & Ivy staff portal for authorized Owners and Realtors."><meta name="robots" content="noindex,nofollow"><title>Staff Portal | Brick & Ivy Real Estate</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><script src="assets/theme.js?v=20261022-dark1"></script>
 <link rel="stylesheet" href="assets/styles.css?v=20261107-site-suite2">
-<link rel="stylesheet" href="assets/dark-mode.css?v=20261107-site-suite2"><link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261106-staff-dashboard2"><link rel="stylesheet" href="assets/brickivy-staff-directory.css?v=20261106-payment-label4"><script defer src="assets/site.js"></script><script>
+<link rel="stylesheet" href="assets/dark-mode.css?v=20261107-site-suite2"><link rel="stylesheet" href="assets/brickivy-inquiry-staff.css?v=20261106-staff-dashboard2"><link rel="stylesheet" href="assets/brickivy-staff-directory.css?v=20261108-tenant-history1"><script defer src="assets/site.js"></script><script>
 window.BRICK_IVY_CONFIG = Object.freeze({
   supabaseUrl: "https://rcbbnzqmfvapwuqmpmhk.supabase.co",
   publishableKey: "sb_publishable_coK46zZcVL53os91RCGw3A_jmnLmlZX",
   discordAuthReady: true
 });
-</script><script type="module" src="assets/brickivy-staff.js?v=20261107-role-auth1"></script></head>
+</script><script type="module" src="assets/brickivy-staff.js?v=20261108-tenant-history1"></script></head>
 <body>
 <header class="site-header"><div class="container header-inner"><a class="logo-lockup" href="index.html" aria-label="Brick and Ivy Real Estate homepage"><img class="logo-mark" src="assets/brick-ivy-mark.svg" alt=""><span class="logo-type">BRICK &amp; IVY<small>REAL ESTATE</small></span></a><nav class="primary-nav" id="primary-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="properties.html">Properties</a><a href="realtors.html">Realtors</a><a href="index.html#our-story">About us</a></nav><div class="header-actions"><a class="link-button" href="properties.html">View listings <span aria-hidden="true">↗</span></a><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="primary-nav" aria-expanded="false"><span aria-hidden="true"></span></button></div></div></header>
 <main class="container page-spacer bi-staff-page">
@@ -28,6 +28,7 @@ window.BRICK_IVY_CONFIG = Object.freeze({
   <div class="bi-staff-tabbar" role="tablist" aria-label="Staff Portal sections" id="staffTabNav">
    <button type="button" role="tab" id="staffTabOverview" class="bi-staff-tab is-active" data-staff-tab="overview" aria-controls="staffPanelOverview" aria-selected="true" tabindex="0"><span class="bi-staff-tab-symbol" aria-hidden="true">◫</span><span>Overview</span></button>
    <button type="button" role="tab" id="staffTabProperties" class="bi-staff-tab" data-staff-tab="properties" aria-controls="staffPanelProperties" aria-selected="false" tabindex="-1"><span class="bi-staff-tab-symbol" aria-hidden="true">⌂</span><span>Properties &amp; Renters</span></button>
+   <button type="button" role="tab" id="staffTabTenants" class="bi-staff-tab" data-staff-tab="tenants" aria-controls="staffPanelTenants" aria-selected="false" tabindex="-1"><span class="bi-staff-tab-symbol" aria-hidden="true">♙</span><span>Tenant History</span></button>
    <button type="button" role="tab" id="staffTabTools" class="bi-staff-tab" data-staff-tab="tools" aria-controls="staffPanelTools" aria-selected="false" tabindex="-1"><span class="bi-staff-tab-symbol" aria-hidden="true">⚙</span><span>Management</span></button>
   </div>
   <section class="bi-staff-view" id="staffPanelOverview" data-staff-panel="overview" role="tabpanel" aria-labelledby="staffTabOverview" tabindex="0">
@@ -36,7 +37,7 @@ window.BRICK_IVY_CONFIG = Object.freeze({
    <section id="staffInquirySummary" class="bi-portal-pulse" aria-label="Property inquiry summary" hidden></section>
    <div id="staffInquiryUnavailable" class="bi-staff-notice" hidden>Inquiry statistics are available to staff with the Manage Inquiries permission. Use the Management tab for your other tools.</div>
    <div class="bi-staff-shortcuts"><div><span class="eyebrow">Quick access</span><h3 class="serif">Jump right in</h3></div>
-    <div class="bi-staff-shortcut-links"><a href="manage-properties.html" class="bi-staff-shortcut"><span aria-hidden="true">⌂</span><strong>Property management</strong><small>Pricing, rentals &amp; listings</small></a><a href="manage-inquiries.html" class="bi-staff-shortcut"><span aria-hidden="true">✉</span><strong>Inquiry inbox</strong><small>Follow-ups &amp; assignments</small></a><button type="button" class="bi-staff-shortcut" data-staff-go="tools"><span aria-hidden="true">⚙</span><strong>All staff tools</strong><small>Organized by category</small></button></div>
+    <div class="bi-staff-shortcut-links"><button type="button" class="bi-staff-shortcut" data-staff-go="tenants"><span aria-hidden="true">♙</span><strong>Tenant history</strong><small>Former renters &amp; records</small></button><a href="manage-properties.html" class="bi-staff-shortcut"><span aria-hidden="true">⌂</span><strong>Property management</strong><small>Pricing, rentals &amp; listings</small></a><a href="manage-inquiries.html" class="bi-staff-shortcut"><span aria-hidden="true">✉</span><strong>Inquiry inbox</strong><small>Follow-ups &amp; assignments</small></a><button type="button" class="bi-staff-shortcut" data-staff-go="tools"><span aria-hidden="true">⚙</span><strong>All staff tools</strong><small>Organized by category</small></button></div>
    </div>
   </section>
   <section class="bi-staff-view" id="staffPanelProperties" data-staff-panel="properties" role="tabpanel" aria-labelledby="staffTabProperties" tabindex="0" hidden>
@@ -54,6 +55,31 @@ window.BRICK_IVY_CONFIG = Object.freeze({
     <div class="bi-dir-table-scroll"><table class="bi-dir-table"><thead><tr><th>Property / Block</th><th>Area / Interior</th><th>Occupancy</th><th>Renter / CID</th><th>Weekly rent</th><th>Maintenance</th><th>Total profit / week</th><th>Paid Until (ET)</th></tr></thead><tbody id="staffPropertyRows"></tbody></table></div>
     <p id="staffPropertyCount" class="bi-dir-count" aria-live="polite"></p>
    </section>
+  </section>
+  <section class="bi-staff-view" id="staffPanelTenants" data-staff-panel="tenants" role="tabpanel" aria-labelledby="staffTabTenants" tabindex="0" hidden>
+    <div class="bi-staff-view-header"><div><span class="eyebrow">Private rental records</span><h2 class="serif">Tenant History</h2><p>Review previous occupants and the history recorded for each home. Dates from OPFW are observations, not confirmed lease or move-out dates.</p></div>
+      <button type="button" class="button outline bi-staff-switch" id="staffTenantRefresh">Refresh history ↻</button></div>
+    <div class="bi-tenant-summary" id="staffTenantSummary" aria-live="polite"></div>
+    <div class="bi-tenant-controls">
+      <label for="staffTenantSearch">Find a tenant or property<input type="search" id="staffTenantSearch" placeholder="Name, address, CID, property ID"></label>
+      <label for="staffTenantProperty">Property<select id="staffTenantProperty"><option value="">All properties</option></select></label>
+      <label for="staffTenantView">Show<select id="staffTenantView"><option value="former">Previous tenants</option><option value="all">All records</option><option value="active">Currently observed</option><option value="manual">Manually entered</option></select></label>
+    </div>
+    <p class="bi-tenant-notice" id="staffTenantMessage" role="status" aria-live="polite">Loading private rental history…</p>
+    <div class="bi-tenant-list" id="staffTenantList" aria-live="polite"></div>
+    <section class="bi-tenant-manual" id="staffTenantManualSection" hidden aria-labelledby="staffTenantManualTitle">
+      <div class="bi-tenant-manual-heading"><span class="eyebrow">Owner records</span><h3 class="serif" id="staffTenantManualTitle">Add a previous tenant</h3>
+       <p>For tenants who rented before automatic observations began. Enter dates only when known.</p></div>
+      <form id="staffTenantManualForm" class="bi-tenant-manual-grid">
+       <label for="staffTenantManualProperty">Property<select id="staffTenantManualProperty" required><option value="">Select property</option></select></label>
+       <label for="staffTenantManualName">Character name<input id="staffTenantManualName" maxlength="140" minlength="2" required placeholder="First and last name"></label>
+       <label for="staffTenantManualCid">Character ID (optional)<input id="staffTenantManualCid" type="number" min="1" step="1" placeholder="CID"></label>
+       <label for="staffTenantManualMoveIn">Move-in date (if known)<input id="staffTenantManualMoveIn" type="date"></label>
+       <label for="staffTenantManualMoveOut">Move-out date (if known)<input id="staffTenantManualMoveOut" type="date"></label>
+       <label class="bi-tenant-manual-notes" for="staffTenantManualNotes">Internal notes (optional)<textarea id="staffTenantManualNotes" rows="3" maxlength="1000" placeholder="Previous rental details or reason for leaving"></textarea></label>
+       <div class="bi-tenant-manual-actions"><button class="button dark" type="submit" id="staffTenantManualSubmit">Add previous tenant →</button><span id="staffTenantManualStatus" role="status" aria-live="polite"></span></div>
+      </form>
+    </section>
   </section>
   <section class="bi-staff-view" id="staffPanelTools" data-staff-panel="tools" role="tabpanel" aria-labelledby="staffTabTools" tabindex="0" hidden>
    <div class="bi-staff-view-header"><div><span class="eyebrow">Staff resources</span><h2 class="serif">Management tools</h2><p>Find the right tool by category, with the permissions based on current Discord server roles.</p></div></div>
