@@ -1444,3 +1444,84 @@ body[data-page="properties"] .public-listing-group.is-unavailable .property-imag
   margin-top:34px;padding-top:26px;
  }
 }
+
+
+
+/* COMPACT PUBLIC REALTOR CARDS / 2026-11-08 */
+/* Smaller public team tiles without hiding contact information or bios.
+   Scoped to the public directory; Owner management cards are unaffected. */
+body[data-page="realtors"] .team-section{padding-top:66px;padding-bottom:82px}
+body[data-page="realtors"] .team-heading{margin-bottom:30px}
+body[data-page="realtors"] .realtor-position-section + .realtor-position-section{margin-top:44px}
+body[data-page="realtors"] .realtor-position-heading{margin-bottom:17px;padding-bottom:13px}
+body[data-page="realtors"] .realtor-position-heading h3{font-size:clamp(25px,2.8vw,36px)}
+body[data-page="realtors"] .realtor-grid{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:16px;
+ align-items:stretch;
+}
+body[data-page="realtors"] .realtor-card{
+ min-width:0;border-radius:7px;
+ box-shadow:0 5px 18px rgba(30,54,34,.05);
+}
+body[data-page="realtors"] .realtor-photo{height:190px}
+body[data-page="realtors"] .realtor-avatar{width:92px;height:92px;font-size:35px}
+body[data-page="realtors"] .realtor-role-badge{
+ padding:7px 12px;font-size:9px;letter-spacing:.11em;
+}
+body[data-page="realtors"] .realtor-body{
+ padding:17px 16px 18px;
+}
+body[data-page="realtors"] .realtor-name{
+ font-size:22px;line-height:1.23;margin-bottom:5px;
+ overflow-wrap:anywhere;
+}
+body[data-page="realtors"] .realtor-subtitle{
+ font-size:10px;letter-spacing:.085em;margin-bottom:9px;
+}
+body[data-page="realtors"] .realtor-availability{
+ padding:5px 8px;gap:6px;margin:2px 0 12px;
+ font-size:9px;letter-spacing:.045em;
+}
+body[data-page="realtors"] .realtor-availability .availability-dot{
+ width:7px;height:7px;flex-basis:7px;
+}
+body[data-page="realtors"] .realtor-bio{
+ font-size:12px;line-height:1.6;margin-bottom:13px;
+}
+body[data-page="realtors"] .realtor-details{
+ padding-top:12px;gap:9px;
+}
+body[data-page="realtors"] .realtor-contact-row{
+ grid-template-columns:58px minmax(0,1fr) auto;
+ align-items:start;gap:5px;font-size:11px;
+}
+body[data-page="realtors"] .realtor-contact-label{
+ font-size:9px;letter-spacing:.035em;
+}
+body[data-page="realtors"] .realtor-contact-value{
+ font-size:11px;line-height:1.45;
+}
+body[data-page="realtors"] .realtor-copy{
+ min-height:26px;padding:3px 6px;font-size:9px;border-radius:4px;
+}
+body[data-page="realtors"] .realtor-actions{margin-top:13px;gap:7px}
+body[data-page="realtors"] .realtor-actions .button{
+ padding:8px 11px;min-height:36px;
+ font-size:9px;line-height:1.4;letter-spacing:.025em;
+}
+@media(max-width:1099px){
+ body[data-page="realtors"] .realtor-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body[data-page="realtors"] .realtor-photo{height:205px}
+}
+@media(max-width:800px){
+ body[data-page="realtors"] .realtor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body[data-page="realtors"] .team-section{padding:54px 0 72px}
+}
+@media(max-width:560px){
+ body[data-page="realtors"] .realtor-grid{grid-template-columns:1fr}
+ body[data-page="realtors"] .realtor-card{max-width:430px;width:100%}
+ body[data-page="realtors"] .realtor-photo{height:200px}
+ body[data-page="realtors"] .realtor-body{padding:18px}
+ body[data-page="realtors"] .realtor-position-section + .realtor-position-section{margin-top:34px}
+}
