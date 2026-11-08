@@ -445,6 +445,42 @@ Deno.serve(async(req:Request)=>{
         lastPayment:rentalAvailable?str(r.property_last_pay,80)||null:null
       };
     });
+    // One observed tenancy per property. OPFW only reports current occupancy,
+    // so "observed" timestamps must not be presented as true rental move dates.
+    let tenantHistoryWarning="";
+    if(rentalAvailable){
+      const snapshots=propertyRows.map(p=>({
+        propertyId:p.id,propertyAddress:p.address||p.name||"",
+        renterCid:p.renterCharacterId,renterName:p.renterName||""
+      }));
+      const {error:syncError}=await db.rpc("brickivy_sync_tenant_history",{p_rows:snapshots});
+      if(syncError){
+        console.error("Tenant observation failed:",syncError.message);
+        tenantHistoryWarning="Tenant history could not update; current rentals are still available.";
+      }
+    }else tenantHistoryWarning="OPFW renter details unavailable; tenant history was not updated.";
+    let tenantRows:Record<string,unknown>[]=[];
+    for(let from=0;from<5000;from+=1000){
+      const {data:records,error:historyError}=await db.from("brickivy_tenant_history")
+        .select("id,property_id,property_address,renter_cid,renter_name,source,first_seen_at,last_seen_at,ended_at,ended_reason,move_in_on,move_out_on,notes")
+        .order("first_seen_at",{ascending:false}).order("id",{ascending:true})
+        .range(from,from+999);
+      if(historyError){
+        console.error("Tenant history query failed:",historyError.message);
+        tenantHistoryWarning="Tenant history could not be retrieved.";
+        tenantRows=[];break;
+      }
+      tenantRows.push(...(records||[]));
+      if((records||[]).length<1000)break;
+      if(from===4000)tenantHistoryWarning="Showing the latest 5,000 tenant records.";
+    }
+    const tenantHistory=tenantRows.map(entry=>({
+      id:entry.id,propertyId:entry.property_id,propertyAddress:entry.property_address,
+      renterCid:entry.renter_cid,renterName:entry.renter_name,source:entry.source,
+      firstSeenAt:entry.first_seen_at,lastSeenAt:entry.last_seen_at,
+      endedAt:entry.ended_at,endedReason:entry.ended_reason,
+      moveInOn:entry.move_in_on,moveOutOn:entry.move_out_on,notes:entry.notes
+    }));
     // Income = weekly rent from rented homes only - OPFW maintenance for
     // EVERY property, including vacant, reserved and hidden homes.
     // All math is calculated in integer cents. Never show a fake $0 net when
@@ -478,7 +514,7 @@ Deno.serve(async(req:Request)=>{
         capacitySlots:storedTypes.get(type)?.capacity_slots??null,
         propertyCount:properties.filter(p=>str(p.property_type,80)===type).length
       })),
-      properties:propertyRows},200,cors);
+      properties:propertyRows,tenantHistory,tenantHistoryWarning},200,cors);
   }catch(e){
     console.error("Brick & Ivy private property request failed:",e instanceof Error?e.message:"unknown");
     return response({error:"Unable to load private property information. Check the staff Edge Function logs."},503,cors);
