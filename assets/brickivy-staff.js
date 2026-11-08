@@ -614,6 +614,50 @@ async function setup(){
     element('staffPropertySearch')?.addEventListener('input',renderPropertyDirectory);
     element('staffPropertyFilter')?.addEventListener('change',renderPropertyDirectory);
     element('staffPropertyRefresh')?.addEventListener('click',loadPropertyDirectory);
+    element('staffTenantSearch')?.addEventListener('input',renderTenantHistory);
+    element('staffTenantProperty')?.addEventListener('change',renderTenantHistory);
+    element('staffTenantView')?.addEventListener('change',renderTenantHistory);
+    element('staffTenantRefresh')?.addEventListener('click',loadPropertyDirectory);
+    element('staffTenantManualForm')?.addEventListener('submit',async event=>{
+      event.preventDefault();
+      if(currentRole!=='owner'||tenantHistoryBusy)return;
+      const form=event.currentTarget;
+      if(!form.reportValidity())return;
+      const button=element('staffTenantManualSubmit'),feedback=element('staffTenantManualStatus');
+      const propertyId=element('staffTenantManualProperty').value;
+      const renterName=element('staffTenantManualName').value.trim();
+      const renterCid=element('staffTenantManualCid').value.trim();
+      const moveInOn=element('staffTenantManualMoveIn').value;
+      const moveOutOn=element('staffTenantManualMoveOut').value;
+      const notes=element('staffTenantManualNotes').value.trim();
+      tenantHistoryBusy=true;button.disabled=true;feedback.textContent='Saving previous tenant…';
+      try{
+        await privatePropertyAction('addPastTenant',{
+          propertyId,renterName,renterCid,moveInOn,moveOutOn,notes
+        });
+        form.reset();
+        element('staffTenantProperty').value=propertyId;
+        element('staffTenantView').value='former';
+        await loadPropertyDirectory();
+        feedback.textContent='Previous tenant added to the private history.';
+      }catch(error){feedback.textContent=error.message||'Unable to save tenant history.'}
+      finally{tenantHistoryBusy=false;button.disabled=false}
+    });
+    element('staffTenantList')?.addEventListener('click',async event=>{
+      const button=event.target.closest('[data-remove-tenant]');
+      if(!button||currentRole!=='owner'||tenantHistoryBusy)return;
+      const record=tenantHistory.find(t=>String(t.id)===button.dataset.removeTenant);
+      if(!record||record.source!=='manual')return;
+      if(!confirm('Remove the manually entered record for '+(record.renterName||'this tenant')+'? This does not change the game rental.'))return;
+      tenantHistoryBusy=true;button.disabled=true;
+      try{
+        await privatePropertyAction('removePastTenant',{id:record.id});
+        await loadPropertyDirectory();
+      }catch(error){
+        element('staffTenantMessage').textContent=error.message||'Unable to remove manual entry.';
+        button.disabled=false;
+      }finally{tenantHistoryBusy=false}
+    });
     const tabNav=element('staffTabNav');
     tabNav?.addEventListener('click',event=>{
       const button=event.target.closest('[data-staff-tab]');
@@ -640,11 +684,26 @@ async function setup(){
         activateStaffTab('properties');
         return;
       }
+      const historyButton=event.target.closest('[data-tenant-property]');
+      if(historyButton){
+        const target=element('staffTenantProperty');
+        if(target)target.value=historyButton.dataset.tenantProperty||'';
+        element('staffTenantView').value='former';
+        renderTenantHistory();
+        activateStaffTab('tenants');
+        return;
+      }
       const button=event.target.closest('[data-staff-go]');
       if(button)activateStaffTab(button.dataset.staffGo);
     });
     // Keep deadline badges accurate while the Staff Portal is left open.
     setInterval(()=>{if(propertyDirectory.length&&currentRole)renderPropertyDirectory()},60000);
+    // Observe fresh OPFW occupancy while this staff page is actively open.
+    // This does not claim to reconstruct tenant changes between observations.
+    setInterval(()=>{
+      if(currentRole&&document.visibilityState==='visible'&&!tenantHistoryBusy)
+        loadPropertyDirectory();
+    },300000);
     await checkRole();
     if(form){
       form.addEventListener('submit',async e=>{
